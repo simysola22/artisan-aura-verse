@@ -1,0 +1,693 @@
+# PRECIOUS MARKET PLACE (PMP)
+
+# FULL-STACK IMPLEMENTATION — CONTROLLED DEVELOPMENT WORKFLOW
+
+You are working on a large production-oriented service marketplace platform called:
+
+# PRECIOUS MARKET PLACE
+
+Official abbreviation:
+
+# PMP
+
+This is an existing frontend project that has already been designed and architected.
+
+You are not starting from an empty project.
+
+You are continuing development from an existing GitHub repository.
+
+The project contains architecture and frontend handoff documentation that must be read before making changes.
+
+---
+
+# CRITICAL RULE: DEVELOPMENT ORDER
+
+You must work in the following order:
+
+```text
+PHASE 1 — UNDERSTAND THE EXISTING PROJECT
+        ↓
+PHASE 2 — COMPLETE TWO FRONTEND CHANGES
+        ↓
+PHASE 3 — AUDIT AND STABILIZE THE FRONTEND
+        ↓
+PHASE 4 — ESTABLISH BACKEND FOUNDATION
+        ↓
+PHASE 5 — IMPLEMENT BACKEND AGAINST THE EXISTING API CONTRACT
+```
+
+Do not skip phases.
+
+Do not immediately start implementing backend features before completing the frontend changes and understanding the existing architecture.
+
+---
+
+# PHASE 1 — READ THE EXISTING PROJECT
+
+Before modifying code, inspect the repository.
+
+You must read and understand:
+
+* `docs/`
+* `docs/frontend-handoff.md`
+* `src/api/contracts.md`
+* `src/api/`
+* `src/types/`
+* `src/features/`
+* `src/layouts/`
+* `src/routes/`
+* `src/styles.css`
+* `package.json`
+* Existing configuration files
+
+The frontend has already been intentionally structured.
+
+Do not destroy or replace the existing architecture.
+
+The existing frontend has:
+
+* Public application shell
+* Operations application shell
+* Authentication shell
+* Glass UI primitives
+* Theme system
+* API abstraction layer
+* Mock adapter
+* Domain types
+* Search
+* Provider profiles
+* Verification flows
+* Messaging UI
+* Operations interfaces
+
+Preserve the architecture unless a change is necessary to fulfill the requirements below.
+
+---
+
+# PHASE 2 — FRONTEND CHANGE 1: ADD TWO NEW THEMES
+
+The existing theme system currently contains:
+
+* Light
+* Dark
+* Midnight
+
+Add two additional themes.
+
+The final theme system must contain five themes:
+
+```text
+1. Light
+2. Dark
+3. Midnight
+4. Bright Theme 1
+5. Bright Theme 2
+```
+
+The two new themes must be genuinely bright and light-oriented.
+
+They must not simply be copies of the existing Light theme.
+
+They should be visually distinct while preserving the existing product identity.
+
+The design language must continue to use:
+
+* Glassmorphism
+* Liquid-glass-inspired surfaces
+* Controlled translucency
+* Blur
+* Depth
+* Elegant borders
+* Premium SaaS aesthetics
+
+The new themes must:
+
+* Work across the entire application.
+* Work with all existing glass components.
+* Maintain readable text contrast.
+* Maintain accessible focus states.
+* Work in forms, cards, navigation, dashboards, provider profiles, search, messaging, and operations screens.
+* Use the existing centralized token system.
+* Avoid scattering hardcoded colors throughout components.
+
+Do not break the existing three themes.
+
+Do not remove or rename the existing themes unless required for technical consistency.
+
+The theme system must remain scalable so more themes can be added later.
+
+Before finalizing the themes, inspect how the existing themes are implemented and extend the existing architecture rather than creating a separate theme mechanism.
+
+---
+
+# PHASE 2 — FRONTEND CHANGE 2: COMPLETE REBRAND
+
+The official product name is:
+
+# PRECIOUS MARKET PLACE
+
+Official abbreviation:
+
+# PMP
+
+The product name must be applied consistently throughout the frontend.
+
+Search the entire repository for existing placeholder names, previous product names, generic names, and incorrect branding.
+
+Update branding where appropriate, including:
+
+* Browser document titles
+* Route metadata
+* SEO metadata
+* Auth pages
+* Navigation
+* Public pages
+* Footer
+* Loading screens
+* Empty states where branding appears
+* Error pages where branding appears
+* App configuration
+* Visible wordmarks
+* Documentation references where appropriate
+
+Use the official naming convention:
+
+```text
+Precious Market Place (PMP)
+```
+
+Do not change the official name to:
+
+* Precious Marketplace
+* Precious MarketPlace
+* Precious Market Place App
+* Any other variation
+
+unless it is technically necessary for an identifier or package name.
+
+Where a short brand name is appropriate, use:
+
+```text
+PMP
+```
+
+Preserve the premium visual identity.
+
+Do not redesign the entire application solely because of the rebrand.
+
+---
+
+# PHASE 3 — FRONTEND AUDIT AND STABILIZATION
+
+After completing both frontend changes, perform a complete frontend audit.
+
+Verify:
+
+## Theme system
+
+* All five themes work.
+* Theme switching works.
+* Theme persistence works.
+* No existing theme was broken.
+* Glass components work correctly in all themes.
+* Text remains readable.
+* Focus states remain visible.
+
+## Branding
+
+* No incorrect visible product name remains.
+* Browser titles are correct.
+* Metadata is correct.
+* Navigation branding is correct.
+* Auth branding is correct.
+
+## API layer
+
+Preserve:
+
+```text
+Feature
+   ↓
+Domain API abstraction
+   ↓
+Mock or real adapter
+```
+
+Do not allow feature components to directly access mock data.
+
+Do not rewrite the API contract casually.
+
+---
+
+# PHASE 4 — BACKEND FOUNDATION
+
+Only after completing and stabilizing the frontend changes should backend work begin.
+
+Before implementing backend features, read:
+
+* `src/api/contracts.md`
+* `docs/frontend-handoff.md`
+* All relevant architecture documentation
+
+The backend must implement the frontend contract.
+
+The backend must not independently invent incompatible endpoint shapes.
+
+The frontend contract is the starting point for backend implementation.
+
+If a contract is incomplete or contradictory:
+
+1. Identify the issue.
+2. Document it.
+3. Resolve it deliberately.
+4. Update the contract.
+5. Implement the backend consistently.
+
+Do not silently create contract drift.
+
+---
+
+# BACKEND ARCHITECTURE REQUIREMENTS
+
+Build the backend as a modular, maintainable application.
+
+The backend must have clear separation between:
+
+* Configuration
+* Authentication
+* Authorization
+* Users
+* Employers
+* Service providers
+* Artisans
+* Professionals
+* Reference data
+* Verification
+* Search
+* Ranking
+* Messaging
+* Subscriptions
+* Payments
+* Notifications
+* Support
+* Moderation
+* Administration
+
+The backend must not become one giant file or one giant route handler.
+
+---
+
+# BACKEND FOUNDATION REQUIREMENTS
+
+Establish:
+
+* Environment configuration
+* Database connection
+* Database migration system
+* Structured logging
+* Centralized error handling
+* Request validation
+* API versioning strategy
+* Health check endpoint
+* Readiness check where appropriate
+* Security headers
+* CORS policy
+* Rate-limiting foundation
+* Request ID/correlation ID
+* Graceful shutdown
+* Configuration validation
+
+Do not hardcode secrets.
+
+Do not commit secrets.
+
+Do not expose private credentials to the frontend.
+
+---
+
+# DATABASE REQUIREMENTS
+
+Use a relational database architecture appropriate for the platform.
+
+The database must support:
+
+* Users
+* Roles
+* Permissions
+* Employers
+* Service providers
+* Artisans
+* Professionals
+* Skills
+* Categories
+* Experience
+* Certifications
+* Portfolio items
+* Verification applications
+* Verification decisions
+* Conversations
+* Messages
+* Subscriptions
+* Entitlements
+* Audit logs
+
+Use migrations.
+
+Do not rely on manually modifying a production database.
+
+The database schema must be version-controlled.
+
+Use appropriate indexes for expected query patterns.
+
+Do not add indexes blindly.
+
+---
+
+# AUTHENTICATION REQUIREMENTS
+
+Implement the authentication contract from:
+
+`src/api/contracts.md`
+
+The system must eventually support:
+
+* Registration
+* Login
+* Logout
+* Session handling
+* `/auth/me`
+* Refresh tokens
+* Password recovery
+* Password reset finalization
+
+The backend must be the authority for authentication.
+
+Do not trust frontend role state.
+
+Prefer secure server-controlled session mechanisms.
+
+Do not use localStorage as the production source of truth for authentication.
+
+---
+
+# AUTHORIZATION REQUIREMENTS
+
+The system has multiple distinct user types and internal teams.
+
+The architecture must support:
+
+## Public roles
+
+* Employer/Hirer
+* Artisan
+* Professional
+
+## Internal roles
+
+* Owner
+* System Administrator
+* Verification Team
+* Support Team
+* Moderation Team
+* Operations Team
+
+Authorization must be enforced server-side.
+
+The frontend is never a security boundary.
+
+Do not rely on:
+
+* Hidden buttons
+* Hidden routes
+* Private URLs
+* Frontend role checks
+
+for security.
+
+---
+
+# OPERATIONS APPLICATION
+
+The current frontend contains an initial operations surface.
+
+Treat it as a temporary frontend surface.
+
+The long-term architecture must support a separate operations application/deployment.
+
+The operations application must eventually be protected by:
+
+* Authentication
+* Server-side authorization
+* Role permissions
+* Audit logging
+* Strong session controls
+
+A secret URL is not a security mechanism.
+
+---
+
+# VERIFICATION ARCHITECTURE
+
+The initial system will support human verification.
+
+However, the architecture must remain open to future:
+
+* AI verification
+* External verification APIs
+* Automated document analysis
+* Additional verification providers
+
+Verification must be modeled as a replaceable workflow.
+
+Do not hardcode the system so that only one verification method can ever exist.
+
+---
+
+# SEARCH AND RANKING
+
+The backend owns:
+
+* Search
+* Filtering
+* Ranking
+* Scoring
+
+The frontend displays the result order returned by the backend.
+
+The architecture should allow future ranking improvements involving:
+
+* Experience
+* Certifications
+* Skills
+* Portfolio quality
+* Verification
+* Relevance
+* Location
+* Availability
+* Future AI-assisted matching
+
+Do not hardcode the official ranking score in the frontend.
+
+---
+
+# MESSAGING
+
+Implement the messaging contract.
+
+The architecture must support:
+
+* Conversations
+* Messages
+* Message ownership
+* Read state
+* Reporting/moderation hooks
+* Future realtime transport
+
+The frontend intentionally abstracts realtime transport.
+
+The backend may choose:
+
+* WebSockets
+* Server-Sent Events
+* Long polling
+
+based on the final architecture.
+
+Do not create unnecessary coupling.
+
+---
+
+# SECURITY
+
+Treat security as a first-class concern.
+
+Implement appropriate protections against:
+
+* Unauthorized access
+* Broken object-level authorization
+* Injection attacks
+* Brute force
+* Credential abuse
+* Excessive requests
+* Sensitive data exposure
+* Insecure file uploads
+* Session abuse
+
+Do not claim that security is complete merely because authentication exists.
+
+---
+
+# RATE LIMITING
+
+Rate limiting must be designed by endpoint category.
+
+Different limits may be appropriate for:
+
+* Login
+* Registration
+* Password recovery
+* Search
+* Messaging
+* File uploads
+* Administrative operations
+
+Do not use one simplistic global rate limit for every operation.
+
+---
+
+# LOGGING AND ERROR TRACKING
+
+The backend must use structured logs.
+
+Do not log:
+
+* Passwords
+* Tokens
+* Sensitive personal information unnecessarily
+
+The architecture must be ready for integration with an external error-tracking platform.
+
+---
+
+# API IMPLEMENTATION ORDER
+
+Implement backend features in this order:
+
+## Stage 1 — Foundation
+
+* Project structure
+* Configuration
+* Database
+* Migrations
+* Logging
+* Error handling
+* Health checks
+* Security foundation
+
+## Stage 2 — Authentication
+
+* Register
+* Login
+* Logout
+* `/auth/me`
+* Refresh
+* Recovery
+* Reset
+
+## Stage 3 — Reference data
+
+* Categories
+* Skills
+
+## Stage 4 — Providers and employers
+
+* Profiles
+* Skills
+* Experience
+* Certifications
+* Portfolio
+
+## Stage 5 — Verification
+
+* Submission
+* Status
+* Review workflow
+* Internal permissions
+
+## Stage 6 — Search
+
+* Search
+* Filtering
+* Pagination
+* Ranking
+
+## Stage 7 — Messaging
+
+* Conversations
+* Messages
+* Realtime transport
+
+Do not rush to implement payments before the core platform is stable.
+
+---
+
+# DOCUMENTATION REQUIREMENT
+
+Update documentation as architecture decisions are made.
+
+Create or update:
+
+```text
+docs/backend-handoff.md
+```
+
+Document:
+
+* Backend architecture
+* Technology choices
+* Database structure
+* Authentication
+* Authorization
+* API implementation status
+* Security decisions
+* Rate limiting
+* Logging
+* Realtime strategy
+* Known limitations
+* Infrastructure dependencies
+
+---
+
+# IMPORTANT AI DEVELOPMENT RULE
+
+You are one development stage in a larger multi-tool workflow.
+
+Do not assume you are the only AI working on this project.
+
+Preserve:
+
+* Existing frontend architecture
+* Existing API contracts
+* Existing documentation
+* Existing type conventions
+* Existing design system
+
+Do not make large destructive changes without documenting them.
+
+Do not silently rewrite unrelated parts of the application.
+
+At the end of every major phase:
+
+1. Run available checks.
+2. Review changes.
+3. Update documentation.
+4. Report what was changed.
+5. Report what remains.
+
+The final codebase must remain understandable to future developers and AI coding tools.
+
+Begin by inspecting the repository and existing documentation.
+
+Then complete the two frontend changes.
+
+Only after the frontend audit passes should you begin the backend foundation.
