@@ -9,38 +9,351 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificationRouteImport } from './routes/verification'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ForProvidersRouteImport } from './routes/for-providers'
+import { Route as ForEmployersRouteImport } from './routes/for-employers'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OpsIndexRouteImport } from './routes/ops.index'
+import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
+import { Route as OpsVerificationRouteImport } from './routes/ops.verification'
+import { Route as OpsUsersRouteImport } from './routes/ops.users'
+import { Route as OpsSupportRouteImport } from './routes/ops.support'
+import { Route as OpsModerationRouteImport } from './routes/ops.moderation'
+import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
+import { Route as AuthRegisterRouteImport } from './routes/auth.register'
+import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
+import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForProvidersRoute = ForProvidersRouteImport.update({
+  id: '/for-providers',
+  path: '/for-providers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForEmployersRoute = ForEmployersRouteImport.update({
+  id: '/for-employers',
+  path: '/for-employers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OpsIndexRoute = OpsIndexRouteImport.update({
+  id: '/ops/',
+  path: '/ops/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
+  id: '/providers/$providerId',
+  path: '/providers/$providerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsVerificationRoute = OpsVerificationRouteImport.update({
+  id: '/ops/verification',
+  path: '/ops/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsUsersRoute = OpsUsersRouteImport.update({
+  id: '/ops/users',
+  path: '/ops/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsSupportRoute = OpsSupportRouteImport.update({
+  id: '/ops/support',
+  path: '/ops/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsModerationRoute = OpsModerationRouteImport.update({
+  id: '/ops/moderation',
+  path: '/ops/moderation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => MessagesRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/auth/register',
+  path: '/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRecoverRoute = AuthRecoverRouteImport.update({
+  id: '/auth/recover',
+  path: '/auth/recover',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/dashboard': typeof DashboardRoute
+  '/for-employers': typeof ForEmployersRoute
+  '/for-providers': typeof ForProvidersRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/messages': typeof MessagesRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/recover': typeof AuthRecoverRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
+  '/ops/moderation': typeof OpsModerationRoute
+  '/ops/support': typeof OpsSupportRoute
+  '/ops/users': typeof OpsUsersRoute
+  '/ops/verification': typeof OpsVerificationRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
+  '/ops/': typeof OpsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/dashboard': typeof DashboardRoute
+  '/for-employers': typeof ForEmployersRoute
+  '/for-providers': typeof ForProvidersRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/messages': typeof MessagesRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/recover': typeof AuthRecoverRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
+  '/ops/moderation': typeof OpsModerationRoute
+  '/ops/support': typeof OpsSupportRoute
+  '/ops/users': typeof OpsUsersRoute
+  '/ops/verification': typeof OpsVerificationRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
+  '/ops': typeof OpsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
+  '/dashboard': typeof DashboardRoute
+  '/for-employers': typeof ForEmployersRoute
+  '/for-providers': typeof ForProvidersRoute
+  '/how-it-works': typeof HowItWorksRoute
+  '/messages': typeof MessagesRouteWithChildren
+  '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/verification': typeof VerificationRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/recover': typeof AuthRecoverRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
+  '/ops/moderation': typeof OpsModerationRoute
+  '/ops/support': typeof OpsSupportRoute
+  '/ops/users': typeof OpsUsersRoute
+  '/ops/verification': typeof OpsVerificationRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
+  '/ops/': typeof OpsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/dashboard'
+    | '/for-employers'
+    | '/for-providers'
+    | '/how-it-works'
+    | '/messages'
+    | '/search'
+    | '/sitemap.xml'
+    | '/verification'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/messages/$conversationId'
+    | '/ops/moderation'
+    | '/ops/support'
+    | '/ops/users'
+    | '/ops/verification'
+    | '/providers/$providerId'
+    | '/ops/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/account'
+    | '/dashboard'
+    | '/for-employers'
+    | '/for-providers'
+    | '/how-it-works'
+    | '/messages'
+    | '/search'
+    | '/sitemap.xml'
+    | '/verification'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/messages/$conversationId'
+    | '/ops/moderation'
+    | '/ops/support'
+    | '/ops/users'
+    | '/ops/verification'
+    | '/providers/$providerId'
+    | '/ops'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/dashboard'
+    | '/for-employers'
+    | '/for-providers'
+    | '/how-it-works'
+    | '/messages'
+    | '/search'
+    | '/sitemap.xml'
+    | '/verification'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/messages/$conversationId'
+    | '/ops/moderation'
+    | '/ops/support'
+    | '/ops/users'
+    | '/ops/verification'
+    | '/providers/$providerId'
+    | '/ops/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
+  DashboardRoute: typeof DashboardRoute
+  ForEmployersRoute: typeof ForEmployersRoute
+  ForProvidersRoute: typeof ForProvidersRoute
+  HowItWorksRoute: typeof HowItWorksRoute
+  MessagesRoute: typeof MessagesRouteWithChildren
+  SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  VerificationRoute: typeof VerificationRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRecoverRoute: typeof AuthRecoverRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+  OpsModerationRoute: typeof OpsModerationRoute
+  OpsSupportRoute: typeof OpsSupportRoute
+  OpsUsersRoute: typeof OpsUsersRoute
+  OpsVerificationRoute: typeof OpsVerificationRoute
+  ProvidersProviderIdRoute: typeof ProvidersProviderIdRoute
+  OpsIndexRoute: typeof OpsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-providers': {
+      id: '/for-providers'
+      path: '/for-providers'
+      fullPath: '/for-providers'
+      preLoaderRoute: typeof ForProvidersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/for-employers': {
+      id: '/for-employers'
+      path: '/for-employers'
+      fullPath: '/for-employers'
+      preLoaderRoute: typeof ForEmployersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +361,112 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ops/': {
+      id: '/ops/'
+      path: '/ops'
+      fullPath: '/ops/'
+      preLoaderRoute: typeof OpsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/providers/$providerId': {
+      id: '/providers/$providerId'
+      path: '/providers/$providerId'
+      fullPath: '/providers/$providerId'
+      preLoaderRoute: typeof ProvidersProviderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/verification': {
+      id: '/ops/verification'
+      path: '/ops/verification'
+      fullPath: '/ops/verification'
+      preLoaderRoute: typeof OpsVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/users': {
+      id: '/ops/users'
+      path: '/ops/users'
+      fullPath: '/ops/users'
+      preLoaderRoute: typeof OpsUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/support': {
+      id: '/ops/support'
+      path: '/ops/support'
+      fullPath: '/ops/support'
+      preLoaderRoute: typeof OpsSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/moderation': {
+      id: '/ops/moderation'
+      path: '/ops/moderation'
+      fullPath: '/ops/moderation'
+      preLoaderRoute: typeof OpsModerationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages/$conversationId': {
+      id: '/messages/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/messages/$conversationId'
+      preLoaderRoute: typeof MessagesConversationIdRouteImport
+      parentRoute: typeof MessagesRoute
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/recover': {
+      id: '/auth/recover'
+      path: '/auth/recover'
+      fullPath: '/auth/recover'
+      preLoaderRoute: typeof AuthRecoverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface MessagesRouteChildren {
+  MessagesConversationIdRoute: typeof MessagesConversationIdRoute
+}
+
+const MessagesRouteChildren: MessagesRouteChildren = {
+  MessagesConversationIdRoute: MessagesConversationIdRoute,
+}
+
+const MessagesRouteWithChildren = MessagesRoute._addFileChildren(
+  MessagesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
+  DashboardRoute: DashboardRoute,
+  ForEmployersRoute: ForEmployersRoute,
+  ForProvidersRoute: ForProvidersRoute,
+  HowItWorksRoute: HowItWorksRoute,
+  MessagesRoute: MessagesRouteWithChildren,
+  SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  VerificationRoute: VerificationRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRecoverRoute: AuthRecoverRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+  OpsModerationRoute: OpsModerationRoute,
+  OpsSupportRoute: OpsSupportRoute,
+  OpsUsersRoute: OpsUsersRoute,
+  OpsVerificationRoute: OpsVerificationRoute,
+  ProvidersProviderIdRoute: ProvidersProviderIdRoute,
+  OpsIndexRoute: OpsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
