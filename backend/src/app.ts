@@ -16,6 +16,7 @@ import { createAuthRouter, type AuthIdentityService } from "./routes/auth.js";
 import { createProviderRouter } from "./routes/providers.js";
 import { createEmployerRouter } from "./routes/employers.js";
 import { createReferenceRouter } from "./routes/reference.js";
+import { createVerificationRouter } from "./routes/verification.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
@@ -105,6 +106,9 @@ export function createApp(options: AppOptions = {}): Hono {
   app.route("/", createProviderRouter(db, clerkAdapter, identityService.resolve));
   app.route("/", createEmployerRouter(db, clerkAdapter, identityService.resolve));
   app.route("/", createReferenceRouter(db));
+
+  // Stage 4 — Verification system
+  app.route("/", createVerificationRouter(db, clerkAdapter, identityService.resolve));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 
