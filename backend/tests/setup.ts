@@ -1,16 +1,16 @@
 /**
  * Global test setup.
  *
- * Sets the minimum environment variables required by the config module so
- * tests don't fail with "Invalid configuration" before they've even run.
+ * Stage 2: JWT_SECRET has been removed (Clerk owns auth tokens).
+ * Tests inject a mock ClerkAuthAdapter — no live Clerk calls are made.
  *
- * Tests that need specific values can override them locally.
+ * The only required env var for the config module is NODE_ENV=test.
+ * CLERK_SECRET_KEY is optional in the schema; the real adapter is never
+ * created in tests (mock is injected via AppOptions).
  */
 import { resetConfig } from "../src/config/index.js";
 
-// Minimum required environment for the config to validate
 process.env["NODE_ENV"] = "test";
-process.env["JWT_SECRET"] = "test-secret-at-least-32-characters-long!!";
 
 // Reset the config cache before each test so env overrides take effect
 beforeEach(() => {

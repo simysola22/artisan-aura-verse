@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@clerk/backend": "^3.11.7",
     "@hono/zod-validator": "^0.5.0",
     "drizzle-orm": "^0.44.2",
     "hono": "^4.7.11",

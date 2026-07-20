@@ -1,0 +1,809 @@
+PMP BACKEND — STAGE 2
+CLERK AUTHENTICATION + IDENTITY + ROLES + PERMISSIONS
+
+You are continuing development of the Precious Market Place (PMP) backend.
+
+IMPORTANT:
+This is a production-oriented, portable backend. Replit is only the current development environment.
+
+The backend MUST remain completely independent of Replit's infrastructure.
+
+Do NOT:
+- Use Replit SDKs
+- Use @replit packages
+- Use Replit Database
+- Use Replit Auth
+- Use Replit-specific APIs
+- Use REPLIT_* environment variables
+- Store application state in Replit
+- Create any production dependency that only works on Replit
+
+The production architecture is:
+
+Vercel
+  ↓
+PMP Frontend
+
+Render
+  ↓
+PMP Backend API
+
+Railway
+  ↓
+PostgreSQL Database
+
+Clerk
+  ↓
+Authentication and identity provider
+
+The final request flow is:
+
+PMP Frontend on Vercel
+  ↓
+Clerk authentication
+  ↓
+Clerk-issued authenticated session/token
+  ↓
+PMP Backend on Render
+  ↓
+Verify Clerk authentication
+  ↓
+Resolve Clerk user identity
+  ↓
+Find corresponding PMP user in PostgreSQL
+  ↓
+Load PMP account type, roles, and permissions
+  ↓
+Authorize or reject the request
+
+==================================================
+AUTHORITATIVE DOCUMENTS
+==================================================
+
+Before changing anything, thoroughly read:
+
+1. docs/backend-architecture.md
+2. docs/frontend-handoff.md
+3. src/api/contracts.md
+4. The entire existing backend directory
+5. package.json files
+6. tsconfig files
+7. Existing migrations
+8. Existing tests
+9. Existing environment configuration
+10. Existing authentication, middleware, and authorization code
+
+Do not assume that the current repository state matches any previous implementation report.
+
+Inspect the actual repository.
+
+The existing frontend is already implemented and must remain functional.
+
+The existing Backend Stage 1 foundation is also present. Extend it incrementally.
+
+Do not rebuild the project from scratch.
+
+Do not delete working systems simply to replace them with a different architecture.
+
+==================================================
+CORE AUTHENTICATION DECISION
+==================================================
+
+Use CLERK as the sole authentication and identity provider.
+
+Do NOT implement a parallel custom authentication system.
+
+Do NOT create:
+- Custom password hashing
+- Custom password storage
+- Custom login credential verification
+- Custom password reset logic
+- Custom refresh-token authentication system
+- A second independent JWT authentication system
+- A second independent session authentication system
+
+Clerk owns:
+
+- User registration
+- User login
+- Password management
+- Password recovery
+- Email verification
+- Session lifecycle
+- Authentication identity
+- Clerk-issued authentication tokens
+
+The PMP backend must verify authenticated Clerk requests.
+
+The backend must then use the Clerk user ID to resolve the corresponding PMP application user.
+
+The architecture must be:
+
+Clerk
+  ↓
+Authenticated identity
+  ↓
+Clerk user ID
+  ↓
+PMP users table
+  ↓
+PMP roles
+  ↓
+PMP permissions
+  ↓
+Backend authorization
+
+==================================================
+CLERK INTEGRATION
+==================================================
+
+Integrate Clerk using a portable backend-compatible approach.
+
+The backend must not depend on Replit.
+
+The Clerk integration must be encapsulated behind a clean authentication abstraction.
+
+For example, the rest of the application should be able to depend on an abstraction such as:
+
+authenticateRequest()
+or an equivalent clean interface.
+
+The rest of the application should not be tightly coupled to Clerk-specific implementation details.
+
+The backend must:
+
+1. Extract the incoming Clerk authentication token/session information.
+2. Verify the request using Clerk's official server-side verification mechanism.
+3. Resolve the authenticated Clerk user ID.
+4. Load the corresponding PMP user from PostgreSQL.
+5. Attach an authenticated request context.
+6. Continue to PMP role and permission authorization.
+
+Unauthenticated requests must receive a consistent 401 response.
+
+Authenticated users without sufficient permissions must receive a consistent 403 response.
+
+Do not trust role information supplied by the frontend.
+
+Do not trust arbitrary user IDs supplied by the client.
+
+The authenticated Clerk identity must be the source of identity.
+
+PMP PostgreSQL must be the source of application authorization.
+
+==================================================
+DATABASE MODEL
+==================================================
+
+Use the existing database architecture and migration system.
+
+Do not manually create database tables outside the migration system.
+
+Create migrations for the required identity and authorization tables.
+
+The design should support at minimum:
+
+users
+roles
+permissions
+user_roles
+role_permissions
+
+The user record must have a stable internal PMP ID.
+
+The user record must also store the external Clerk identity reference.
+
+Conceptually:
+
+users
+-----------------------------
+id
+clerk_user_id UNIQUE
+account_type
+status
+created_at
+updated_at
+
+The Clerk user ID must be indexed and unique.
+
+Do not store passwords in PMP PostgreSQL.
+
+Do not store Clerk secret keys in the database.
+
+==================================================
+ACCOUNT TYPES
+==================================================
+
+The platform has two public account types:
+
+EMPLOYER
+PROVIDER
+
+Provider users include both:
+
+- ARTISANS
+- PROFESSIONALS
+
+These should be represented in a way that remains extensible.
+
+Do not make the database architecture difficult to expand later.
+
+The platform also has internal users:
+
+OWNER
+SYSTEM_ADMIN
+VERIFICATION_TEAM
+SUPPORT_TEAM
+MODERATION_TEAM
+
+Do not expose internal administrative account types through the normal public registration flow.
+
+Public registration must not allow a user to select:
+
+OWNER
+SYSTEM_ADMIN
+VERIFICATION_TEAM
+SUPPORT_TEAM
+MODERATION_TEAM
+
+Internal accounts must be provisioned through a controlled backend process.
+
+Do not create a public endpoint that allows anyone to grant themselves an internal role.
+
+==================================================
+ROLE AND PERMISSION SYSTEM
+==================================================
+
+Implement granular permissions.
+
+Do not rely only on:
+
+if role === "admin"
+
+The architecture must support:
+
+User
+  ↓
+Role
+  ↓
+Permissions
+  ↓
+Authorization middleware
+
+The permission system must be extensible.
+
+Initial conceptual permissions may include:
+
+PUBLIC USER PERMISSIONS
+
+Employer:
+- profile.read
+- profile.update
+- providers.search
+- providers.view
+- messaging.use
+
+Provider:
+- profile.read
+- profile.update
+- verification.submit
+- messaging.use
+
+VERIFICATION TEAM:
+- verification.read
+- verification.review
+- verification.request_info
+- verification.approve
+- verification.reject
+
+SUPPORT TEAM:
+- support.read
+- support.respond
+- support.manage
+
+MODERATION TEAM:
+- moderation.read
+- moderation.review
+- moderation.action
+
+SYSTEM ADMIN:
+- users.read
+- users.manage
+- verification.manage
+- support.manage
+- moderation.manage
+- system.manage
+
+OWNER:
+- Full system permissions
+
+These are initial permissions.
+
+Design the system so that permissions can be added later without changing the fundamental architecture.
+
+Implement reusable permission checks.
+
+For example, the system should support an abstraction conceptually similar to:
+
+requirePermission("verification.review")
+
+or an equivalent clean implementation.
+
+Every protected backend endpoint must enforce authorization server-side.
+
+Frontend visibility is not security.
+
+==================================================
+PUBLIC AND INTERNAL ACCESS
+==================================================
+
+The platform will eventually have separate frontend access surfaces.
+
+PUBLIC ACCESS:
+
+Employer registration/login
+Provider registration/login
+
+INTERNAL ACCESS:
+
+Owner
+System Admin
+Verification Team
+Support Team
+Moderation Team
+
+The frontend may have separate login routes or deployments for internal users.
+
+However, the backend must still enforce authorization independently.
+
+Do not rely on:
+- Hidden routes
+- Hidden buttons
+- Special URLs
+- Obscure links
+- Frontend role checks
+
+as security mechanisms.
+
+The backend must reject unauthorized internal access.
+
+==================================================
+USER PROVISIONING
+==================================================
+
+Design a safe first-login or account-provisioning flow.
+
+When a user authenticates with Clerk:
+
+1. Verify the Clerk identity.
+2. Search for the Clerk user ID in PMP PostgreSQL.
+3. If the user exists:
+   - Load the PMP user.
+   - Load roles.
+   - Load permissions.
+4. If the user does not exist:
+   - Create the appropriate PMP user record only through a controlled flow.
+   - Do not allow a client to arbitrarily assign privileged roles.
+
+The public registration flow must support the intended account types:
+
+EMPLOYER
+PROVIDER
+
+Provider users should eventually be able to identify whether they are:
+
+ARTISAN
+or
+PROFESSIONAL
+
+Do not prematurely build the entire profile system in this stage unless required for identity provisioning.
+
+The goal of this stage is identity and authorization foundation.
+
+==================================================
+AUTHENTICATED REQUEST CONTEXT
+==================================================
+
+Create a clean request authentication context.
+
+Conceptually:
+
+AuthenticatedRequestContext:
+
+- clerkUserId
+- pmpUserId
+- accountType
+- roles
+- permissions
+
+The exact implementation is up to you.
+
+Do not put excessive authorization logic directly inside route handlers.
+
+Keep authentication, identity resolution, and authorization separated.
+
+Conceptually:
+
+Request
+  ↓
+Clerk Authentication
+  ↓
+PMP User Resolution
+  ↓
+Role Resolution
+  ↓
+Permission Resolution
+  ↓
+Route Handler
+
+==================================================
+AUTHORIZATION REQUIREMENTS
+==================================================
+
+Implement reusable authorization middleware or guards.
+
+The backend must support:
+
+- Require authenticated user
+- Require specific permission
+- Require one of multiple permissions
+- Require specific account type where appropriate
+
+Do not trust the frontend.
+
+Do not trust request body fields such as:
+
+{
+  "role": "OWNER"
+}
+
+The server must determine authorization from the authenticated Clerk identity and PostgreSQL records.
+
+==================================================
+SESSION_SECRET AUDIT
+==================================================
+
+There is currently a SESSION_SECRET environment variable.
+
+Audit how the existing Backend Stage 1 code uses it.
+
+Because Clerk is now the sole authentication provider:
+
+- Do not create a second custom authentication session system unnecessarily.
+- Do not use SESSION_SECRET to create a parallel login/session architecture.
+- If SESSION_SECRET is not required by any legitimate non-authentication infrastructure function, remove the dependency from the application and document that it is no longer required.
+- If it is required for a legitimate server-side mechanism, clearly document exactly why.
+
+Do not leave dead authentication infrastructure in the project.
+
+==================================================
+ENVIRONMENT VARIABLES
+==================================================
+
+Use environment variables correctly.
+
+The current architecture includes values conceptually similar to:
+
+DATABASE_URL
+VITE_CLERK_PUBLISHABLE_KEY
+CLERK_SECRET_KEY
+SESSION_SECRET
+
+Rules:
+
+DATABASE_URL:
+- Backend only
+- Never exposed to the frontend
+- Never use VITE_ prefix
+
+CLERK_SECRET_KEY:
+- Backend only
+- Never exposed to the frontend
+- Never committed to Git
+
+VITE_CLERK_PUBLISHABLE_KEY:
+- Frontend public configuration
+- Appropriate for Vercel frontend deployment
+- Must not be used as a backend secret
+
+Do not hardcode secrets.
+
+Do not print secrets in logs.
+
+Do not include real secret values in documentation, tests, commits, or generated files.
+
+Update .env.example with variable names only and safe placeholder values.
+
+==================================================
+FRONTEND CONTRACT PRESERVATION
+==================================================
+
+Read and preserve:
+
+src/api/contracts.md
+
+Do not casually change existing frontend API contracts.
+
+If Stage 2 requires a contract change:
+
+1. Identify the exact change.
+2. Explain why it is required.
+3. Preserve backwards compatibility where practical.
+4. Update the contract documentation.
+5. Update the frontend integration layer only when necessary.
+
+The frontend currently has an authentication abstraction.
+
+Do not destroy the frontend architecture.
+
+The frontend should be able to replace its mock authentication implementation with Clerk without forcing a rewrite of unrelated application features.
+
+==================================================
+API ENDPOINTS
+==================================================
+
+Implement only the identity/authentication foundation required for this stage.
+
+Potential endpoint responsibilities include:
+
+- Current authenticated user
+- User provisioning/synchronization where appropriate
+- Authenticated identity lookup
+
+Do not implement the entire PMP platform in this stage.
+
+Do not implement:
+- Full provider profiles
+- Full employer profiles
+- Verification workflow
+- Search ranking
+- Messaging
+- Payments
+- Subscriptions
+
+Those are later stages.
+
+The goal is a clean, secure identity and authorization foundation.
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Perform a security audit while implementing.
+
+Verify:
+
+- No secrets are hardcoded.
+- No Clerk secret is exposed to frontend code.
+- No DATABASE_URL is exposed to frontend code.
+- No frontend-provided role can grant permissions.
+- No user can assign themselves an internal role.
+- No internal role can be granted through public registration.
+- Clerk identity is verified server-side.
+- Clerk user IDs are validated.
+- PMP user lookup is based on authenticated identity.
+- Unauthorized access returns 403.
+- Unauthenticated access returns 401.
+- Sensitive values are not logged.
+- SQL queries remain parameterized through the existing database layer.
+- Existing security headers remain intact.
+- Existing request ID and structured logging remain intact.
+- Existing rate limiting remains intact.
+
+==================================================
+TESTING
+==================================================
+
+Write comprehensive tests.
+
+At minimum, test:
+
+1. Unauthenticated request is rejected.
+2. Invalid Clerk authentication is rejected.
+3. Valid Clerk identity can resolve a PMP user.
+4. Unknown Clerk user follows the intended provisioning behavior.
+5. Employer account receives correct account type.
+6. Provider account receives correct account type.
+7. Public user cannot access internal permissions.
+8. Verification team can access verification permissions.
+9. Support team cannot automatically perform verification actions unless explicitly granted.
+10. Moderation team receives only moderation permissions.
+11. System admin receives intended permissions.
+12. Owner receives full intended permissions.
+13. A frontend-supplied role cannot elevate privileges.
+14. A user cannot grant themselves internal roles.
+15. Permission middleware correctly allows permitted actions.
+16. Permission middleware correctly rejects forbidden actions.
+17. Existing Stage 1 tests continue to pass.
+18. Frontend typecheck continues to pass.
+19. Frontend build continues to pass.
+
+If Clerk's live service cannot be used in local tests, create a clean test abstraction/mock boundary.
+
+Do not disable authentication tests.
+
+Do not hardcode real Clerk credentials in tests.
+
+==================================================
+PORTABILITY REQUIREMENTS
+==================================================
+
+The backend must be deployable outside Replit.
+
+The target production backend is Render.
+
+The database is Railway PostgreSQL.
+
+The backend must work with:
+
+- Local development
+- Docker
+- Replit development environment
+- Render production deployment
+
+Do not assume:
+- Replit filesystem persistence
+- Replit networking
+- Replit secrets APIs
+- Replit-specific services
+- Replit-specific authentication
+
+The only external services currently intended for this stage are:
+
+- Clerk
+- Railway PostgreSQL
+
+==================================================
+DOCUMENTATION
+==================================================
+
+Update the backend documentation.
+
+Document:
+
+1. Clerk authentication architecture.
+2. Authentication request flow.
+3. PMP user identity mapping.
+4. Role architecture.
+5. Permission architecture.
+6. Public account types.
+7. Internal account types.
+8. User provisioning flow.
+9. Authentication middleware flow.
+10. Authorization middleware flow.
+11. Environment variables.
+12. Local development setup.
+13. How the system will later deploy to Render.
+14. How Railway PostgreSQL is connected.
+15. What Replit does and does not provide.
+16. Security boundaries.
+17. Known limitations.
+18. Future migration/replacement strategy.
+
+The documentation must make it possible for another AI coding tool to understand the architecture without guessing.
+
+==================================================
+IMPLEMENTATION PROCESS
+==================================================
+
+Follow this process strictly.
+
+PHASE 1:
+Audit the existing repository.
+
+Do not modify code yet.
+
+Understand:
+- Current backend structure
+- Existing auth code
+- Existing JWT code
+- Existing session code
+- Existing environment validation
+- Existing database schema
+- Existing migrations
+- Existing tests
+- Existing frontend API contracts
+
+PHASE 2:
+Design the Clerk integration against the existing architecture.
+
+Do not duplicate authentication systems.
+
+PHASE 3:
+Implement the database identity and permission model.
+
+PHASE 4:
+Implement Clerk authentication verification.
+
+PHASE 5:
+Implement PMP user resolution.
+
+PHASE 6:
+Implement roles and permissions.
+
+PHASE 7:
+Implement authorization middleware.
+
+PHASE 8:
+Implement tests.
+
+PHASE 9:
+Run:
+
+- TypeScript typecheck
+- Unit tests
+- Integration tests where available
+- Lint
+- Production build
+- Frontend typecheck
+- Frontend build
+
+PHASE 10:
+Perform a portability audit.
+
+Search for:
+
+- @replit
+- replit
+- REPLIT_
+- Replit-specific imports
+- Replit-specific APIs
+- hardcoded environment assumptions
+
+The backend must remain portable.
+
+==================================================
+IMPORTANT COMPLETION RULE
+==================================================
+
+Do not claim the stage is complete simply because files were created.
+
+Before finishing, provide a final implementation report containing:
+
+1. Exact files created.
+2. Exact files modified.
+3. Exact database migrations created.
+4. Exact Clerk integration approach.
+5. Exact authentication flow.
+6. Exact PMP user mapping flow.
+7. Exact roles implemented.
+8. Exact permissions implemented.
+9. Exact authorization middleware.
+10. Exact environment variables required.
+11. Whether SESSION_SECRET is still required and why.
+12. Exact tests written.
+13. Test results.
+14. Typecheck results.
+15. Lint results.
+16. Frontend build results.
+17. Backend build results.
+18. Portability audit results.
+19. Security audit results.
+20. Known limitations.
+21. Recommended next stage.
+
+Do not modify unrelated frontend features.
+
+Do not change the visual design.
+
+Do not introduce payment functionality yet.
+
+Do not implement the full verification system yet.
+
+Do not implement messaging yet.
+
+Do not implement subscriptions yet.
+
+This stage is ONLY:
+
+CLERK AUTHENTICATION
++
+PMP IDENTITY
++
+ROLES
++
+PERMISSIONS
++
+SERVER-SIDE AUTHORIZATION
+
+Build it carefully, incrementally, and in a way that can be deployed to Render with Railway PostgreSQL and connected to the Vercel frontend.

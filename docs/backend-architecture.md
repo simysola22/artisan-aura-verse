@@ -1,6 +1,6 @@
 # PMP Backend Architecture
 
-Status: **Stage 1 — Foundation complete.**
+Status: **Stage 2 — Clerk authentication + RBAC complete.**
 
 This document describes the backend architecture as actually implemented.
 Future capabilities that are only planned are labeled **TODO (Stage N)**.
@@ -10,41 +10,58 @@ Future capabilities that are only planned are labeled **TODO (Stage N)**.
 ## 1. Overview
 
 The backend is a standalone HTTP API server that implements the contract
-defined in `src/api/contracts.md`. The frontend communicates with it
-exclusively through that contract; no implementation detail leaks across
-the boundary.
+defined in `src/api/contracts.md`. Authentication is delegated entirely to
+Clerk. The backend verifies Clerk session tokens, resolves the Clerk identity
+to a PMP user in PostgreSQL, loads roles and permissions from the DB, and
+enforces authorization server-side.
 
 ```
-Frontend (TanStack Start, Vite dev server)
-    ↓  HTTPS  Bearer token
-Backend API (Hono, Bun)
+Frontend (TanStack Start — Vercel)
+    ↓  HTTPS  Authorization: Bearer <clerk_session_token>
+Backend API (Hono, Bun — Render)
     ↓
-Application services        (TODO Stage 2)
+Clerk token verification (@clerk/backend)
     ↓
-Repositories / Drizzle ORM
+PMP user resolution (PostgreSQL — Railway)
     ↓
-PostgreSQL
+Role + permission loading
+    ↓
+Route handler + authorization guards
 ```
 
 ---
 
 ## 2. Technology stack
 
-| Concern          | Choice              | Rationale                                          |
-|------------------|---------------------|----------------------------------------------------|
-| Runtime          | Bun                 | Consistent with the frontend; fast, TypeScript-native |
-| HTTP framework   | Hono v4             | Portable across Bun/Node/Cloudflare; minimal; TypeScript-first |
-| ORM              | Drizzle ORM         | Type-safe, version-controlled migrations, no magic  |
-| Database         | PostgreSQL 16       | Specified by the project contract                  |
-| DB driver        | postgres-js         | Lightweight postgres client for Bun/Node           |
-| Validation       | Zod                 | Already used by the frontend; consistent schemas   |
-| Auth tokens      | JWT via jose        | Portable (no native bindings); standard            |
-| Logging          | pino                | Structured JSON; low-overhead; production-ready    |
-| Tests            | Vitest              | Fast; works with Bun; compatible with the frontend test config |
+| Concern          | Choice                | Rationale                                          |
+|------------------|-----------------------|----------------------------------------------------|
+| Runtime          | Bun                   | Consistent with the frontend; TypeScript-native    |
+| HTTP framework   | Hono v4               | Portable across Bun/Node/Cloudflare; minimal       |
+| ORM              | Drizzle ORM           | Type-safe, version-controlled migrations           |
+| Database         | PostgreSQL 16         | Railway-hosted in production                       |
+| DB driver        | postgres-js           | Lightweight; works with Bun and Node               |
+| Validation       | Zod                   | Consistent with frontend schemas                   |
+| Auth provider    | Clerk                 | Owns registration, login, sessions, password mgmt  |
+| Auth verification| @clerk/backend        | verifyToken() — server-side Clerk JWT verification |
+| Logging          | pino                  | Structured JSON; secrets redacted                  |
+| Tests            | Vitest                | Fast; mock-injection pattern for Clerk and DB      |
 
 ---
 
-## 3. Directory structure
+## 3. Production deployment targets
+
+| Service          | Platform         | Notes                                              |
+|------------------|------------------|----------------------------------------------------|
+| Frontend         | Vercel           | TanStack Start + React; uses Clerk frontend SDK    |
+| Backend API      | Render           | Bun runtime; `bun run src/main.ts`                 |
+| Database         | Railway          | PostgreSQL 16; connect via `DATABASE_URL`          |
+| Authentication   | Clerk            | Session tokens issued to frontend, verified by API |
+
+The backend has **zero Replit-specific dependencies**. Replit is used only as the development environment.
+
+---
+
+## 4. Directory structure
 
 ```
 backend/
@@ -53,243 +70,387 @@ backend/
 │   ├── db/
 │   │   ├── client.ts   — Drizzle singleton, health check, close
 │   │   ├── migrate.ts  — Migration runner (bun run db:migrate)
-│   │   └── schema/     — Drizzle table definitions (source of truth for types)
+│   │   └── schema/
+│   │       ├── users.ts   — users table (Clerk-centric identity)
+│   │       └── roles.ts   — roles, permissions, role_permissions, user_roles
 │   ├── errors/         — AppError hierarchy; toBody() → contract error shape
 │   ├── lib/
+│   │   ├── clerk.ts    — ClerkAuthAdapter interface + real/mock factories
 │   │   ├── logger.ts   — Pino factory; secrets redacted
 │   │   ├── cache.ts    — CacheDriver interface + MemoryCacheDriver
 │   │   ├── storage.ts  — StorageDriver interface + LocalStorageDriver
 │   │   └── email.ts    — EmailDriver interface + ConsoleEmailDriver
 │   ├── middleware/
-│   │   ├── request-id.ts  — Reads/generates x-request-id; echoes in response
+│   │   ├── auth.ts        — requireClerkAuth / optionalClerkAuth / requirePermission
+│   │   ├── request-id.ts  — x-request-id propagation
 │   │   ├── logger.ts      — HTTP request/response logging
-│   │   ├── auth.ts        — requireAuth / optionalAuth / requireRole
 │   │   ├── rate-limit.ts  — RateLimitStore interface + MemoryRateLimitStore
 │   │   └── security.ts    — Defence-in-depth response headers
 │   ├── routes/
-│   │   └── health.ts   — GET /health (liveness) + GET /ready (readiness)
+│   │   ├── health.ts   — GET /health (liveness) + GET /ready (readiness)
+│   │   └── auth.ts     — GET /v1/auth/me + POST /v1/auth/sync
+│   ├── services/
+│   │   └── identity.ts — resolveIdentity(), provisionUser(), serializeIdentity()
 │   ├── app.ts          — createApp() factory (used by server and tests)
 │   └── main.ts         — Entry point; config validation; graceful shutdown
 ├── migrations/
-│   └── 0000_initial_schema.sql — users + sessions tables
-├── tests/              — Vitest tests (no real DB required)
+│   ├── 0000_initial_schema.sql — Stage 1 foundation (users + sessions)
+│   └── 0001_clerk_identity.sql — Stage 2 (Clerk identity + RBAC)
+├── tests/              — Vitest tests (no real DB or Clerk required)
 ├── drizzle.config.ts   — Drizzle-kit migration generator config
-├── vitest.config.ts
-├── tsconfig.json
-└── package.json
+├── tsconfig.json       — Strict TypeScript config
+└── package.json        — Backend-only dependencies
 ```
 
 ---
 
-## 4. Configuration
+## 5. Authentication architecture
 
-All environment variables are validated at startup via Zod (`src/config/index.ts`).
-The process exits with a clear error message if any required variable is missing
-or invalid. See `.env.example` for the full list.
+### Clerk owns
 
-Required variables:
-- `JWT_SECRET` — minimum 32 characters, no default
+- User registration and email verification.
+- Login, password management, password recovery.
+- Session lifecycle (issuance, expiry, revocation).
+- Multi-factor authentication.
+- The session token (a JWT signed by Clerk's private key).
 
-Optional variables with defaults:
-- `PORT` (3000), `HOST` (0.0.0.0), `NODE_ENV` (development)
-- `CORS_ORIGIN` (http://localhost:5000)
-- `RATE_LIMIT_WINDOW_MS` (60 000), `RATE_LIMIT_MAX` (100)
-- `EMAIL_DRIVER` (console), `STORAGE_DRIVER` (local)
-- `JWT_EXPIRES_IN` (24h)
+### The PMP backend owns
 
----
+- Server-side verification of the Clerk session token.
+- Mapping Clerk user ID → PMP user record in PostgreSQL.
+- Role assignment and permission resolution.
+- All authorization decisions.
 
-## 5. API versioning
+### Per-request flow
 
-Routes will be mounted under `/v1/` as domain features are added.
-The health/readiness endpoints are unversioned (they are infrastructure
-endpoints, not API endpoints).
-
----
-
-## 6. Error handling
-
-All errors must be instances of `AppError` (or a subclass). The Hono
-`onError` handler in `createApp()` converts them to the contract shape:
-
-```json
-{ "status": 400, "code": "validation_error", "message": "...", "details": {...} }
+```
+1. Client sends: Authorization: Bearer <clerk_session_token>
+2. requireClerkAuth middleware extracts the token.
+3. ClerkAuthAdapter.verifyToken(token) calls @clerk/backend verifyToken().
+   - On failure: 401 Unauthorized (invalid/expired token)
+4. The verified ClerkVerifyResult.clerkUserId is extracted.
+5. identityService.resolveIdentity(db, clerkUserId) queries PostgreSQL:
+   - Loads users row WHERE clerk_user_id = ?
+   - If not found: 401 (account not provisioned — call /v1/auth/sync first)
+   - If status = 'suspended': 403 Forbidden
+   - If status = 'deleted': 401
+   - Loads user_roles JOIN roles for this user.
+   - Loads role_permissions JOIN permissions for those roles.
+6. AuthContext is attached: c.var.auth = { clerkUserId, pmpUserId, accountType, roleNames, permissions }
+7. Route handler runs. Authorization guards (requirePermission, etc.) check c.var.auth.permissions.
 ```
 
-Unexpected errors (`new Error(...)`) are caught and mapped to `500
-internal_error` with a generic message — the real error is logged but
-never exposed to the client.
+### ClerkAuthAdapter interface
+
+The rest of the application depends only on `ClerkAuthAdapter`, not on `@clerk/backend` directly:
+
+```ts
+interface ClerkAuthAdapter {
+  verifyToken(token: string): Promise<ClerkVerifyResult>;
+}
+```
+
+- **Real adapter** (`createClerkAdapter(secretKey)`): calls `@clerk/backend.verifyToken()`.
+- **Mock adapter** (`createMockClerkAdapter(map)`): deterministic; used in tests.
+
+Tests never call Clerk's live service.
 
 ---
 
-## 7. Authentication foundation
+## 6. Database model
 
-JWT tokens are validated via `requireAuth` middleware (jose, no native deps).
-Tokens carry `{ userId, role }` in the payload. The middleware sets
-`c.var.auth` for downstream handlers.
+### `users` table
 
-**TODO (Stage 2):**
-- `POST /v1/auth/register` — hash password (argon2 or bcrypt), create user + session
-- `POST /v1/auth/login` — verify password, issue JWT
-- `POST /v1/auth/logout` — revoke session
-- `POST /v1/auth/recover` — send password reset email
-- `GET  /v1/auth/me` — return current user from token
+| Column         | Type           | Notes                                           |
+|----------------|----------------|-------------------------------------------------|
+| id             | TEXT PK        | UUID generated by application                   |
+| clerk_user_id  | TEXT UNIQUE NN | External Clerk identity reference (indexed)     |
+| account_type   | account_type   | See §7 — source of authorization                |
+| provider_kind  | provider_kind  | 'artisan' or 'professional' — provider only     |
+| status         | user_status    | 'active', 'suspended', or 'deleted'             |
+| display_name   | TEXT nullable  | Cached from Clerk; Clerk is source of truth     |
+| email          | TEXT nullable  | Cached from Clerk; Clerk is source of truth     |
+| avatar_url     | TEXT nullable  | Cached from Clerk; Clerk is source of truth     |
+| created_at     | TIMESTAMPTZ    |                                                 |
+| updated_at     | TIMESTAMPTZ    |                                                 |
 
----
+**Do not store passwords in PostgreSQL. Clerk owns credentials.**
 
-## 8. Database
+### `roles` table
 
-Drizzle ORM with PostgreSQL via postgres-js. Schema in `src/db/schema/`.
-Migrations are plain SQL files in `migrations/` tracked by Drizzle's
-`__drizzle_migrations` table.
+Seeded by migration. Named roles: `employer`, `provider`, `owner`, `system_admin`,
+`verification_team`, `support_team`, `moderation_team`.
 
-Run migrations: `bun run db:migrate`
-Generate new migration: `bun run db:generate`
+### `permissions` table
 
-Stage 1 schema:
-- `users` — id (ULID), email, password_hash, role, display_name, soft-delete
-- `sessions` — id, user_id (FK), token, refresh_token, expires_at, revoked
+Seeded by migration. Atomic permission strings (e.g. `"verification.review"`).
+New permissions are added via migration — no schema change required.
 
-Connection pooling is configured in `src/db/client.ts` (max 10 connections,
-30 s idle timeout). `closeDb()` is called during graceful shutdown.
+### `role_permissions` table
 
----
+Join table mapping which permissions belong to each role. Seeded by migration.
 
-## 9. Infrastructure abstractions
+### `user_roles` table
 
-All replaceable service boundaries:
-
-| Abstraction         | Interface         | Stage 1 impl         | Production replacement      |
-|---------------------|-------------------|----------------------|-----------------------------|
-| Cache               | `CacheDriver`     | `MemoryCacheDriver`  | Redis / Valkey / DragonflyDB |
-| Storage             | `StorageDriver`   | `LocalStorageDriver` | S3 / R2 / GCS               |
-| Email               | `EmailDriver`     | `ConsoleEmailDriver` | SMTP / SendGrid / Resend    |
-| Rate-limit store    | `RateLimitStore`  | `MemoryRateLimitStore` | Redis sliding-window       |
-
-Business logic imports the interface only; driver selection happens in the
-app factory / DI root.
+Join table mapping which roles a user holds. Populated by `provisionUser()` and
+by internal admin operations. Never populated by the public sync endpoint with
+internal roles.
 
 ---
 
-## 10. Security baseline
+## 7. Account types
 
-Implemented in Stage 1:
-- Request ID on every request and response (`x-request-id`)
-- CORS with explicit allow-list (`CORS_ORIGIN`)
-- Security response headers (x-content-type-options, x-frame-options, referrer-policy, permissions-policy, HSTS in production)
-- Rate limiting with `RateLimitStore` abstraction
-- JWT middleware (`requireAuth`, `optionalAuth`, `requireRole`)
-- Safe error responses (no stack traces or internal identifiers in 5xx body)
-- Secrets redacted from all log output (pino `redact` config)
+### Public (self-registerable)
 
-**TODO (Stage 2):**
-- Argon2 / bcrypt for password hashing
-- CSRF protection (if cookie-based sessions are used)
-- Input sanitization (Zod handles type coercion; XSS sanitization needed for user-generated HTML)
-- Audit log for sensitive operations
+| Type       | Default role | Description                            |
+|------------|--------------|----------------------------------------|
+| `employer` | employer     | Posts jobs and searches for providers  |
+| `provider` | provider     | Artisans and professionals             |
 
----
+Providers may also set `provider_kind = 'artisan' | 'professional'`.
 
-## 11. Logging
+### Internal (provisioned through controlled backend process only)
 
-Structured JSON via pino. Every log line includes:
-- `timestamp` (ISO-8601)
-- `requestId` (from request-id middleware)
-- `method`, `path`, `status`, `durationMs` (HTTP logs)
-- `level` (info / warn / error / debug)
+| Type                | Default role        | Description                      |
+|---------------------|---------------------|----------------------------------|
+| `owner`             | owner               | Full system access               |
+| `system_admin`      | system_admin        | System administration            |
+| `verification_team` | verification_team   | Reviews verification applications|
+| `support_team`      | support_team        | Customer support                 |
+| `moderation_team`   | moderation_team     | Content moderation               |
 
-The following fields are **always** redacted (replaced with `[REDACTED]`):
-- `authorization` request header
-- Any field named `password`, `newPassword`, `currentPassword`, `token`, `refreshToken`, `secret`, `apiKey`, `api_key`
+**Internal account types are never assignable via `POST /v1/auth/sync`.**
+The `provisionUser()` function throws `ForbiddenError` for any non-public type.
+The route's Zod schema (`z.enum(["employer", "provider"])`) adds a second layer
+of enforcement — internal types cannot even pass validation.
 
 ---
 
-## 12. Health and readiness
+## 8. Permission system
 
-`GET /health` — liveness.
-Returns `{ status: "ok", timestamp, version, environment }`.
-Does not check external dependencies.
-Use for load-balancer and k8s liveness probes.
+Permissions are fine-grained strings checked via `auth.permissions.has("name")`.
 
-`GET /ready` — readiness.
-Checks database reachability.
-Returns `{ status: "ready" | "not_ready", checks: { database: ... }, timestamp }`.
-Returns 503 if any dependency is in `"error"` state.
-Use for k8s readiness probes.
+| Permission                | Who has it                              |
+|---------------------------|-----------------------------------------|
+| profile.read              | employer, provider                      |
+| profile.update            | employer, provider                      |
+| providers.search          | employer                                |
+| providers.view            | employer                                |
+| messaging.use             | employer, provider                      |
+| verification.submit       | provider                                |
+| verification.read         | verification_team                       |
+| verification.review       | verification_team                       |
+| verification.request_info | verification_team                       |
+| verification.approve      | verification_team                       |
+| verification.reject       | verification_team                       |
+| verification.manage       | system_admin                            |
+| support.read              | support_team                            |
+| support.respond           | support_team                            |
+| support.manage            | support_team, system_admin              |
+| moderation.read           | moderation_team                         |
+| moderation.review         | moderation_team                         |
+| moderation.action         | moderation_team                         |
+| moderation.manage         | system_admin                            |
+| users.read                | system_admin                            |
+| users.manage              | system_admin                            |
+| system.manage             | system_admin                            |
+| (all permissions)         | owner                                   |
 
----
+### Authorization guards
 
-## 13. Graceful shutdown
+```ts
+requirePermission("verification.review")       // needs exactly this permission
+requireAnyPermission("verification.read", "verification.manage")  // needs one of
+requireAccountType("employer", "provider")     // needs this account type
+```
 
-Implemented in `src/main.ts`:
-1. `SIGTERM` / `SIGINT` received
-2. `server.stop(false)` — stop accepting new requests; drain in-flight
-3. `closeDb()` — close postgres-js connection pool (5 s timeout)
-4. TODO: close cache, storage, email connections when real drivers are added
-5. `process.exit(0)`
-
----
-
-## 14. Portability
-
-The backend has **zero Replit-specific dependencies**. It can run on:
-
-| Target                | How                                    |
-|-----------------------|----------------------------------------|
-| Local machine (Bun)  | `cd backend && bun run dev`            |
-| Docker               | `docker compose up`                    |
-| External PostgreSQL  | Set `DATABASE_URL`                     |
-| External Redis cache | Set `REDIS_URL` (TODO: implement driver) |
-| External S3 storage  | Set `STORAGE_DRIVER=s3` + S3 vars      |
-| Cloud VM             | `bun run src/main.ts`                  |
-| Container platform   | Use `Dockerfile` (multi-stage, non-root) |
-| Node.js runtime      | Change server adapter in `main.ts`; Hono supports Node |
-
----
-
-## 15. Known limitations (Stage 1)
-
-- No auth endpoints implemented yet (middleware only).
-- No domain API endpoints (providers, search, messaging, etc.).
-- `MemoryCacheDriver` and `MemoryRateLimitStore` do not coordinate across
-  instances — not suitable for multi-instance production.
-- `LocalStorageDriver` writes to the local filesystem — not suitable for
-  multi-instance or ephemeral environments.
-- `ConsoleEmailDriver` does not send real email.
-- SMTP, S3, and Redis drivers are stubbed (throw on use).
-- `GET /auth/me` not implemented (see contract drift in `src/api/contracts.md`).
-- Refresh token flow not implemented.
+All guards throw `ForbiddenError` (403) on failure. `requireClerkAuth` must run first.
 
 ---
 
-## 16. Development
+## 9. API endpoints (Stage 2)
+
+### `GET /v1/auth/me`
+
+- Auth: Bearer required.
+- Returns the authenticated PMP user + roles + permissions.
+- Frontend should call this on boot rather than trusting cached localStorage user.
+- Returns 401 if no PMP account exists for the Clerk identity (sync required).
+
+### `POST /v1/auth/sync`
+
+- Auth: Bearer required.
+- Body: `{ accountType: "employer" | "provider", providerKind?: "artisan" | "professional", displayName?: string }`
+- Creates the PMP user record on first call (201). Idempotent on subsequent calls (200).
+- Only `employer` and `provider` account types are accepted — internal types return 400 or 403.
+
+### Clerk-handled endpoints (not implemented in backend)
+
+The following flows from `src/api/contracts.md` are handled entirely by Clerk on the frontend:
+
+- `POST /auth/register` → Clerk's `signUp()` frontend method.
+- `POST /auth/login` → Clerk's `signIn()` frontend method.
+- `POST /auth/logout` → Clerk's `signOut()` frontend method.
+- `POST /auth/recover` → Clerk's password reset flow.
+
+After Clerk registration, the frontend calls `POST /v1/auth/sync` to create the PMP record.
+
+---
+
+## 10. User provisioning flow
+
+```
+User clicks "Register" on the frontend
+    ↓
+Clerk handles registration (email verification, etc.)
+    ↓
+Clerk issues a session token
+    ↓
+Frontend calls POST /v1/auth/sync with { accountType, displayName, providerKind? }
+    ↓
+Backend verifies the Clerk token
+    ↓
+Backend creates the PMP user record + assigns the default role
+    ↓
+Frontend calls GET /v1/auth/me on boot for all subsequent requests
+    ↓
+Backend returns { user, roles, permissions } from PostgreSQL
+```
+
+---
+
+## 11. Environment variables
+
+### Backend-only (never VITE_ prefix, never expose to frontend)
+
+| Variable          | Required | Notes                                           |
+|-------------------|----------|-------------------------------------------------|
+| `DATABASE_URL`    | Yes      | Railway PostgreSQL connection string            |
+| `CLERK_SECRET_KEY`| Yes      | Clerk server secret; never commit or log        |
+| `CORS_ORIGIN`     | No       | Default: `http://localhost:5000`                |
+| `NODE_ENV`        | No       | Default: `development`                          |
+| `PORT`            | No       | Default: `3000`                                 |
+| `HOST`            | No       | Default: `0.0.0.0`                              |
+
+### Removed in Stage 2
+
+| Variable          | Reason removed                                              |
+|-------------------|-------------------------------------------------------------|
+| `JWT_SECRET`      | Clerk owns token signing. Custom JWT signing removed.       |
+| `SESSION_SECRET`  | Never used. Clerk owns session lifecycle.                   |
+
+### Frontend-only (VITE_ prefix, safe to bundle in browser)
+
+| Variable                    | Notes                                     |
+|-----------------------------|-------------------------------------------|
+| `VITE_CLERK_PUBLISHABLE_KEY`| Public Clerk key for frontend SDK         |
+| `VITE_API_BASE_URL`         | Backend API URL (empty = full mock mode)  |
+
+---
+
+## 12. Local development setup
 
 ```bash
-# Install backend dependencies
-cd backend && bun install
+# 1. Start a local PostgreSQL instance
+docker-compose up -d postgres
 
-# Start backend dev server (hot-reload)
+# 2. Copy and fill in the environment file
+cp .env.example backend/.env
+# Edit backend/.env — set DATABASE_URL, CLERK_SECRET_KEY
+
+# 3. Run migrations
+cd backend && bun run db:migrate
+
+# 4. Start the backend (hot-reload)
 bun run dev
 
-# Run tests
-bun run test
-
-# Type check
-bun run typecheck
-
-# Generate a migration after schema changes
-bun run db:generate
-
-# Apply migrations
-bun run db:migrate
-
-# Start local PostgreSQL (requires Docker)
-cd .. && docker compose up postgres
+# 5. Start the frontend (separate terminal)
+cd .. && bun run dev
 ```
 
-The frontend and backend run on separate ports:
-- Frontend: http://localhost:5000 (TanStack Start / Vite)
-- Backend:  http://localhost:3000 (Hono / Bun)
+---
 
-Set `VITE_API_BASE_URL=http://localhost:3000` in the frontend to route API
-calls to the real backend instead of the mock adapter.
+## 13. Production deployment (Render + Railway)
+
+### Railway PostgreSQL
+
+1. Create a Railway project and add a PostgreSQL service.
+2. Copy the connection string → `DATABASE_URL` on Render.
+3. Run `bun run db:migrate` once after each deployment via Render's deploy hooks or a one-off Railway job.
+
+### Render backend
+
+1. Create a new Render Web Service.
+2. Build command: (none — Bun runs TypeScript directly)
+3. Start command: `cd backend && bun run src/main.ts`
+4. Set environment variables: `DATABASE_URL`, `CLERK_SECRET_KEY`, `CORS_ORIGIN` (Vercel frontend URL), `NODE_ENV=production`.
+5. Health check path: `/health`.
+
+### Vercel frontend
+
+1. Deploy as a Vercel project.
+2. Set: `VITE_API_BASE_URL` (Render backend URL), `VITE_CLERK_PUBLISHABLE_KEY`.
+3. In Clerk dashboard: add the Vercel domain to allowed origins.
+
+---
+
+## 14. What Replit provides (and what it does not)
+
+### Replit provides
+
+- Development environment (editor, terminal, preview URL).
+- Secure secret storage for `CLERK_SECRET_KEY`, `DATABASE_URL`, etc.
+- A running `bun run dev` workflow for the frontend preview.
+
+### Replit does NOT provide
+
+- The production database (Railway PostgreSQL).
+- The production auth service (Clerk).
+- The production backend host (Render).
+- Any Replit-specific dependency that would break deployment outside Replit.
+
+The backend codebase contains **zero `@replit` imports**, zero `REPLIT_*` env vars,
+and zero Replit-specific API calls.
+
+---
+
+## 15. Security boundaries
+
+| Boundary                        | Enforcement                                    |
+|---------------------------------|------------------------------------------------|
+| Identity source                 | Always the verified Clerk token — never client body |
+| Permission source               | Always PostgreSQL — never client headers/body  |
+| Internal role assignment        | Never via public API; provisionUser() enforces |
+| Token verification              | Server-side via @clerk/backend — never frontend |
+| Secrets in logs                 | Pino redacts password/token/secret/auth fields |
+| Secrets in responses            | Error handler never leaks internal details     |
+| SQL injection                   | Drizzle ORM with parameterized queries only    |
+| Security headers                | securityHeaders middleware on all responses    |
+| Rate limiting                   | In-memory (dev); Redis interface ready         |
+
+---
+
+## 16. Known limitations
+
+1. **In-memory rate limiting** does not coordinate across multiple instances.
+   Redis interface (`RateLimitStore`) is in place for replacement.
+2. **Cache, storage, and email abstractions** are wired to dev/console drivers
+   only. Real drivers (Redis, S3, SMTP) are not yet implemented.
+3. **`GET /auth/me` profile caching** accepts optional query params from the
+   frontend but has no webhook-driven cache invalidation when Clerk profile
+   changes. A Clerk webhook handler (Stage N) will push updates.
+4. **No internal user provisioning endpoint** yet. Internal accounts must be
+   inserted directly into the database by an administrator.
+
+---
+
+## 17. Stage 3 recommendations
+
+1. Implement Clerk webhook handler to receive `user.updated` events and keep
+   `display_name`, `email`, `avatar_url` in sync automatically.
+2. Implement provider/employer profile endpoints (`GET/PUT /v1/providers/:id`,
+   `GET/PUT /v1/employers/:id`).
+3. Implement search endpoint (`GET /v1/search/providers`).
+4. Add Redis-backed rate limiting for multi-instance safety.
+5. Add an internal user provisioning endpoint (protected by `system.manage`
+   permission) for onboarding staff accounts.

@@ -12,18 +12,48 @@ import { loggerMiddleware } from "./middleware/logger.js";
 import { securityHeaders } from "./middleware/security.js";
 import { rateLimit, type RateLimitStore, type RateLimitOptions } from "./middleware/rate-limit.js";
 import { health } from "./routes/health.js";
+import { createAuthRouter, type AuthIdentityService } from "./routes/auth.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
+import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
+import { getDb } from "./db/client.js";
+import {
+  resolveIdentity,
+  provisionUser,
+  updateCachedProfile,
+} from "./services/identity.js";
 
 export interface AppOptions {
   corsOrigin?: string;
   rateLimitWindowMs?: number;
   rateLimitMax?: number;
   rateLimitStore?: RateLimitStore;
+  /**
+   * Inject a mock Clerk adapter for tests.
+   * When omitted, the real adapter is created lazily from CLERK_SECRET_KEY.
+   */
+  clerkAdapter?: ClerkAuthAdapter;
+  /**
+   * Inject a mock identity service for tests.
+   * When omitted, the real service backed by PostgreSQL is used.
+   */
+  identityService?: AuthIdentityService;
 }
 
 export function createApp(options: AppOptions = {}): Hono {
   const app = new Hono();
+
+  // ── Clerk adapter — real in production, injected mock in tests ────────────
+  const clerkAdapter: ClerkAuthAdapter =
+    options.clerkAdapter ??
+    createClerkAdapter(process.env["CLERK_SECRET_KEY"] ?? "");
+
+  // ── Identity service — real in production, injected mock in tests ─────────
+  const identityService: AuthIdentityService = options.identityService ?? {
+    resolve: (clerkUserId) => resolveIdentity(getDb(), clerkUserId),
+    provision: (params) => provisionUser(getDb(), params),
+    updateProfile: (userId, profile) => updateCachedProfile(getDb(), userId, profile),
+  };
 
   // ── Global middleware (order matters) ─────────────────────────────────────
 
@@ -64,10 +94,11 @@ export function createApp(options: AppOptions = {}): Hono {
 
   app.route("/", health);
 
-  // API v1 prefix — future domain routes mount here
-  // app.route("/v1", authRoutes);
-  // app.route("/v1", providerRoutes);
-  // etc.
+  // Auth routes — /v1/auth/me, /v1/auth/sync
+  app.route("/", createAuthRouter(clerkAdapter, identityService));
+
+  // Future domain routes mount here:
+  // app.route("/v1", providerRoutes(clerkAdapter, identityService));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 

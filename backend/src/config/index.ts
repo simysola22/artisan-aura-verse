@@ -1,17 +1,36 @@
 import { z } from "zod";
 
+/**
+ * SESSION_SECRET audit (Stage 2):
+ * SESSION_SECRET was listed as an available secret but was NEVER referenced
+ * anywhere in the backend source. Clerk now owns session lifecycle entirely.
+ * SESSION_SECRET is NOT required by any backend component and must not be added.
+ *
+ * JWT_SECRET audit (Stage 2):
+ * JWT_SECRET was used in Stage 1 for signing/verifying custom JWTs with jose.
+ * Clerk now owns authentication tokens. The backend no longer signs or verifies
+ * JWTs independently. JWT_SECRET has been removed from the required config.
+ */
+
 const configSchema = z.object({
   // Server
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
   HOST: z.string().default("0.0.0.0"),
 
-  // Database
-  DATABASE_URL: z.string().url().optional(),
+  // Database — validated as a string only; the postgres driver gives a clear
+  // error on malformed URLs. z.string().url() rejects postgres:// scheme.
+  DATABASE_URL: z.string().optional(),
 
-  // Auth
-  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
-  JWT_EXPIRES_IN: z.string().default("24h"),
+  // Clerk authentication
+  // CLERK_SECRET_KEY: backend only — never exposed to frontend, never VITE_ prefix.
+  // Optional in schema so test environments that inject a mock adapter don't need it.
+  // Required at runtime when creating a real ClerkAuthAdapter (enforced in lib/clerk.ts).
+  CLERK_SECRET_KEY: z.string().optional(),
+
+  // CLERK_PUBLISHABLE_KEY: frontend public config (VITE_CLERK_PUBLISHABLE_KEY is the
+  // frontend var). The backend does not use the publishable key directly — it uses
+  // CLERK_SECRET_KEY for server-side token verification.
 
   // CORS
   CORS_ORIGIN: z.string().default("http://localhost:5000"),
