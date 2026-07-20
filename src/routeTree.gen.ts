@@ -9,14 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
+  id: '/providers/$providerId',
+  path: '/providers/$providerId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -37,45 +55,100 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/search': typeof SearchRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/login' | '/auth/recover' | '/auth/register'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/providers/$providerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/login' | '/auth/recover' | '/auth/register'
-  id: '__root__' | '/' | '/auth/login' | '/auth/recover' | '/auth/register'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/providers/$providerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/search'
+    | '/auth/login'
+    | '/auth/recover'
+    | '/auth/register'
+    | '/providers/$providerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  SearchRoute: typeof SearchRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRecoverRoute: typeof AuthRecoverRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
+  ProvidersProviderIdRoute: typeof ProvidersProviderIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/providers/$providerId': {
+      id: '/providers/$providerId'
+      path: '/providers/$providerId'
+      fullPath: '/providers/$providerId'
+      preLoaderRoute: typeof ProvidersProviderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -104,9 +177,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  SearchRoute: SearchRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRecoverRoute: AuthRecoverRoute,
   AuthRegisterRoute: AuthRegisterRoute,
+  ProvidersProviderIdRoute: ProvidersProviderIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
