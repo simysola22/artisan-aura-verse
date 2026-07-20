@@ -5,8 +5,10 @@ import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard } from "@/components/glass/glass";
 import { messagingApi } from "@/api";
 import { DataStateBoundary, EmptyState } from "@/components/common/data-state";
+import { useAuth } from "@/features/auth/auth-context";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Send } from "lucide-react";
+
 
 export const Route = createFileRoute("/messages")({
   head: () => ({ meta: [{ title: "Messages — Kraftly" }] }),
