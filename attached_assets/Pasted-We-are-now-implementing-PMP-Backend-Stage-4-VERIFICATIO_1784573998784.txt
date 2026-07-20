@@ -1,0 +1,428 @@
+We are now implementing PMP Backend Stage 4: VERIFICATION SYSTEM.
+
+Stages 1, 2, and 3 are complete:
+
+STAGE 1 — Backend Foundation                 COMPLETE
+STAGE 2 — Clerk + Identity + Authorization   COMPLETE
+STAGE 3 — Core Domain & Profiles              COMPLETE
+STAGE 4 — Verification System                 CURRENT
+STAGE 5 — Search & Ranking
+STAGE 6 — Messaging
+FIRST HOSTING / STAGING DEPLOYMENT            AFTER STAGE 6
+
+Do not restart the project.
+Do not rebuild existing systems.
+Do not modify working authentication, identity, roles, permissions, or profile architecture unnecessarily.
+
+The production architecture remains:
+
+Vercel → Frontend
+Render → Backend API
+Railway → PostgreSQL
+Clerk → Authentication
+
+Replit is only a development environment.
+
+Do not use Replit-specific infrastructure, including:
+- Replit Database
+- Replit Auth
+- Replit SDKs
+- @replit packages
+- REPLIT_* environment variables
+- Replit-specific production services
+
+==================================================
+STAGE 4 OBJECTIVE
+==================================================
+
+Build the first complete human-led provider verification workflow.
+
+The system must support verification of:
+
+1. Artisans
+2. Professionals
+
+The system must be designed so that AI/API-assisted verification can be added later without replacing the verification architecture.
+
+Do not implement an AI verification provider yet.
+
+==================================================
+VERIFICATION WORKFLOW
+==================================================
+
+The intended flow is:
+
+Provider
+    ↓
+Creates verification submission
+    ↓
+Uploads/provides verification evidence
+    ↓
+Submits verification case
+    ↓
+Verification team reviews case
+    ↓
+Reviewer may:
+    ├── Approve
+    ├── Reject
+    ├── Request more information
+    └── Escalate
+            ↓
+      Final decision
+            ↓
+Provider verification status updated
+
+==================================================
+VERIFICATION CASE
+==================================================
+
+Create a verification case model linked to:
+
+- PMP user
+- Provider profile
+- Verification status
+- Verification type
+- Submission information
+- Current reviewer where applicable
+- Decision information
+- Timestamps
+
+Verification statuses should support a clear lifecycle, such as:
+
+DRAFT
+SUBMITTED
+UNDER_REVIEW
+INFO_REQUESTED
+RESUBMITTED
+APPROVED
+REJECTED
+ESCALATED
+
+Do not allow arbitrary invalid status transitions.
+
+The status transition logic must be centralized and testable.
+
+==================================================
+VERIFICATION EVIDENCE
+==================================================
+
+The system must support evidence references without storing binary files directly in PostgreSQL.
+
+Evidence may eventually include:
+
+- CV/resume
+- Certificates
+- Work samples
+- Portfolio evidence
+- Previous employment evidence
+- References
+- Identification documents where legally appropriate
+- Other supporting evidence
+
+For this stage:
+
+Create a storage abstraction or file-reference architecture compatible with future object storage.
+
+The production storage provider may later be:
+
+- AWS S3
+- Cloudflare R2
+- Supabase Storage
+- Another S3-compatible object storage service
+
+Do not make the verification system dependent on local Replit storage.
+
+Do not store file binaries directly in PostgreSQL.
+
+The database should store metadata and secure file references.
+
+==================================================
+VERIFICATION TEAM
+==================================================
+
+The system must support separate operational roles.
+
+The existing PMP authorization architecture must be used.
+
+The verification team should be able to perform only the actions permitted by their permissions.
+
+The architecture should support roles such as:
+
+- Verification Reviewer
+- Senior Verification Reviewer
+- Verification Lead
+
+Do not expose internal operational roles through the public frontend.
+
+Do not rely on frontend route hiding for security.
+
+All operational permissions must be enforced server-side.
+
+The system should be extensible to support future operational teams such as:
+
+- Verification
+- Support
+- Moderation
+- Operations
+
+==================================================
+REVIEW ACTIONS
+==================================================
+
+A reviewer should be able to:
+
+- Claim or be assigned a case
+- View submitted evidence
+- Add internal review notes
+- Request additional information
+- Approve a case if authorized
+- Reject a case if authorized
+- Escalate a case if necessary
+
+Every important review action must create an audit record.
+
+The audit trail should record:
+
+- Actor
+- Action
+- Case
+- Previous state
+- New state where applicable
+- Timestamp
+- Relevant metadata
+
+The audit trail must be append-only from the application perspective.
+
+==================================================
+INFORMATION REQUESTS
+==================================================
+
+A reviewer must be able to request additional information.
+
+The provider should be able to:
+
+- See that information has been requested
+- See the request
+- Submit additional information
+- Resubmit the verification case
+
+The system must preserve the previous review history.
+
+Do not overwrite previous verification decisions or review history.
+
+==================================================
+VERIFICATION STATUS ON PROVIDER PROFILE
+==================================================
+
+The existing provider profile verification status should be connected to the verification case workflow.
+
+The verification system must not duplicate the provider profile as a second source of truth.
+
+Use a clear ownership model:
+
+Verification Case
+    ↓
+Final verification decision
+    ↓
+Provider verification status
+
+Avoid inconsistent states where the provider profile says APPROVED but the latest verification case says REJECTED unless the state is explicitly explainable.
+
+==================================================
+FUTURE AI/API VERIFICATION
+==================================================
+
+Design the verification architecture with a provider abstraction.
+
+Conceptually:
+
+Verification Case
+        ↓
+Verification Engine
+        ↓
+┌───────────────────────┐
+│ Human Review Provider │
+└───────────────────────┘
+
+Future:
+
+Verification Case
+        ↓
+Verification Engine
+        ↓
+┌───────────────────────┐
+│ AI Verification       │
+│ Provider               │
+└───────────────────────┘
+
+Do not build the AI provider now.
+
+Do not create unnecessary abstractions.
+
+Simply ensure that the human workflow does not make future automated verification impossible.
+
+==================================================
+API REQUIREMENTS
+==================================================
+
+Implement the minimum required API endpoints for the workflow.
+
+Provider endpoints should support:
+
+- Create verification case
+- Get own verification case
+- Submit verification case
+- View verification status
+- Add evidence metadata
+- Remove evidence before submission
+- Respond to information requests
+- Resubmit a case
+
+Verification team endpoints should support:
+
+- List verification cases
+- Filter by status
+- View case
+- Claim or assign case if supported
+- Add internal notes
+- Request information
+- Approve
+- Reject
+- Escalate
+
+Every endpoint must define:
+
+- Authentication
+- Required role/permission
+- Ownership rules
+- Validation
+- Error behavior
+
+Use the existing API architecture and error format.
+
+==================================================
+SECURITY REQUIREMENTS
+==================================================
+
+Verification data may contain sensitive personal information.
+
+Ensure:
+
+- Providers can only access their own verification cases.
+- Reviewers can only access cases allowed by their permissions.
+- Internal notes are never exposed to providers.
+- Private evidence is never publicly exposed.
+- Public provider profiles expose only appropriate verification status.
+- File references cannot be freely guessed or enumerated.
+- Authorization is server-side.
+- No sensitive secrets are stored in database records.
+- No uploaded file is stored directly in PostgreSQL.
+
+==================================================
+TESTING
+==================================================
+
+Add tests for:
+
+- Creating a verification case
+- Invalid status transitions
+- Submitting a case
+- Provider ownership
+- Evidence metadata
+- Information requests
+- Provider resubmission
+- Reviewer access
+- Permission enforcement
+- Approval
+- Rejection
+- Escalation
+- Audit trail creation
+- Internal notes remaining private
+- Public verification status behavior
+
+Preserve all existing tests.
+
+Do not weaken or delete tests.
+
+==================================================
+IMPLEMENTATION APPROACH
+==================================================
+
+Move efficiently.
+
+Do not spend excessive time writing speculative architecture.
+
+Use this process:
+
+1. Inspect current Stage 3 schema and authorization system.
+2. Implement the verification database migration.
+3. Implement the domain service and state transition logic.
+4. Implement provider endpoints.
+5. Implement verification team endpoints.
+6. Implement audit logging.
+7. Implement tests.
+8. Run all checks.
+
+Do not stop after merely creating files.
+
+==================================================
+REQUIRED VERIFICATION
+==================================================
+
+Run:
+
+- Backend typecheck
+- Full backend test suite
+- Backend lint
+- Backend build if configured
+- Frontend typecheck
+- Frontend production build
+
+Perform:
+
+SECURITY AUDIT
+- No authorization bypasses
+- No public access to private verification evidence
+- No provider ownership bypass
+- No internal note leakage
+- No hardcoded secrets
+
+PORTABILITY AUDIT
+- No Replit dependencies
+- No Replit-specific services
+- PostgreSQL-compatible
+- Render-compatible
+- Railway-compatible
+- Vercel-compatible
+
+==================================================
+STOP CONDITION
+==================================================
+
+Complete Stage 4 only.
+
+Do not begin Stage 5.
+
+When complete, provide:
+
+1. Files changed.
+2. Database changes.
+3. Verification workflow.
+4. Status transition rules.
+5. Provider API endpoints.
+6. Verification-team API endpoints.
+7. Permission rules.
+8. Audit trail implementation.
+9. Future AI/API integration point.
+10. Tests added.
+11. Exact test results.
+12. Typecheck result.
+13. Lint result.
+14. Build result.
+15. Security audit result.
+16. Portability audit result.
+17. Remaining limitations.
+
+Then stop.
+
+The next stage will be Search & Ranking.

@@ -1,65 +1,43 @@
 # Precious Market Place (PMP)
 
-A premium service marketplace platform connecting hirers with verified artisans and professionals. Built with TanStack Start + React, Tailwind CSS v4, shadcn/ui glass components, and Bun.
+A premium marketplace for hiring verified artisans and professionals. Built with TanStack Start (React 19, SSR), Tailwind CSS v4, and a separate Hono/Bun backend.
 
 ## How to run
 
-```bash
+**Frontend (this project):**
+```
 bun install
-bun run dev
+bun run dev        # starts Vite dev server on port 5000
 ```
 
-The dev server starts on port 5000 (configured in `vite.config.ts`). The app runs fully in mock mode by default — no backend required.
+The frontend runs with mock data and does not require the backend to be running.
 
-## Architecture
+## Stack
 
-Feature-based, transport-agnostic, mock-backed. Layer boundaries are enforced by directory:
-
-```
-UI primitives     →  src/components/ (ui/, glass/, common/)
-Feature modules   →  src/features/   (auth, theme, providers)
-Layouts (shells)  →  src/layouts/    (PublicShell, OpsShell, AuthShell)
-Routes (pages)    →  src/routes/     (file-based, TanStack Router)
-Domain API        →  src/api/*.ts    (per-domain façade)
-Mock adapter      →  src/api/mock/   (only src/api/* may import this)
-Domain types      →  src/types/      (single source of truth)
-```
-
-## Theme system
-
-Five themes, selected via `data-theme` on `<html>`:
-
-| Value | Description |
-|-------|-------------|
-| `light` | Neutral warm-light (default fallback) |
-| `dark` | Deep crimson-dark |
-| `midnight` | Deep indigo-midnight |
-| `sunrise` | Warm golden-hour bright |
-| `ocean` | Cool azure bright |
-
-Theme is persisted in `localStorage` under key `mp.theme`. To add more themes: add a CSS block in `src/styles.css`, add the value to the `Theme` union in `src/features/theme/theme-context.tsx`, and add an entry in `src/features/theme/theme-toggle.tsx`.
+- **Frontend/SSR:** React 19, TanStack Start, TanStack Router, TanStack Query, Tailwind CSS v4, Shadcn/UI (Radix), Vite 8
+- **Backend (separate, in `backend/`):** Hono, Bun, Drizzle ORM, PostgreSQL, Clerk (auth), Pino
 
 ## Environment variables
 
-| Name | Default | Purpose |
-|------|---------|---------|
-| `VITE_API_BASE_URL` | `""` (empty → mock) | Base URL of the real backend |
-| `VITE_USE_MOCK_API` | `"false"` | Force mock even when a base URL is set |
+### Backend (`backend/`)
+| Variable | Description | Default |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | `postgres://localhost:5432/pmp_dev` |
+| `CLERK_SECRET_KEY` | Clerk backend API key | *(required)* |
+| `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5000` |
+| `NODE_ENV` | `development` or `production` | — |
 
-## Key docs
+### Frontend
+Clerk public keys (VITE_* prefix) are needed when enabling real authentication.
 
-- `docs/frontend-handoff.md` — full architecture, auth wiring, known limitations, backend to-do list
-- `src/api/contracts.md` — API contract (source of truth for all endpoints)
-- `src/routes/README.md` — routing conventions
+## Running the backend
 
-## Status
-
-Frontend: complete (mock-backed). Backend: not started.
-
-See `docs/frontend-handoff.md` §11 for the recommended backend implementation order.
+```
+cd backend
+bun install
+bun run db:generate   # generate Drizzle migrations
+bun run db:migrate    # apply migrations
+bun run dev           # start Hono API server
+```
 
 ## User preferences
-
-- Official product name: **Precious Market Place (PMP)**. Short form: **PMP**. Never "Precious Marketplace" or other variants.
-- Keep the existing frontend architecture — do not restructure or migrate it.
-- Follow the phased development order in the PMP spec: frontend changes → audit → backend foundation → backend features.
