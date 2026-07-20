@@ -9,22 +9,41 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
+import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -36,6 +55,11 @@ const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
   id: '/providers/$providerId',
   path: '/providers/$providerId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => MessagesRoute,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
   id: '/auth/register',
@@ -55,66 +79,93 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/dashboard': typeof DashboardRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/dashboard': typeof DashboardRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/dashboard': typeof DashboardRoute
+  '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/dashboard'
+    | '/messages'
     | '/search'
+    | '/verification'
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/messages/$conversationId'
     | '/providers/$providerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/dashboard'
+    | '/messages'
     | '/search'
+    | '/verification'
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/messages/$conversationId'
     | '/providers/$providerId'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/dashboard'
+    | '/messages'
     | '/search'
+    | '/verification'
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/messages/$conversationId'
     | '/providers/$providerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   DashboardRoute: typeof DashboardRoute
+  MessagesRoute: typeof MessagesRouteWithChildren
   SearchRoute: typeof SearchRoute
+  VerificationRoute: typeof VerificationRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRecoverRoute: typeof AuthRecoverRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
@@ -123,6 +174,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -130,11 +188,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -150,6 +222,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/providers/$providerId'
       preLoaderRoute: typeof ProvidersProviderIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/messages/$conversationId': {
+      id: '/messages/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/messages/$conversationId'
+      preLoaderRoute: typeof MessagesConversationIdRouteImport
+      parentRoute: typeof MessagesRoute
     }
     '/auth/register': {
       id: '/auth/register'
@@ -175,10 +254,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MessagesRouteChildren {
+  MessagesConversationIdRoute: typeof MessagesConversationIdRoute
+}
+
+const MessagesRouteChildren: MessagesRouteChildren = {
+  MessagesConversationIdRoute: MessagesConversationIdRoute,
+}
+
+const MessagesRouteWithChildren = MessagesRoute._addFileChildren(
+  MessagesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   DashboardRoute: DashboardRoute,
+  MessagesRoute: MessagesRouteWithChildren,
   SearchRoute: SearchRoute,
+  VerificationRoute: VerificationRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRecoverRoute: AuthRecoverRoute,
   AuthRegisterRoute: AuthRegisterRoute,
