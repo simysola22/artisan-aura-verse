@@ -131,7 +131,7 @@ export function ConversationView({ conversationId }: { conversationId: string })
           emptyDescription="Say hello — providers usually respond within a few hours."
         >
           {messages.data?.map((m) => {
-            const mine = m.senderId === "me";
+            const mine = m.senderId === currentUserId;
             return (
               <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                 <div
