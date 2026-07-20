@@ -1,0 +1,350 @@
+We are continuing the PMP (Precious Market Place) project from a previous Replit environment that reached its daily quota limit.
+
+IMPORTANT:
+Do NOT assume the previous environment stopped before implementation.
+Do NOT restart Stage 8.
+Do NOT rebuild the payment system.
+Do NOT overwrite existing work.
+First inspect the current repository and determine exactly where the previous environment stopped.
+
+The current production architecture is:
+
+Frontend: Vercel
+Backend: Render
+Database: Railway PostgreSQL
+Authentication: Clerk
+Repository: GitHub
+
+Replit is ONLY a development environment.
+
+The codebase must remain completely independent of Replit.
+
+Do not introduce:
+- @replit/* packages
+- REPLIT_* environment variables
+- Replit Database
+- Replit Auth
+- Replit-specific APIs
+- Replit deployment assumptions
+- hardcoded Replit paths
+
+==================================================
+PROJECT STAGES
+==================================================
+
+Stage 1 — Foundation ✅
+Stage 2 — Identity / Clerk ✅
+Stage 3 — Reference Data ✅
+Stage 4 — Users and Providers ✅
+Stage 5 — Verification ✅
+Stage 6 — Search and Ranking ✅
+Stage 7 — Messaging ✅
+Stage 8 — Payments — currently being completed
+Stage 9 — Operations — not yet started
+
+DO NOT START STAGE 9.
+
+==================================================
+PREVIOUS STAGE 8 STATE
+==================================================
+
+The previous environment implemented the Stage 8 payment system.
+
+The previous environment reached:
+
+- 494/494 backend tests passing
+- Backend TypeScript clean
+- Stage 8 implementation substantially complete
+
+The previous environment then started final verification.
+
+It had already fixed:
+
+1. Lazy payment-provider construction so existing tests do not require payment configuration.
+2. Webhook error handling.
+3. Mock payment provider typing.
+4. Payment checkout user resolution.
+
+The previous environment was stopped while installing root dependencies and preparing the final lint verification.
+
+Therefore, your first responsibility is to determine the exact current state rather than guessing.
+
+==================================================
+PHASE 1 — AUDIT CURRENT STATE
+==================================================
+
+Before changing any code, inspect:
+
+git status
+git log --oneline -10
+git branch --show-current
+git remote -v
+
+Then inspect:
+
+package.json
+backend/package.json
+backend/src/
+backend/tests/
+backend/migrations/
+
+Identify:
+
+- the latest migration
+- all Stage 8 payment files
+- the current package manager
+- the current test scripts
+- the current lint scripts
+- the current typecheck scripts
+- any uncommitted changes
+- whether the previous environment's final changes are present
+
+Do not modify code during this audit.
+
+==================================================
+PHASE 2 — RUN VERIFICATION FIRST
+==================================================
+
+Run the existing project verification commands using the project's existing scripts.
+
+At minimum, verify:
+
+1. Backend tests
+2. Backend TypeScript
+3. Backend lint
+4. Frontend TypeScript
+5. Frontend production build
+
+If dependencies are missing, install them using the existing package manager.
+
+Do not change package managers.
+
+Do not install unnecessary dependencies.
+
+IMPORTANT:
+If the test suite is already passing, do not rewrite the tests or implementation.
+If the typecheck is already clean, do not make unrelated changes.
+If lint is already clean, do not reformat unrelated files.
+
+==================================================
+PHASE 3 — IDENTIFY THE EXACT STOPPING POINT
+==================================================
+
+Compare the current repository state against the following known stopping point:
+
+The previous environment had:
+
+Backend tests: 494/494 passing
+Backend TypeScript: clean
+
+The remaining expected work was:
+
+- complete final lint verification
+- complete frontend typecheck
+- complete frontend production build
+- complete portability audit
+- complete security audit
+- complete payment migration audit
+
+However, do not blindly assume these are still incomplete.
+
+Verify each one.
+
+==================================================
+PHASE 4 — CONTINUE ONLY FROM THE ACTUAL STOPPING POINT
+==================================================
+
+If tests fail:
+
+- diagnose the actual failure
+- fix only genuine issues
+- preserve all existing tests
+- do not weaken assertions
+- do not delete tests
+- do not bypass TypeScript
+- do not disable lint globally
+
+If tests pass:
+
+Do not modify the test suite unnecessarily.
+
+If TypeScript passes:
+
+Do not modify unrelated code.
+
+If lint fails only because dependencies are missing:
+
+Install the correct dependencies and rerun it.
+
+If lint finds genuine issues:
+
+Fix only the genuine issues.
+
+==================================================
+STAGE 8 PAYMENT AUDIT
+==================================================
+
+After restoring a clean state, verify the following.
+
+Payment system:
+
+- provider abstraction exists
+- Paystack adapter exists
+- mock payment provider exists
+- payment checkout flow exists
+- payment state machine exists
+- subscription state machine exists
+- entitlements service exists
+- billing routes exist
+- webhook route exists
+- frontend billing API stubs exist
+
+Security:
+
+- frontend cannot mark payment successful
+- frontend cannot modify payment amount
+- frontend cannot modify currency
+- frontend cannot modify subscription status
+- payment provider is authoritative
+- users cannot access another user's billing data
+- provider secrets remain server-side
+- no raw card data is stored
+- no payment secrets are exposed through VITE_* variables
+
+Webhook security:
+
+- signatures are verified
+- invalid signatures are rejected
+- duplicate webhook events are idempotent
+- provider event IDs cannot be replayed
+- webhook processing does not trust client state
+
+State machines:
+
+- invalid payment transitions are rejected
+- invalid subscription transitions are rejected
+- clients cannot arbitrarily change payment states
+
+Entitlements:
+
+- entitlement state is backend-controlled
+- cancelled subscriptions do not incorrectly retain access
+- expired subscriptions do not incorrectly grant access
+- frontend state cannot forge entitlements
+
+==================================================
+DATABASE MIGRATION AUDIT
+==================================================
+
+Inspect the Stage 8 migration.
+
+Confirm:
+
+- correct migration number
+- previous migrations are untouched
+- monetary values use integer minor units
+- currency is explicit
+- external provider IDs are stored
+- unique constraints exist where required
+- webhook event IDs are idempotent
+- foreign keys are correct
+- indexes are appropriate
+
+Do not rewrite already-applied migrations.
+
+==================================================
+PORTABILITY AUDIT
+==================================================
+
+Search the production source code for:
+
+- @replit/
+- REPLIT_
+- Replit Database
+- Replit Auth
+- Replit-specific APIs
+
+The production application must remain portable to:
+
+- Render
+- Railway PostgreSQL
+- Vercel
+- Clerk
+
+Replit must remain only a development environment.
+
+==================================================
+IMPORTANT
+==================================================
+
+We are finishing Stage 8.
+
+Do not begin Stage 9.
+
+Do not redesign the existing payment architecture.
+
+Do not rebuild work that already exists.
+
+Do not make large speculative changes.
+
+First audit.
+Then verify.
+Then identify the exact stopping point.
+Then continue only from there.
+
+==================================================
+FINAL REPORT
+==================================================
+
+At the end, report:
+
+Stage 8 status:
+COMPLETE / INCOMPLETE
+
+Backend tests:
+X/X passing
+
+Backend TypeScript:
+PASS / FAIL
+
+Backend lint:
+PASS / FAIL
+
+Frontend typecheck:
+PASS / FAIL
+
+Frontend build:
+PASS / FAIL
+
+Payment provider:
+...
+
+Webhook security:
+...
+
+Idempotency:
+...
+
+Entitlements:
+...
+
+Database migration:
+...
+
+Portability audit:
+...
+
+Security audit:
+...
+
+Files changed during this continuation:
+...
+
+Remaining limitations:
+...
+
+If everything is complete, explicitly state:
+
+STAGE 8 — PAYMENTS COMPLETE AND VERIFIED.
+
+Do not proceed to Stage 9 unless explicitly instructed.
