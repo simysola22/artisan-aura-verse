@@ -7,7 +7,9 @@ import { DataStateBoundary } from "@/components/common/data-state";
 import { BadgeCheck, Clock, ShieldAlert } from "lucide-react";
 
 export const Route = createFileRoute("/ops/verification")({
-  head: () => ({ meta: [{ title: "Verification queue — Ops" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Verification queue — Ops" }, { name: "robots", content: "noindex" }],
+  }),
   component: OpsVerification,
 });
 

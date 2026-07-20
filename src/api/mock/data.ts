@@ -57,11 +57,22 @@ export const providers: Provider[] = [
       },
     ],
     certifications: [
-      { id: "ct1", name: "City & Guilds Advanced Carpentry", issuer: "City & Guilds", issuedAt: "2010-06-01" },
+      {
+        id: "ct1",
+        name: "City & Guilds Advanced Carpentry",
+        issuer: "City & Guilds",
+        issuedAt: "2010-06-01",
+      },
     ],
     portfolio: [
       { id: "pf1", title: "Walnut library wall", mediaUrl: "", mediaType: "image", createdAt: now },
-      { id: "pf2", title: "Oak floating staircase", mediaUrl: "", mediaType: "image", createdAt: now },
+      {
+        id: "pf2",
+        title: "Oak floating staircase",
+        mediaUrl: "",
+        mediaType: "image",
+        createdAt: now,
+      },
     ],
     verification: "verified",
     serviceArea: "London & South East",
@@ -84,10 +95,23 @@ export const providers: Provider[] = [
     category: "software",
     skills: [skills[6]!, skills[7]!],
     experience: [
-      { id: "e2", role: "Senior Engineer", organization: "Northwind Health", startDate: "2021-09-01" },
+      {
+        id: "e2",
+        role: "Senior Engineer",
+        organization: "Northwind Health",
+        startDate: "2021-09-01",
+      },
     ],
     certifications: [],
-    portfolio: [{ id: "pf3", title: "Clinical intake platform", mediaUrl: "", mediaType: "image", createdAt: now }],
+    portfolio: [
+      {
+        id: "pf3",
+        title: "Clinical intake platform",
+        mediaUrl: "",
+        mediaType: "image",
+        createdAt: now,
+      },
+    ],
     verification: "verified",
     serviceArea: "Remote — EU & UK",
     availability: "limited",
@@ -107,9 +131,16 @@ export const providers: Provider[] = [
     category: "electrical",
     skills: [skills[2]!, skills[3]!],
     experience: [
-      { id: "e3", role: "Electrician", organization: "Brightline Electrical", startDate: "2018-01-01" },
+      {
+        id: "e3",
+        role: "Electrician",
+        organization: "Brightline Electrical",
+        startDate: "2018-01-01",
+      },
     ],
-    certifications: [{ id: "ct2", name: "NICEIC Approved", issuer: "NICEIC", issuedAt: "2019-04-01" }],
+    certifications: [
+      { id: "ct2", name: "NICEIC Approved", issuer: "NICEIC", issuedAt: "2019-04-01" },
+    ],
     portfolio: [],
     verification: "in_review",
     serviceArea: "Manchester",
@@ -129,7 +160,9 @@ export const providers: Provider[] = [
     headline: "Corporate & commercial lawyer — startups and scaleups",
     category: "legal",
     skills: [skills[4]!],
-    experience: [{ id: "e4", role: "Partner", organization: "Meridian Legal", startDate: "2016-06-01" }],
+    experience: [
+      { id: "e4", role: "Partner", organization: "Meridian Legal", startDate: "2016-06-01" },
+    ],
     certifications: [],
     portfolio: [],
     verification: "verified",
@@ -151,7 +184,9 @@ export const providers: Provider[] = [
     category: "plumbing",
     skills: [],
     experience: [],
-    certifications: [{ id: "ct3", name: "Gas Safe", issuer: "Gas Safe Register", issuedAt: "2020-02-01" }],
+    certifications: [
+      { id: "ct3", name: "Gas Safe", issuer: "Gas Safe Register", issuedAt: "2020-02-01" },
+    ],
     portfolio: [],
     verification: "unverified",
     serviceArea: "Bristol",
@@ -215,12 +250,47 @@ export const conversations: Conversation[] = [
 
 export const messages: Record<string, Message[]> = {
   cv1: [
-    { id: "m1", conversationId: "cv1", senderId: "me", body: "Hi Amara, would you be free to quote a walk-in wardrobe fit-out?", createdAt: now, status: "read" },
-    { id: "m2", conversationId: "cv1", senderId: "p1", body: "Happy to visit next Tuesday to take measurements.", createdAt: now, status: "delivered" },
+    {
+      id: "m1",
+      conversationId: "cv1",
+      senderId: "me",
+      body: "Hi Amara, would you be free to quote a walk-in wardrobe fit-out?",
+      createdAt: now,
+      status: "read",
+    },
+    {
+      id: "m2",
+      conversationId: "cv1",
+      senderId: "p1",
+      body: "Happy to visit next Tuesday to take measurements.",
+      createdAt: now,
+      status: "delivered",
+    },
   ],
   cv2: [
-    { id: "m3", conversationId: "cv2", senderId: "me", body: "Jules — we're looking for a lead engineer on a 6-week engagement.", createdAt: now, status: "read" },
-    { id: "m4", conversationId: "cv2", senderId: "p2", body: "Sounds interesting. What's the tech stack?", createdAt: now, status: "read" },
-    { id: "m5", conversationId: "cv2", senderId: "me", body: "Sounds great — I'll send the brief across today.", createdAt: now, status: "read" },
+    {
+      id: "m3",
+      conversationId: "cv2",
+      senderId: "me",
+      body: "Jules — we're looking for a lead engineer on a 6-week engagement.",
+      createdAt: now,
+      status: "read",
+    },
+    {
+      id: "m4",
+      conversationId: "cv2",
+      senderId: "p2",
+      body: "Sounds interesting. What's the tech stack?",
+      createdAt: now,
+      status: "read",
+    },
+    {
+      id: "m5",
+      conversationId: "cv2",
+      senderId: "me",
+      body: "Sounds great — I'll send the brief across today.",
+      createdAt: now,
+      status: "read",
+    },
   ],
 };

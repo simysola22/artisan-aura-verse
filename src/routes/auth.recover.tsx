@@ -35,7 +35,9 @@ function RecoverPage() {
         </p>
       ) : (
         <form onSubmit={onSubmit} className="space-y-4">
-          <label htmlFor="email" className="block text-sm font-medium">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium">
+            Email
+          </label>
           <input
             id="email"
             type="email"

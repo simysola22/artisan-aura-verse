@@ -28,7 +28,9 @@ function DashboardPage() {
           <p className="text-sm text-muted-foreground">
             {user ? `Welcome back, ${user.displayName.split(" ")[0]}` : "Welcome"}
           </p>
-          <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-3xl">Your workspace</h1>
+          <h1 className="truncate text-2xl font-semibold tracking-tight sm:text-3xl">
+            Your workspace
+          </h1>
         </div>
         <Link
           to="/search"
@@ -40,8 +42,16 @@ function DashboardPage() {
 
       <section className="mt-6 grid gap-4 md:grid-cols-3">
         {[
-          { icon: MessageSquare, label: "Active conversations", value: conversationsQuery.data?.length ?? "—" },
-          { icon: ShieldCheck, label: "Verified providers", value: providersQuery.data?.filter((p) => p.verification === "verified").length ?? "—" },
+          {
+            icon: MessageSquare,
+            label: "Active conversations",
+            value: conversationsQuery.data?.length ?? "—",
+          },
+          {
+            icon: ShieldCheck,
+            label: "Verified providers",
+            value: providersQuery.data?.filter((p) => p.verification === "verified").length ?? "—",
+          },
           { icon: Clock, label: "Average response", value: "2h 14m" },
         ].map((s) => (
           <GlassCard key={s.label} className="p-5">
@@ -57,7 +67,10 @@ function DashboardPage() {
       <section className="mt-10">
         <div className="mb-3 flex items-end justify-between">
           <h2 className="text-lg font-semibold tracking-tight">Featured providers</h2>
-          <Link to="/search" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+          <Link
+            to="/search"
+            className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+          >
             Explore all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -82,8 +95,8 @@ function DashboardPage() {
           </div>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Every verified provider has been reviewed by our team against submitted evidence. In a
-            future release, automated checks may complement human review — the badge means the
-            same thing either way.
+            future release, automated checks may complement human review — the badge means the same
+            thing either way.
           </p>
         </GlassPanel>
       </section>

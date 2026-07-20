@@ -2,14 +2,20 @@ import { USE_MOCK_API, apiFetch } from "./client";
 import { mockAuth } from "./mock/adapter";
 import type { AuthSession, User } from "@/types";
 
-export interface LoginInput { email: string; password: string }
+export interface LoginInput {
+  email: string;
+  password: string;
+}
 export interface RegisterInput {
   email: string;
   password: string;
   role: "employer" | "provider";
   displayName: string;
 }
-export interface AuthResponse { session: AuthSession; user: User }
+export interface AuthResponse {
+  session: AuthSession;
+  user: User;
+}
 
 export function login(input: LoginInput): Promise<AuthResponse> {
   if (USE_MOCK_API) return mockAuth.login(input.email, input.password);

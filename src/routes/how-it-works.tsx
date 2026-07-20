@@ -6,7 +6,11 @@ export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
       { title: "How it works — PMP" },
-      { name: "description", content: "How Precious Market Place (PMP) connects hirers with verified artisans and professionals." },
+      {
+        name: "description",
+        content:
+          "How Precious Market Place (PMP) connects hirers with verified artisans and professionals.",
+      },
     ],
   }),
   component: HowItWorksPage,
@@ -15,13 +19,23 @@ export const Route = createFileRoute("/how-it-works")({
 function HowItWorksPage() {
   const steps = [
     { n: 1, title: "Create your account", body: "Sign up as a hirer or provider in a minute." },
-    { n: 2, title: "Build a profile", body: "Providers add skills, experience, certifications, and portfolio." },
+    {
+      n: 2,
+      title: "Build a profile",
+      body: "Providers add skills, experience, certifications, and portfolio.",
+    },
     { n: 3, title: "Verify", body: "Our team reviews evidence. A badge appears when verified." },
-    { n: 4, title: "Discover & connect", body: "Hirers search, shortlist, and start conversations." },
+    {
+      n: 4,
+      title: "Discover & connect",
+      body: "Hirers search, shortlist, and start conversations.",
+    },
   ];
   return (
     <PublicShell>
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How Precious Market Place works</h1>
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+        How Precious Market Place works
+      </h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         A calm, evidence-first process for both sides of the marketplace.
       </p>

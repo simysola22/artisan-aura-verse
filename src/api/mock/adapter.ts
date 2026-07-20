@@ -15,7 +15,14 @@ import type {
   VerificationApplication,
 } from "@/types";
 import { ApiError } from "../client";
-import { categories, conversations, messages, providers, skills, verificationApplications } from "./data";
+import {
+  categories,
+  conversations,
+  messages,
+  providers,
+  skills,
+  verificationApplications,
+} from "./data";
 
 const delay = (ms = 260) => new Promise((r) => setTimeout(r, ms));
 
@@ -125,8 +132,11 @@ export const mockProviders = {
     if (filters.kind) items = items.filter((p) => p.kind === filters.kind);
     if (filters.verified) items = items.filter((p) => p.verification === "verified");
     if (filters.location)
-      items = items.filter((p) => p.serviceArea?.toLowerCase().includes(filters.location!.toLowerCase()));
-    if (filters.sort === "rating") items.sort((a, b) => (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0));
+      items = items.filter((p) =>
+        p.serviceArea?.toLowerCase().includes(filters.location!.toLowerCase()),
+      );
+    if (filters.sort === "rating")
+      items.sort((a, b) => (b.ratingAverage ?? 0) - (a.ratingAverage ?? 0));
     if (filters.sort === "recent") items.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return { items, page: 1, pageSize: items.length, total: items.length };
   },
@@ -156,7 +166,10 @@ export const mockVerification = {
     if (!v) throw new ApiError("No application", { status: 404 });
     return v;
   },
-  async submit(providerId: string, _payload: Partial<VerificationApplication>): Promise<VerificationApplication> {
+  async submit(
+    providerId: string,
+    _payload: Partial<VerificationApplication>,
+  ): Promise<VerificationApplication> {
     await delay(400);
     return {
       id: `va-${providerId}-${uid()}`,

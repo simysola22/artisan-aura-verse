@@ -3,7 +3,11 @@ import type {} from "@tanstack/react-start";
 
 const BASE_URL = "";
 
-interface Entry { path: string; changefreq?: string; priority?: string }
+interface Entry {
+  path: string;
+  changefreq?: string;
+  priority?: string;
+}
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {

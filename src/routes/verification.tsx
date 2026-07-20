@@ -14,7 +14,10 @@ export const Route = createFileRoute("/verification")({
   component: VerificationPage,
 });
 
-const statusMeta: Record<VerificationStatus, { label: string; tone: string; icon: typeof BadgeCheck }> = {
+const statusMeta: Record<
+  VerificationStatus,
+  { label: string; tone: string; icon: typeof BadgeCheck }
+> = {
   unverified: { label: "Not started", tone: "text-muted-foreground", icon: ShieldAlert },
   in_review: { label: "In review", tone: "text-warning", icon: Clock },
   additional_info_requested: { label: "Info requested", tone: "text-warning", icon: ShieldAlert },
@@ -55,9 +58,13 @@ function VerificationPage() {
 
       {q.data?.requestedInfo && q.data.requestedInfo.length > 0 ? (
         <GlassPanel className="mt-6 border-warning/40 bg-warning/10 p-4 text-sm">
-          <div className="font-semibold text-warning-foreground">Additional information requested</div>
+          <div className="font-semibold text-warning-foreground">
+            Additional information requested
+          </div>
           <ul className="mt-2 list-inside list-disc space-y-1 text-muted-foreground">
-            {q.data.requestedInfo.map((r, i) => <li key={i}>{r}</li>)}
+            {q.data.requestedInfo.map((r, i) => (
+              <li key={i}>{r}</li>
+            ))}
           </ul>
         </GlassPanel>
       ) : null}

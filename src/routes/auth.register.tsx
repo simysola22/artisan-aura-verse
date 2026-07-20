@@ -35,8 +35,18 @@ function RegisterPage() {
   }
 
   const roleOptions = [
-    { value: "employer" as const, label: "I want to hire", icon: Briefcase, description: "Find and message providers." },
-    { value: "provider" as const, label: "I offer services", icon: Wrench, description: "Artisan or professional." },
+    {
+      value: "employer" as const,
+      label: "I want to hire",
+      icon: Briefcase,
+      description: "Find and message providers.",
+    },
+    {
+      value: "provider" as const,
+      label: "I offer services",
+      icon: Wrench,
+      description: "Artisan or professional.",
+    },
   ];
 
   return (
@@ -76,7 +86,9 @@ function RegisterPage() {
         </fieldset>
 
         <div>
-          <label htmlFor="displayName" className="block text-sm font-medium">Full name</label>
+          <label htmlFor="displayName" className="block text-sm font-medium">
+            Full name
+          </label>
           <input
             id="displayName"
             required
@@ -86,7 +98,9 @@ function RegisterPage() {
           />
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium">
+            Email
+          </label>
           <input
             id="email"
             type="email"
@@ -98,7 +112,9 @@ function RegisterPage() {
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium">
+            Password
+          </label>
           <input
             id="password"
             type="password"
@@ -111,7 +127,11 @@ function RegisterPage() {
           />
           <p className="mt-1 text-xs text-muted-foreground">At least 8 characters.</p>
         </div>
-        {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        ) : null}
         <button
           type="submit"
           disabled={loading}

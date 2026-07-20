@@ -1,0 +1,306 @@
+# PHASE 3 — FRONTEND FINAL AUDIT AND PRE-BACKEND FREEZE
+
+The two requested frontend changes have been completed:
+
+1. The product has been rebranded as Precious Market Place (PMP).
+2. The theme system now contains five themes:
+
+   * Light
+   * Dark
+   * Midnight
+   * Sunrise
+   * Ocean
+
+Do not begin backend implementation yet.
+
+This phase is a strict frontend audit and stabilization phase.
+
+Do not redesign the application.
+
+Do not add unrelated features.
+
+Do not change the API architecture unless a real defect is found.
+
+The purpose of this phase is to confirm that the frontend is stable and ready for backend implementation.
+
+---
+
+# 1. FULL THEME AUDIT
+
+Test all five themes across the major application surfaces:
+
+* Home
+* Employer pages
+* Provider pages
+* Authentication pages
+* Dashboard
+* Search
+* Provider profile
+* Messaging
+* Verification
+* Account
+* Operations dashboard
+* Operations verification
+* Operations moderation
+* Operations support
+* Operations users
+
+Verify:
+
+* Text remains readable.
+* Primary and secondary actions remain visible.
+* Borders remain visible.
+* Glass surfaces remain distinguishable.
+* Backgrounds do not overwhelm foreground content.
+* Cards do not become visually indistinguishable from their backgrounds.
+* Error states remain readable.
+* Success states remain readable.
+* Warning states remain readable.
+* Disabled states remain understandable.
+* Form fields remain usable.
+
+Pay particular attention to:
+
+* Sunrise
+* Ocean
+
+because these are the newly added bright themes.
+
+Do not weaken the existing themes while fixing the new ones.
+
+---
+
+# 2. ACCESSIBILITY AUDIT
+
+Check:
+
+* Text contrast
+* Button contrast
+* Form field contrast
+* Focus indicators
+* Keyboard navigation
+* Visible hover states
+* Visible active states
+* Error messages
+* Labels
+* Semantic HTML
+
+Glassmorphism must not reduce accessibility.
+
+If any theme causes important text or controls to become difficult to see, fix the theme tokens centrally rather than scattering one-off overrides throughout components.
+
+---
+
+# 3. BRANDING AUDIT
+
+Search the entire repository for:
+
+* Kraftly
+* Any old placeholder brand name
+* Incorrect product naming
+* Incorrect metadata
+
+The official name is:
+
+```text
+Precious Market Place
+```
+
+The official abbreviation is:
+
+```text
+PMP
+```
+
+Confirm the branding is correct in:
+
+* Browser titles
+* SEO metadata
+* Open Graph metadata
+* Navigation
+* Mobile navigation
+* Authentication screens
+* Operations screens
+* Loading states
+* Error states
+* Empty states
+* Documentation where applicable
+
+Do not modify technical identifiers merely for cosmetic reasons unless necessary.
+
+---
+
+# 4. API ARCHITECTURE AUDIT
+
+Confirm that the existing architecture remains intact:
+
+```text
+UI
+ ↓
+Feature
+ ↓
+Domain API abstraction
+ ↓
+Mock or real adapter
+```
+
+Verify:
+
+* Components do not directly import mock data.
+* API calls remain centralized.
+* `src/api/contracts.md` remains intact.
+* `docs/frontend-handoff.md` remains intact.
+* No API contract was silently changed.
+* No backend logic was accidentally added to the frontend.
+* No frontend component became coupled to a specific backend implementation.
+
+---
+
+# 5. AUTHENTICATION AUDIT
+
+Confirm:
+
+* The mock authentication layer remains clearly marked as non-production.
+* The frontend does not treat localStorage as authoritative production authentication.
+* No secrets are present in frontend code.
+* No frontend-only authorization is being treated as security.
+* The backend remains responsible for real authorization.
+
+---
+
+# 6. OPERATIONS AUDIT
+
+Confirm that the operations surface remains clearly separated in the frontend architecture.
+
+Document again if necessary:
+
+```text
+Current:
+Public frontend
+    └── Operations routes
+
+Future:
+Public application
+    └── Public users
+
+Separate operations application
+    └── Internal users
+```
+
+Confirm that the frontend does not claim that route separation provides security.
+
+---
+
+# 7. RESPONSIVE AUDIT
+
+Check all five themes on:
+
+* Desktop
+* Tablet
+* Mobile
+
+Pay particular attention to:
+
+* Sticky navigation
+* Mobile bottom navigation
+* Glass panels
+* Search filters
+* Provider cards
+* Profile pages
+* Forms
+* Messaging
+* Operations layouts
+
+Fix obvious layout breakage only.
+
+Do not redesign unrelated interfaces.
+
+---
+
+# 8. BUILD AND CODE QUALITY
+
+Run all available checks, including:
+
+* Type checking
+* Linting
+* Production build
+* Existing tests
+
+Fix actual errors caused by the current implementation.
+
+Do not hide errors by disabling checks.
+
+Do not introduce unrelated dependency changes.
+
+---
+
+# 9. FINAL CONTRACT PROTECTION
+
+Before completing the audit, verify that these files remain authoritative:
+
+```text
+src/api/contracts.md
+docs/frontend-handoff.md
+```
+
+If a change to either file is necessary, document:
+
+* What changed
+* Why it changed
+* Whether frontend adapters were updated
+* Whether a future backend implementation will be affected
+
+Do not silently create contract drift.
+
+---
+
+# 10. FINAL REPORT
+
+After completing the audit, provide:
+
+## Theme audit
+
+* All five themes tested
+* Any issues found
+* Any fixes made
+
+## Accessibility audit
+
+* Contrast findings
+* Focus state findings
+* Keyboard navigation findings
+
+## Branding audit
+
+* Confirmation of old branding removal
+
+## API audit
+
+* Confirmation that API boundaries remain intact
+
+## Build verification
+
+* Typecheck result
+* Lint result
+* Production build result
+* Test result
+
+## Remaining limitations
+
+* Anything that must be handled by the backend or infrastructure stages
+
+## Backend readiness
+
+Give a clear final verdict:
+
+```text
+BACKEND READY
+```
+
+or:
+
+```text
+NOT YET READY
+```
+
+Do not begin backend implementation in this phase.

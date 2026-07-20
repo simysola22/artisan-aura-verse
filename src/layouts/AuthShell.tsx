@@ -27,7 +27,9 @@ export function AuthShell({
           {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
           <div className="mt-6">{children}</div>
         </GlassPanel>
-        {footer ? <div className="mt-4 text-center text-sm text-muted-foreground">{footer}</div> : null}
+        {footer ? (
+          <div className="mt-4 text-center text-sm text-muted-foreground">{footer}</div>
+        ) : null}
       </div>
     </div>
   );

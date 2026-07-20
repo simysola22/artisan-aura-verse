@@ -22,24 +22,12 @@ export function GlassCard({ className, ...props }: HTMLAttributes<HTMLDivElement
 
 export function GlassPanel({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn(
-        "glass-surface-strong rounded-3xl shadow-glass",
-        className,
-      )}
-      {...props}
-    />
+    <div className={cn("glass-surface-strong rounded-3xl shadow-glass", className)} {...props} />
   );
 }
 
 export function GlassNav({ className, ...props }: HTMLAttributes<HTMLElement>) {
   return (
-    <nav
-      className={cn(
-        "glass-surface-strong rounded-2xl shadow-glass-sm",
-        className,
-      )}
-      {...props}
-    />
+    <nav className={cn("glass-surface-strong rounded-2xl shadow-glass-sm", className)} {...props} />
   );
 }

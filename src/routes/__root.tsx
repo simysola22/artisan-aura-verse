@@ -46,7 +46,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          This page didn't load
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. Try refreshing or head back home.
         </p>
@@ -84,7 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Precious Market Place (PMP) is a premium marketplace that connects hirers with verified artisans and professionals across every service you need.",
       },
       { name: "author", content: "Precious Market Place" },
-      { property: "og:title", content: "Precious Market Place (PMP) — hire trusted artisans & professionals" },
+      {
+        property: "og:title",
+        content: "Precious Market Place (PMP) — hire trusted artisans & professionals",
+      },
       {
         property: "og:description",
         content:

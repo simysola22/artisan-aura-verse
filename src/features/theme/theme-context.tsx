@@ -11,7 +11,13 @@ interface ThemeContextValue {
 }
 const Ctx = createContext<ThemeContextValue | null>(null);
 
-export function ThemeProvider({ children, defaultTheme = "dark" }: { children: ReactNode; defaultTheme?: Theme }) {
+export function ThemeProvider({
+  children,
+  defaultTheme = "dark",
+}: {
+  children: ReactNode;
+  defaultTheme?: Theme;
+}) {
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
 
   // Hydrate from localStorage after mount to avoid SSR mismatches.

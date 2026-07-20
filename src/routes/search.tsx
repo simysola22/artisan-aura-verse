@@ -21,7 +21,10 @@ function SearchPage() {
     queryKey: ["search", filters],
     queryFn: () => searchApi.providers(filters),
   });
-  const categories = useQuery({ queryKey: ["ref", "categories"], queryFn: referenceApi.categories });
+  const categories = useQuery({
+    queryKey: ["ref", "categories"],
+    queryFn: referenceApi.categories,
+  });
 
   function update<K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) {
     setFilters((f) => ({ ...f, [key]: value }));
@@ -66,7 +69,9 @@ function SearchPage() {
         >
           <option value="">All categories</option>
           {categories.data?.map((c) => (
-            <option key={c.id} value={c.slug}>{c.name}</option>
+            <option key={c.id} value={c.slug}>
+              {c.name}
+            </option>
           ))}
         </select>
         <select

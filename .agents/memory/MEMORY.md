@@ -1,0 +1,1 @@
+- [PMP project setup](pmp-project.md) — Precious Market Place (PMP): TanStack Start + React, Bun, Tailwind v4, five themes, mock-backed frontend, backend not started.

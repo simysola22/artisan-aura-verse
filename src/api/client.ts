@@ -40,7 +40,9 @@ function buildUrl(path: string, query?: RequestOptions["query"]): string {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
     }
   }
-  return API_BASE_URL ? url.toString().replace("http://placeholder", "") : url.pathname + url.search;
+  return API_BASE_URL
+    ? url.toString().replace("http://placeholder", "")
+    : url.pathname + url.search;
 }
 
 function getAuthToken(): string | null {
@@ -67,12 +69,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
   const res = await fetch(buildUrl(path, query), {
     ...rest,
     headers: finalHeaders,
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
+    body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
   });
 
   if (!res.ok) {

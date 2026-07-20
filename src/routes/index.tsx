@@ -1,12 +1,22 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, BadgeCheck, MessagesSquare, Search, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  MessagesSquare,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Wrench,
+} from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard, GlassPanel } from "@/components/glass/glass";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Precious Market Place (PMP) — the premium marketplace for artisans & professionals" },
+      {
+        title: "Precious Market Place (PMP) — the premium marketplace for artisans & professionals",
+      },
       {
         name: "description",
         content:

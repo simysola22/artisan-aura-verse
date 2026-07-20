@@ -7,7 +7,11 @@ export const Route = createFileRoute("/for-providers")({
   head: () => ({
     meta: [
       { title: "For artisans & professionals — PMP" },
-      { name: "description", content: "A profile that earns trust. Verified credentials, real portfolios, calm messaging." },
+      {
+        name: "description",
+        content:
+          "A profile that earns trust. Verified credentials, real portfolios, calm messaging.",
+      },
     ],
   }),
   component: ForProvidersPage,
@@ -21,8 +25,9 @@ function ForProvidersPage() {
           Your craft, taken seriously.
         </h1>
         <p className="mt-3 text-muted-foreground">
-          Showcase real work, add verified credentials, and let quality speak louder than
-          gimmicks. Precious Market Place (PMP) is where serious artisans and professionals build their reputation.
+          Showcase real work, add verified credentials, and let quality speak louder than gimmicks.
+          Precious Market Place (PMP) is where serious artisans and professionals build their
+          reputation.
         </p>
         <Link
           to="/auth/register"
@@ -33,9 +38,21 @@ function ForProvidersPage() {
       </header>
       <div className="mt-12 grid gap-4 md:grid-cols-3">
         {[
-          { icon: UserCircle2, title: "A profile that stands out", body: "Cinematic layouts, portfolio-first design." },
-          { icon: ShieldCheck, title: "Real verification", body: "A trusted badge — never bought, always earned." },
-          { icon: Star, title: "Ranked on fit", body: "No auction dynamics. Discovery favors substance." },
+          {
+            icon: UserCircle2,
+            title: "A profile that stands out",
+            body: "Cinematic layouts, portfolio-first design.",
+          },
+          {
+            icon: ShieldCheck,
+            title: "Real verification",
+            body: "A trusted badge — never bought, always earned.",
+          },
+          {
+            icon: Star,
+            title: "Ranked on fit",
+            body: "No auction dynamics. Discovery favors substance.",
+          },
         ].map((f) => (
           <GlassCard key={f.title} className="p-6">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">

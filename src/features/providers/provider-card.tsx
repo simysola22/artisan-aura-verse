@@ -43,7 +43,10 @@ export function ProviderCard({ provider }: { provider: Provider }) {
             {provider.kind}
           </span>
           {provider.skills.slice(0, 3).map((s) => (
-            <span key={s.id} className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+            <span
+              key={s.id}
+              className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
+            >
               {s.name}
             </span>
           ))}

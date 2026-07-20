@@ -7,9 +7,15 @@ export const Route = createFileRoute("/for-employers")({
   head: () => ({
     meta: [
       { title: "For hirers — PMP" },
-      { name: "description", content: "Find and hire verified artisans and professionals with confidence." },
+      {
+        name: "description",
+        content: "Find and hire verified artisans and professionals with confidence.",
+      },
       { property: "og:title", content: "Hire on Precious Market Place (PMP)" },
-      { property: "og:description", content: "Discover verified providers. Beautiful discovery, real evidence, calm messaging." },
+      {
+        property: "og:description",
+        content: "Discover verified providers. Beautiful discovery, real evidence, calm messaging.",
+      },
     ],
   }),
   component: ForEmployersPage,
@@ -33,9 +39,21 @@ function ForEmployersPage() {
       </header>
       <div className="mt-12 grid gap-4 md:grid-cols-3">
         {[
-          { icon: Search, title: "Precision search", body: "Filter by category, skill, verification, and location." },
-          { icon: BadgeCheck, title: "Evidence-backed profiles", body: "See real work and verified certifications." },
-          { icon: MessagesSquare, title: "Calm messaging", body: "A focused inbox that respects everyone's time." },
+          {
+            icon: Search,
+            title: "Precision search",
+            body: "Filter by category, skill, verification, and location.",
+          },
+          {
+            icon: BadgeCheck,
+            title: "Evidence-backed profiles",
+            body: "See real work and verified certifications.",
+          },
+          {
+            icon: MessagesSquare,
+            title: "Calm messaging",
+            body: "A focused inbox that respects everyone's time.",
+          },
         ].map((f) => (
           <GlassCard key={f.title} className="p-6">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">

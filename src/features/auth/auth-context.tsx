@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import type { AuthSession, User } from "@/types";
 import { authApi } from "@/api";
 
@@ -9,7 +17,12 @@ interface AuthContextValue {
   user: User | null;
   session: AuthSession | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (input: { email: string; password: string; displayName: string; role: "employer" | "provider" }) => Promise<void>;
+  register: (input: {
+    email: string;
+    password: string;
+    displayName: string;
+    role: "employer" | "provider";
+  }) => Promise<void>;
   logout: () => Promise<void>;
   recover: (email: string) => Promise<void>;
 }

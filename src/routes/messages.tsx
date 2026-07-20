@@ -9,7 +9,6 @@ import { useAuth } from "@/features/auth/auth-context";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Send } from "lucide-react";
 
-
 export const Route = createFileRoute("/messages")({
   head: () => ({ meta: [{ title: "Messages — PMP" }] }),
   component: MessagesIndex,
@@ -28,7 +27,6 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
     queryFn: messagingApi.listConversations,
   });
 
-
   return (
     <PublicShell>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Messages</h1>
@@ -43,7 +41,8 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
           >
             <ul className="divide-y divide-border/60">
               {conversations.data?.map((c) => {
-                const other = c.participants.find((p) => p.id !== currentUserId) ?? c.participants[0]!;
+                const other =
+                  c.participants.find((p) => p.id !== currentUserId) ?? c.participants[0]!;
                 const active = c.id === activeId;
                 return (
                   <li key={c.id}>
@@ -56,7 +55,11 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
                       )}
                     >
                       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg gradient-primary text-sm font-semibold text-primary-foreground">
-                        {other.displayName.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                        {other.displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .slice(0, 2)
+                          .join("")}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
@@ -150,7 +153,9 @@ export function ConversationView({ conversationId }: { conversationId: string })
         </DataStateBoundary>
       </div>
       <form onSubmit={onSubmit} className="border-t border-border/60 p-3">
-        <label htmlFor="composer" className="sr-only">Message</label>
+        <label htmlFor="composer" className="sr-only">
+          Message
+        </label>
         <div className="flex items-center gap-2">
           <input
             id="composer"

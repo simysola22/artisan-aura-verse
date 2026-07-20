@@ -13,11 +13,17 @@ export const Route = createFileRoute("/providers/$providerId")({
 
 function ProviderProfilePage() {
   const { providerId } = useParams({ from: "/providers/$providerId" });
-  const q = useQuery({ queryKey: ["provider", providerId], queryFn: () => providersApi.get(providerId) });
+  const q = useQuery({
+    queryKey: ["provider", providerId],
+    queryFn: () => providersApi.get(providerId),
+  });
 
   return (
     <PublicShell>
-      <Link to="/search" className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/search"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> Back to search
       </Link>
       <DataStateBoundary loading={q.isLoading} error={q.error} onRetry={() => q.refetch()}>
@@ -26,7 +32,11 @@ function ProviderProfilePage() {
             <GlassPanel className="p-6 md:p-8">
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 md:flex md:items-center">
                 <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl gradient-primary text-xl font-semibold text-primary-foreground md:h-20 md:w-20">
-                  {q.data.displayName.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                  {q.data.displayName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -46,10 +56,14 @@ function ProviderProfilePage() {
                       {q.data.kind}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground md:text-base">{q.data.headline}</p>
+                  <p className="mt-1 text-sm text-muted-foreground md:text-base">
+                    {q.data.headline}
+                  </p>
                   <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     {q.data.serviceArea ? (
-                      <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" /> {q.data.serviceArea}</span>
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" /> {q.data.serviceArea}
+                      </span>
                     ) : null}
                     {q.data.ratingAverage ? (
                       <span className="inline-flex items-center gap-1">
@@ -58,7 +72,9 @@ function ProviderProfilePage() {
                       </span>
                     ) : null}
                     {q.data.hourlyRate ? (
-                      <span>From {q.data.currency ?? ""} {q.data.hourlyRate}/hr</span>
+                      <span>
+                        From {q.data.currency ?? ""} {q.data.hourlyRate}/hr
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -86,7 +102,10 @@ function ProviderProfilePage() {
                       <p className="text-sm text-muted-foreground">No skills listed yet.</p>
                     ) : (
                       q.data.skills.map((s) => (
-                        <span key={s.id} className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                        <span
+                          key={s.id}
+                          className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground"
+                        >
                           {s.name}
                         </span>
                       ))
@@ -106,7 +125,9 @@ function ProviderProfilePage() {
                             {e.organization} · {new Date(e.startDate).getFullYear()}
                             {e.endDate ? `–${new Date(e.endDate).getFullYear()}` : " – present"}
                           </div>
-                          {e.description ? <p className="mt-1 text-sm text-muted-foreground">{e.description}</p> : null}
+                          {e.description ? (
+                            <p className="mt-1 text-sm text-muted-foreground">{e.description}</p>
+                          ) : null}
                         </li>
                       ))}
                     </ul>
@@ -120,7 +141,10 @@ function ProviderProfilePage() {
                   ) : (
                     <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                       {q.data.portfolio.map((p) => (
-                        <div key={p.id} className="aspect-square overflow-hidden rounded-xl bg-muted">
+                        <div
+                          key={p.id}
+                          className="aspect-square overflow-hidden rounded-xl bg-muted"
+                        >
                           <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
                             {p.title}
                           </div>
