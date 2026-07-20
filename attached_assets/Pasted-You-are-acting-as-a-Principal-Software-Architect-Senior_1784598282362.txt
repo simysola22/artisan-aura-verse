@@ -1,0 +1,381 @@
+You are acting as a Principal Software Architect, Senior Performance Engineer, Senior React Engineer, Senior TypeScript Engineer, Senior PostgreSQL Engineer, and DevOps Engineer.
+
+This is **Commit 4** of Kri8's production stabilization.
+
+The objective is to optimize performance, scalability, reliability, and production readiness.
+
+Do NOT redesign the UI.
+
+Do NOT modify AI behaviour.
+
+Do NOT modify Authentication.
+
+Do NOT modify Community functionality.
+
+Only improve architecture, speed, reliability, and scalability.
+
+══════════════════════════════
+OBJECTIVE
+══════════════════════════════
+
+Transform Kri8 into a SaaS capable of supporting thousands of concurrent users while maintaining a fast, responsive user experience.
+
+Everything should feel:
+
+• Instant
+
+• Smooth
+
+• Professional
+
+• Reliable
+
+• Production-ready
+
+══════════════════════════════
+PERFORMANCE AUDIT
+══════════════════════════════
+
+Audit the entire application.
+
+Measure:
+
+• Bundle size
+
+• Largest JavaScript chunks
+
+• Initial load time
+
+• Route loading
+
+• API latency
+
+• React re-renders
+
+• React Query cache usage
+
+• Database query efficiency
+
+• Memory usage
+
+• Network requests
+
+Produce a report before modifying anything.
+
+══════════════════════════════
+CODE SPLITTING
+══════════════════════════════
+
+The current frontend bundle is over 1 MB.
+
+Implement intelligent code splitting.
+
+Lazy-load pages such as:
+
+Dashboard
+
+Community
+
+Messages
+
+Calendar
+
+Trends
+
+Settings
+
+Exports
+
+AI features
+
+Do not lazy-load:
+
+Landing Page
+
+Authentication
+
+Critical navigation
+
+Users should never download code for pages they haven't opened.
+
+══════════════════════════════
+REACT PERFORMANCE
+══════════════════════════════
+
+Audit every component.
+
+Prevent unnecessary re-renders.
+
+Use:
+
+React.memo
+
+useMemo
+
+useCallback
+
+only where beneficial.
+
+Remove unnecessary renders.
+
+Do not prematurely optimize.
+
+══════════════════════════════
+REACT QUERY
+══════════════════════════════
+
+Audit every query.
+
+Optimize:
+
+cacheTime
+
+staleTime
+
+prefetching
+
+background refresh
+
+query invalidation
+
+Prevent duplicate requests.
+
+Prevent waterfall loading.
+
+══════════════════════════════
+DATABASE
+══════════════════════════════
+
+Audit all SQL queries.
+
+Identify:
+
+N+1 queries
+
+Missing indexes
+
+Repeated queries
+
+Slow joins
+
+Repeated lookups
+
+Recommend indexes where appropriate.
+
+Do not change the schema unless necessary.
+
+══════════════════════════════
+PAGINATION
+══════════════════════════════
+
+Large datasets should never load entirely.
+
+Implement pagination or infinite loading where appropriate.
+
+Candidates include:
+
+Ideas
+
+Messages
+
+Friends
+
+Notifications
+
+Community search
+
+Trends
+
+Exports
+
+Maintain current UI.
+
+══════════════════════════════
+LOADING EXPERIENCE
+══════════════════════════════
+
+Every page should have:
+
+Loading skeletons
+
+Empty states
+
+Error states
+
+Retry options
+
+Graceful API failure handling
+
+No blank screens.
+
+No frozen buttons.
+
+══════════════════════════════
+NETWORK
+══════════════════════════════
+
+Audit every API request.
+
+Prevent duplicate requests.
+
+Batch requests where possible.
+
+Reuse cached responses.
+
+Minimize payload sizes.
+
+══════════════════════════════
+ERROR HANDLING
+══════════════════════════════
+
+No feature should fail silently.
+
+Every failed request should:
+
+Display a friendly message.
+
+Log useful debugging information.
+
+Allow retry where appropriate.
+
+Never leave infinite spinners.
+
+══════════════════════════════
+MONITORING
+══════════════════════════════
+
+Prepare the application for production monitoring.
+
+Add support for:
+
+Structured logging
+
+Error boundaries
+
+Crash reporting integration points
+
+Performance metrics
+
+Request timing
+
+Do not tie the implementation to a specific vendor.
+
+══════════════════════════════
+SECURITY
+══════════════════════════════
+
+Audit:
+
+Input validation
+
+API authorization
+
+Rate limiting readiness
+
+SQL injection prevention
+
+XSS prevention
+
+CSRF considerations
+
+Sensitive data exposure
+
+Report any issues.
+
+══════════════════════════════
+PRODUCTION HARDENING
+══════════════════════════════
+
+Verify compatibility with:
+
+Vercel
+
+Render
+
+Railway
+
+Local development
+
+No Replit-specific assumptions.
+
+No development-only logic.
+
+══════════════════════════════
+ACCESSIBILITY
+══════════════════════════════
+
+Audit:
+
+Keyboard navigation
+
+Focus management
+
+ARIA labels
+
+Color contrast
+
+Screen reader compatibility
+
+Fix issues where practical without redesigning the UI.
+
+══════════════════════════════
+STRICT RULES
+══════════════════════════════
+
+Do NOT redesign the interface.
+
+Do NOT change themes.
+
+Do NOT modify AI behaviour.
+
+Do NOT modify authentication.
+
+Do NOT rewrite working backend logic.
+
+Reuse existing architecture.
+
+══════════════════════════════
+SUCCESS CRITERIA
+══════════════════════════════
+
+The application should:
+
+Load noticeably faster.
+
+Render fewer unnecessary components.
+
+Reduce bundle size.
+
+Reduce unnecessary network requests.
+
+Handle thousands of records efficiently.
+
+Recover gracefully from failures.
+
+Remain fully functional.
+
+══════════════════════════════
+OUTPUT
+══════════════════════════════
+
+Return:
+
+1. Performance Audit
+
+2. Bundle Analysis
+
+3. Database Analysis
+
+4. React Optimization Report
+
+5. API Optimization Report
+
+6. Files Modified
+
+7. Performance Improvements Achieved
+
+8. Remaining Bottlenecks
+
+9. Git Commit Message
+
+Only mark Commit 4 complete if Kri8 is demonstrably faster, more scalable, and production-ready without changing user-facing functionality.
