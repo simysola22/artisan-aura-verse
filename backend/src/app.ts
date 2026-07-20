@@ -13,6 +13,9 @@ import { securityHeaders } from "./middleware/security.js";
 import { rateLimit, type RateLimitStore, type RateLimitOptions } from "./middleware/rate-limit.js";
 import { health } from "./routes/health.js";
 import { createAuthRouter, type AuthIdentityService } from "./routes/auth.js";
+import { createProviderRouter } from "./routes/providers.js";
+import { createEmployerRouter } from "./routes/employers.js";
+import { createReferenceRouter } from "./routes/reference.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
@@ -34,6 +37,11 @@ export interface AppOptions {
    * When omitted, the real service backed by PostgreSQL is used.
    */
   identityService?: AuthIdentityService;
+  /**
+   * Inject a mock database for tests.
+   * When omitted, the real Drizzle/PostgreSQL client is used.
+   */
+  db?: import("./db/client.js").Db;
 }
 
 export function createApp(options: AppOptions = {}): Hono {
@@ -92,8 +100,11 @@ export function createApp(options: AppOptions = {}): Hono {
   // Auth routes — /v1/auth/me, /v1/auth/sync
   app.route("/", createAuthRouter(clerkAdapter, identityService));
 
-  // Future domain routes mount here:
-  // app.route("/v1", providerRoutes(clerkAdapter, identityService));
+  // Stage 3 — Core domain routes
+  const db = options.db ?? getDb();
+  app.route("/", createProviderRouter(db, clerkAdapter, identityService.resolve));
+  app.route("/", createEmployerRouter(db, clerkAdapter, identityService.resolve));
+  app.route("/", createReferenceRouter(db));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 

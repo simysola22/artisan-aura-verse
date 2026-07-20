@@ -1,0 +1,623 @@
+We are now beginning PMP Backend Stage 3: CORE DOMAIN AND PROFILE FOUNDATION.
+
+The project is Precious Market Place (PMP).
+
+This is a deliberate, incremental implementation.
+
+We are following a staged architecture:
+
+STAGE 1 — Backend Foundation                         COMPLETE
+STAGE 2 — Clerk Authentication + Identity + Auth      COMPLETE
+STAGE 3 — Core Domain & Profiles                      CURRENT
+STAGE 4 — Verification System
+STAGE 5 — Search & Ranking
+STAGE 6 — Messaging
+FIRST HOSTING / STAGING DEPLOYMENT                   AFTER STAGE 6
+STAGE 7 — Payments & Subscriptions
+STAGE 8 — Admin & Operations
+STAGE 9 — Production Infrastructure
+STAGE 10 — Beta Hardening & Load Testing
+
+Do not implement future stages now.
+
+Do not implement payments now.
+Do not implement subscriptions now.
+Do not implement the full verification workflow now.
+Do not implement the search ranking algorithm now.
+Do not implement messaging now.
+Do not implement advanced production infrastructure now.
+
+The purpose of this stage is to create a stable, well-designed core domain foundation that the later stages can build on without requiring a major database restructure.
+
+IMPORTANT DEVELOPMENT PRINCIPLE:
+
+Slow and correct is more important than fast and incomplete.
+
+Before writing implementation code, inspect the existing repository and understand:
+
+- Current database schema
+- Existing migrations
+- Current PMP user identity model
+- Existing roles and permissions
+- Existing Clerk authentication flow
+- Existing API architecture
+- Existing frontend contracts
+- Existing backend architecture documentation
+
+Do not duplicate existing tables.
+Do not create a second user identity system.
+Do not create a second role system.
+Do not replace Clerk.
+Do not introduce Replit-specific infrastructure.
+
+The production architecture remains:
+
+Vercel
+→ Frontend
+
+Render
+→ Backend API
+
+Railway
+→ PostgreSQL
+
+Clerk
+→ Authentication
+
+Replit is only a development environment.
+
+The backend must remain independent of Replit.
+
+Do not use:
+
+- Replit Database
+- Replit Auth
+- Replit SDKs
+- @replit packages
+- REPLIT_* environment variables
+- Replit-specific APIs
+- Replit-specific production services
+
+==================================================
+STAGE 3 OBJECTIVE
+==================================================
+
+Create the core PMP marketplace domain.
+
+The fundamental concept is:
+
+A Clerk-authenticated person has a PMP identity.
+
+That identity may participate in the marketplace as:
+
+1. A provider
+2. An employer
+3. Potentially both in the future
+
+IMPORTANT ARCHITECTURAL RECOMMENDATION:
+
+Do not permanently hard-code a person into only one marketplace identity.
+
+Authentication identity and marketplace participation must remain separate.
+
+A single PMP user should be able to have:
+
+- A provider profile
+- An employer profile
+
+without creating multiple Clerk accounts.
+
+However, do not create unnecessary complexity if the existing architecture strongly suggests another approach. Inspect the current system and document the decision before implementation.
+
+==================================================
+CORE DOMAIN MODEL
+==================================================
+
+The core domain should support:
+
+PMP User
+    │
+    ├── Provider Profile
+    │       │
+    │       ├── Provider Type
+    │       │       ├── Artisan
+    │       │       └── Professional
+    │       │
+    │       ├── Categories
+    │       ├── Skills
+    │       ├── Experience
+    │       ├── Certifications
+    │       ├── Portfolio
+    │       ├── Location
+    │       ├── Availability
+    │       └── Profile Completeness
+    │
+    └── Employer Profile
+            │
+            ├── Individual / Organization
+            ├── Industry
+            ├── Location
+            └── Profile Information
+
+Design this carefully.
+
+==================================================
+PROVIDER PROFILE
+==================================================
+
+The provider system must support two provider types:
+
+ARTISAN
+
+An artisan is someone whose work primarily involves practical, physical, technical, or hands-on skills.
+
+Examples may include:
+
+- Plumber
+- Electrician
+- Carpenter
+- Welder
+- Tailor
+- Mechanic
+- Hair stylist
+- Makeup artist
+- Builder
+- Mason
+- Technician
+
+PROFESSIONAL
+
+A professional is someone whose work primarily operates in professional, corporate, technical, creative, academic, or specialized knowledge fields.
+
+Examples may include:
+
+- Software developer
+- Accountant
+- Lawyer
+- Designer
+- Data analyst
+- Marketing professional
+- Project manager
+- Consultant
+- Architect
+- Engineer
+
+Do not assume that the distinction between artisan and professional determines quality.
+
+It is primarily a classification and discovery mechanism.
+
+The database design should allow future expansion of provider types without requiring a complete schema rewrite.
+
+==================================================
+PROVIDER PROFILE DATA
+==================================================
+
+Design the provider profile to support, where appropriate:
+
+- Display name
+- Professional headline
+- About / biography
+- Provider type
+- Primary category
+- Additional categories
+- Skills
+- Years of experience
+- Location
+- Service area
+- Availability
+- Profile image reference
+- Contact preferences
+- Public profile visibility
+- Profile completion status
+- Verification status placeholder
+- Created timestamp
+- Updated timestamp
+
+Do not implement the complete verification workflow in this stage.
+
+However, the profile model must be able to support verification later.
+
+Do not hard-code a verification implementation that makes future human or AI/API verification difficult.
+
+==================================================
+ARTISAN-SPECIFIC INFORMATION
+==================================================
+
+The architecture should support artisans eventually providing:
+
+- Services offered
+- Practical skills
+- Work history
+- Previous work
+- Portfolio images
+- Work samples
+- References
+- Years of experience
+- Service location
+- Availability
+
+Do not implement file storage or upload infrastructure yet unless the existing architecture already requires a minimal reference field.
+
+Use future-compatible references rather than storing binary files directly in PostgreSQL.
+
+==================================================
+PROFESSIONAL-SPECIFIC INFORMATION
+==================================================
+
+The architecture should support professionals eventually providing:
+
+- CV/resume reference
+- Professional experience
+- Previous organizations
+- Projects
+- Certifications
+- Education
+- Skills
+- Industry
+- Job history
+
+Do not implement the full CV upload pipeline yet.
+
+Do not store uploaded files directly inside PostgreSQL.
+
+Design future-compatible file references where appropriate.
+
+==================================================
+EMPLOYER PROFILE
+==================================================
+
+Employers must have a separate marketplace profile.
+
+The employer profile should be able to support:
+
+- Employer type
+- Individual or organization
+- Display name
+- Organization name where applicable
+- Industry
+- Description
+- Location
+- Website or public reference where appropriate
+- Profile image or logo reference
+- Public visibility
+- Profile completion status
+- Future verification status
+- Created timestamp
+- Updated timestamp
+
+The design must support both:
+
+1. Individual hirers
+2. Organizations or businesses
+
+Do not implement job postings yet unless the existing project explicitly requires them.
+
+==================================================
+CATEGORIES AND SKILLS
+==================================================
+
+Create a structured reference-data foundation.
+
+Categories and skills should not be arbitrary unstructured strings everywhere.
+
+The system should be able to support:
+
+Category
+    └── Skills
+
+Example:
+
+Technology
+    ├── Software Development
+    ├── UI/UX Design
+    ├── Cybersecurity
+    ├── Data Analysis
+    └── Cloud Engineering
+
+Skilled Trades
+    ├── Plumbing
+    ├── Electrical Work
+    ├── Carpentry
+    ├── Welding
+    └── Masonry
+
+Creative Services
+    ├── Photography
+    ├── Videography
+    ├── Graphic Design
+    └── Fashion Design
+
+The initial categories and skills should be treated as seed/reference data.
+
+Do not create an unmaintainable hardcoded system.
+
+Design this so that the operations/admin system can eventually manage reference data.
+
+==================================================
+PROFILE COMPLETENESS
+==================================================
+
+Create a profile completeness foundation.
+
+Important:
+
+PROFILE COMPLETENESS IS NOT PROFESSIONAL QUALITY.
+
+A profile with 100% completion does not automatically mean that the provider is better.
+
+The completeness system should only measure whether relevant profile information has been provided.
+
+For example:
+
+- Basic identity
+- Headline
+- About section
+- Category
+- Skills
+- Experience
+- Location
+- Availability
+- Portfolio references where applicable
+
+The scoring system should be:
+
+- Explainable
+- Deterministic
+- Testable
+- Easy to change later
+
+Do not build the final provider ranking algorithm in Stage 3.
+
+The future ranking system will be implemented in Stage 5.
+
+Do not use profile completeness as a substitute for ranking quality.
+
+==================================================
+DATABASE DESIGN REQUIREMENTS
+==================================================
+
+Before writing migrations:
+
+1. Inspect the existing schema.
+2. Identify the existing users table.
+3. Identify the existing roles and permissions tables.
+4. Identify the existing Clerk identity mapping.
+5. Design the relationships.
+6. Check for duplication.
+7. Check for future migration problems.
+
+Then document the proposed Stage 3 schema before implementing it.
+
+The schema must:
+
+- Use PostgreSQL-compatible types
+- Use foreign keys where appropriate
+- Use unique constraints where appropriate
+- Use indexes for likely lookup paths
+- Use timestamps consistently
+- Use soft deletion only where the existing architecture requires it
+- Avoid unnecessary polymorphic complexity
+- Avoid storing binary files in PostgreSQL
+- Avoid storing secrets in domain tables
+- Avoid duplicate user records
+
+Pay particular attention to:
+
+- User → Provider Profile relationship
+- User → Employer Profile relationship
+- Provider → Categories
+- Provider → Skills
+- Provider → Experience
+- Provider → Certifications
+- Provider → Portfolio references
+
+==================================================
+API DESIGN
+==================================================
+
+Before implementing endpoints, define the API contract.
+
+The API must be consistent with the existing frontend API architecture.
+
+Potential domain operations include:
+
+Provider:
+
+- Create provider profile
+- Get own provider profile
+- Update own provider profile
+- Get public provider profile
+
+Employer:
+
+- Create employer profile
+- Get own employer profile
+- Update own employer profile
+- Get public employer profile
+
+Reference data:
+
+- List categories
+- Get category
+- List skills
+- Filter skills by category
+
+Do not implement search yet.
+
+Do not implement ranking yet.
+
+Do not implement messaging yet.
+
+Do not implement payment endpoints yet.
+
+Every endpoint must define:
+
+- Authentication requirement
+- Required role/permission if applicable
+- Request validation
+- Response shape
+- Error behavior
+- Ownership rules
+
+==================================================
+AUTHORIZATION
+==================================================
+
+The existing server-side authorization architecture is authoritative.
+
+A user must only be able to modify their own profile unless a future administrative permission explicitly allows otherwise.
+
+For example:
+
+User A
+→ Can modify User A's provider profile.
+
+User A
+→ Cannot modify User B's provider profile.
+
+Frontend visibility is not security.
+
+All authorization must be enforced on the backend.
+
+Use the existing Clerk authentication and PMP identity system.
+
+Do not create another authorization system.
+
+==================================================
+IMPLEMENTATION PROCESS
+==================================================
+
+Work in phases.
+
+PHASE 1 — AUDIT
+
+Inspect the current repository.
+
+PHASE 2 — DESIGN
+
+Before coding, document:
+
+- Entity model
+- Database relationships
+- Schema decisions
+- API contract
+- Authorization rules
+- Profile completeness rules
+- Future extension points
+
+PHASE 3 — REVIEW
+
+Check the design for:
+
+- Duplicate identity systems
+- Future migration problems
+- Excessive complexity
+- Missing ownership rules
+- Missing indexes
+- Future verification compatibility
+- Future search compatibility
+- Future ranking compatibility
+- Future messaging compatibility
+
+PHASE 4 — IMPLEMENTATION
+
+Only after the design is clear, implement the minimum required Stage 3 code.
+
+PHASE 5 — TESTING
+
+Add tests for:
+
+- Provider profile creation
+- Provider profile ownership
+- Provider profile updates
+- Employer profile creation
+- Employer profile ownership
+- Reference data
+- Category/skill relationships
+- Profile completeness
+- Validation errors
+- Unauthorized access
+- Not-found behavior
+
+Do not remove existing tests.
+
+Do not weaken existing tests.
+
+==================================================
+CHECKS REQUIRED BEFORE COMPLETION
+==================================================
+
+Run:
+
+- Backend typecheck
+- Full backend test suite
+- Backend lint
+- Backend build if configured
+- Frontend typecheck
+- Frontend production build
+
+Also perform:
+
+SECURITY AUDIT
+
+Check:
+
+- No hardcoded secrets
+- No authentication bypasses
+- No frontend-only authorization
+- No ownership bypass
+- No mass-assignment vulnerabilities
+- No unsafe direct object updates
+- No private information accidentally exposed through public profile endpoints
+
+PORTABILITY AUDIT
+
+Confirm:
+
+- No Replit dependencies
+- No Replit-specific services
+- Standard environment variables only
+- PostgreSQL compatibility
+- Render compatibility
+- Railway compatibility
+- Vercel frontend compatibility
+
+==================================================
+IMPORTANT STOP CONDITION
+==================================================
+
+Do not automatically continue into Stage 4.
+
+When Stage 3 is complete, stop and provide a detailed report.
+
+The report must include:
+
+1. Files changed.
+2. Database tables added or modified.
+3. Entity relationships.
+4. API endpoints added.
+5. Authorization rules.
+6. Profile completeness implementation.
+7. Tests added.
+8. Test results.
+9. Typecheck result.
+10. Lint result.
+11. Build result.
+12. Security audit result.
+13. Portability audit result.
+14. Remaining limitations.
+15. Any architectural decisions that should be reviewed before Stage 4.
+
+The goal is not to produce the most code.
+
+The goal is to produce a stable, well-designed core domain foundation that can support:
+
+- Verification in Stage 4
+- Search and ranking in Stage 5
+- Messaging in Stage 6
+- First staging deployment after Stage 6
+- Payments in Stage 7
+- Admin operations in Stage 8
+- Production hardening later
+
+Implement Stage 3 carefully and stop when it is complete.
