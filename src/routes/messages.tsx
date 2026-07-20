@@ -5,8 +5,10 @@ import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard } from "@/components/glass/glass";
 import { messagingApi } from "@/api";
 import { DataStateBoundary, EmptyState } from "@/components/common/data-state";
+import { useAuth } from "@/features/auth/auth-context";
 import { cn } from "@/lib/utils";
 import { MessageSquare, Send } from "lucide-react";
+
 
 export const Route = createFileRoute("/messages")({
   head: () => ({ meta: [{ title: "Messages — Kraftly" }] }),
@@ -18,10 +20,14 @@ function MessagesIndex() {
 }
 
 export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
+  const { user } = useAuth();
+  // Fallback to the mock seed id so the demo works before real auth is wired.
+  const currentUserId = user?.id ?? "me";
   const conversations = useQuery({
     queryKey: ["conversations"],
     queryFn: messagingApi.listConversations,
   });
+
 
   return (
     <PublicShell>
@@ -37,7 +43,7 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
           >
             <ul className="divide-y divide-border/60">
               {conversations.data?.map((c) => {
-                const other = c.participants.find((p) => p.id !== "me") ?? c.participants[0]!;
+                const other = c.participants.find((p) => p.id !== currentUserId) ?? c.participants[0]!;
                 const active = c.id === activeId;
                 return (
                   <li key={c.id}>
@@ -90,6 +96,9 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
 }
 
 export function ConversationView({ conversationId }: { conversationId: string }) {
+  const { user } = useAuth();
+  const currentUserId = user?.id ?? "me";
+
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const messages = useQuery({
@@ -122,7 +131,7 @@ export function ConversationView({ conversationId }: { conversationId: string })
           emptyDescription="Say hello — providers usually respond within a few hours."
         >
           {messages.data?.map((m) => {
-            const mine = m.senderId === "me";
+            const mine = m.senderId === currentUserId;
             return (
               <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                 <div
