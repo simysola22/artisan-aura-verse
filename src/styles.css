@@ -88,7 +88,7 @@
 /* -------------------------------------------------------------------------- */
 :root,
 [data-theme="light"] {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
   --background: oklch(0.985 0.005 20);
   --foreground: oklch(0.16 0.02 20);
@@ -271,7 +271,7 @@
 /* SUNRISE THEME (warm golden-hour bright)                                     */
 /* -------------------------------------------------------------------------- */
 [data-theme="sunrise"] {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
   --background: oklch(0.97 0.02 75);
   --foreground: oklch(0.18 0.03 40);
@@ -338,7 +338,7 @@
 /* OCEAN THEME (cool azure bright)                                             */
 /* -------------------------------------------------------------------------- */
 [data-theme="ocean"] {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
   --background: oklch(0.975 0.012 225);
   --foreground: oklch(0.16 0.03 235);

@@ -22,7 +22,7 @@ export function AuthShell({
           </span>
           <span className="text-lg tracking-tight">Precious Market Place</span>
         </Link>
-        <GlassPanel className="p-8">
+        <GlassPanel className="p-5 sm:p-8">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
           {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
           <div className="mt-6">{children}</div>
