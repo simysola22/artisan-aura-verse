@@ -27,7 +27,7 @@ export function OpsShell({ children }: { children: ReactNode }) {
             <Cog className="h-4 w-4" />
           </span>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold">Kraftly Ops</span>
+            <span className="text-sm font-semibold">PMP Ops</span>
             <span className="text-xs text-muted-foreground">Internal only</span>
           </div>
         </div>

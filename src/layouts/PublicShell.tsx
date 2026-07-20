@@ -34,7 +34,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             <span className="grid h-8 w-8 place-items-center rounded-lg gradient-primary text-primary-foreground shadow-crimson">
               <Home className="h-4 w-4" />
             </span>
-            <span>Kraftly</span>
+            <span>PMP</span>
           </Link>
           <div className="flex items-center gap-1">
             {authed
@@ -112,7 +112,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
           <span className="grid h-8 w-8 place-items-center rounded-lg gradient-primary text-primary-foreground">
             <Home className="h-4 w-4" />
           </span>
-          Kraftly
+          PMP
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />

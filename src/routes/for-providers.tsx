@@ -6,7 +6,7 @@ import { ArrowRight, ShieldCheck, Star, UserCircle2 } from "lucide-react";
 export const Route = createFileRoute("/for-providers")({
   head: () => ({
     meta: [
-      { title: "For artisans & professionals — Kraftly" },
+      { title: "For artisans & professionals — PMP" },
       { name: "description", content: "A profile that earns trust. Verified credentials, real portfolios, calm messaging." },
     ],
   }),
@@ -22,7 +22,7 @@ function ForProvidersPage() {
         </h1>
         <p className="mt-3 text-muted-foreground">
           Showcase real work, add verified credentials, and let quality speak louder than
-          gimmicks. Kraftly is where serious artisans and professionals build their reputation.
+          gimmicks. Precious Market Place (PMP) is where serious artisans and professionals build their reputation.
         </p>
         <Link
           to="/auth/register"

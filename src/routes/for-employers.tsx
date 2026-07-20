@@ -6,9 +6,9 @@ import { ArrowRight, BadgeCheck, MessagesSquare, Search } from "lucide-react";
 export const Route = createFileRoute("/for-employers")({
   head: () => ({
     meta: [
-      { title: "For hirers — Kraftly" },
+      { title: "For hirers — PMP" },
       { name: "description", content: "Find and hire verified artisans and professionals with confidence." },
-      { property: "og:title", content: "Hire on Kraftly" },
+      { property: "og:title", content: "Hire on Precious Market Place (PMP)" },
       { property: "og:description", content: "Discover verified providers. Beautiful discovery, real evidence, calm messaging." },
     ],
   }),

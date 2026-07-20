@@ -1,10 +1,12 @@
-import { Moon, Sun, Sparkles } from "lucide-react";
+import { Moon, Sun, Sparkles, Sunrise, Waves } from "lucide-react";
 import { useTheme, type Theme } from "./theme-context";
 
 const options: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Light", icon: Sun },
   { value: "dark", label: "Dark", icon: Moon },
   { value: "midnight", label: "Midnight", icon: Sparkles },
+  { value: "sunrise", label: "Sunrise", icon: Sunrise },
+  { value: "ocean", label: "Ocean", icon: Waves },
 ];
 
 export function ThemeToggle() {

@@ -6,7 +6,7 @@ import { GlassCard, GlassPanel } from "@/components/glass/glass";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Kraftly — the premium marketplace for artisans & professionals" },
+      { title: "Precious Market Place (PMP) — the premium marketplace for artisans & professionals" },
       {
         name: "description",
         content:

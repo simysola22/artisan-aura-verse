@@ -4,7 +4,7 @@ import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
 
 export const Route = createFileRoute("/auth/recover")({
-  head: () => ({ meta: [{ title: "Recover access — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Recover access — PMP" }] }),
   component: RecoverPage,
 });
 

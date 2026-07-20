@@ -4,7 +4,7 @@ import { GlassCard } from "@/components/glass/glass";
 import { useAuth } from "@/features/auth/auth-context";
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "Account — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Account — PMP" }] }),
   component: AccountPage,
 });
 

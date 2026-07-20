@@ -6,7 +6,7 @@ import { Briefcase, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth/register")({
-  head: () => ({ meta: [{ title: "Create your account — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Create your account — PMP" }] }),
   component: RegisterPage,
 });
 

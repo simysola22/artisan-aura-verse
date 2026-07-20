@@ -5,8 +5,8 @@ import { GlassPanel } from "@/components/glass/glass";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How it works — Kraftly" },
-      { name: "description", content: "How Kraftly connects hirers with verified artisans and professionals." },
+      { title: "How it works — PMP" },
+      { name: "description", content: "How Precious Market Place (PMP) connects hirers with verified artisans and professionals." },
     ],
   }),
   component: HowItWorksPage,
@@ -21,7 +21,7 @@ function HowItWorksPage() {
   ];
   return (
     <PublicShell>
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How Kraftly works</h1>
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">How Precious Market Place works</h1>
       <p className="mt-2 max-w-2xl text-muted-foreground">
         A calm, evidence-first process for both sides of the marketplace.
       </p>

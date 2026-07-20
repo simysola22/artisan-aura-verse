@@ -10,7 +10,7 @@ import { BadgeCheck, Clock, FileUp, ShieldAlert, ShieldCheck } from "lucide-reac
 import type { VerificationStatus } from "@/types";
 
 export const Route = createFileRoute("/verification")({
-  head: () => ({ meta: [{ title: "Verification — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Verification — PMP" }] }),
   component: VerificationPage,
 });
 

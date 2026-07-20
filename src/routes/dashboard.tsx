@@ -9,7 +9,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { ProviderCard } from "@/features/providers/provider-card";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — PMP" }] }),
   component: DashboardPage,
 });
 

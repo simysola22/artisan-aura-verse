@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kraftly — hire trusted artisans & professionals" },
+      { title: "Precious Market Place (PMP) — hire trusted artisans & professionals" },
       {
         name: "description",
         content:
-          "Kraftly is a premium marketplace that connects hirers with verified artisans and professionals across every service you need.",
+          "Precious Market Place (PMP) is a premium marketplace that connects hirers with verified artisans and professionals across every service you need.",
       },
-      { name: "author", content: "Kraftly" },
-      { property: "og:title", content: "Kraftly — hire trusted artisans & professionals" },
+      { name: "author", content: "Precious Market Place" },
+      { property: "og:title", content: "Precious Market Place (PMP) — hire trusted artisans & professionals" },
       {
         property: "og:description",
         content:

@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-export type Theme = "light" | "dark" | "midnight";
+export type Theme = "light" | "dark" | "midnight" | "sunrise" | "ocean";
 const KEY = "mp.theme";
+
+const VALID_THEMES: Theme[] = ["light", "dark", "midnight", "sunrise", "ocean"];
 
 interface ThemeContextValue {
   theme: Theme;
@@ -16,7 +18,7 @@ export function ThemeProvider({ children, defaultTheme = "dark" }: { children: R
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(KEY) as Theme | null;
-      if (stored === "light" || stored === "dark" || stored === "midnight") {
+      if (stored && (VALID_THEMES as string[]).includes(stored)) {
         setThemeState(stored);
       }
     } catch {

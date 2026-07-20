@@ -11,7 +11,7 @@ import { ProviderCard } from "@/features/providers/provider-card";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/search")({
-  head: () => ({ meta: [{ title: "Discover providers — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Discover providers — PMP" }] }),
   component: SearchPage,
 });
 

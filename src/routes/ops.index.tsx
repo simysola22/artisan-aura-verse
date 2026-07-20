@@ -4,7 +4,7 @@ import { GlassCard } from "@/components/glass/glass";
 import { Flag, LifeBuoy, ShieldCheck, Users } from "lucide-react";
 
 export const Route = createFileRoute("/ops/")({
-  head: () => ({ meta: [{ title: "Ops — Kraftly Internal" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [{ title: "Ops — PMP Internal" }, { name: "robots", content: "noindex" }] }),
   component: OpsOverview,
 });
 

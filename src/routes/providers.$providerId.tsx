@@ -7,7 +7,7 @@ import { providersApi } from "@/api";
 import { DataStateBoundary } from "@/components/common/data-state";
 
 export const Route = createFileRoute("/providers/$providerId")({
-  head: () => ({ meta: [{ title: "Provider profile — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Provider profile — PMP" }] }),
   component: ProviderProfilePage,
 });
 

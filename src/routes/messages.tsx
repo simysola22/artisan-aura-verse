@@ -11,7 +11,7 @@ import { MessageSquare, Send } from "lucide-react";
 
 
 export const Route = createFileRoute("/messages")({
-  head: () => ({ meta: [{ title: "Messages — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Messages — PMP" }] }),
   component: MessagesIndex,
 });
 

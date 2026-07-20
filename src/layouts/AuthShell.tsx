@@ -18,9 +18,9 @@ export function AuthShell({
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2 font-semibold">
           <span className="grid h-9 w-9 place-items-center rounded-lg gradient-primary text-primary-foreground shadow-crimson">
-            K
+            P
           </span>
-          <span className="text-lg tracking-tight">Kraftly</span>
+          <span className="text-lg tracking-tight">Precious Market Place</span>
         </Link>
         <GlassPanel className="p-8">
           <h1 className="text-xl font-semibold tracking-tight">{title}</h1>

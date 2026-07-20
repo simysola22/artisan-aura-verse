@@ -4,7 +4,7 @@ import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
 
 export const Route = createFileRoute("/auth/login")({
-  head: () => ({ meta: [{ title: "Sign in — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Sign in — PMP" }] }),
   component: LoginPage,
 });
 

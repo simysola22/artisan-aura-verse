@@ -2,7 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { MessagesLayout } from "./messages";
 
 export const Route = createFileRoute("/messages/$conversationId")({
-  head: () => ({ meta: [{ title: "Conversation — Kraftly" }] }),
+  head: () => ({ meta: [{ title: "Conversation — PMP" }] }),
   component: ConversationPage,
 });
 
