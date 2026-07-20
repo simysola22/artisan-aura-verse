@@ -1,0 +1,373 @@
+We are continuing the PMP (Precious Market Place) project from a previous Replit environment.
+
+The previous environment was working on a focused MOBILE UI POLISH PASS but reached its daily quota before completing the redesign.
+
+The latest state has been pushed to GitHub and imported into this environment.
+
+IMPORTANT:
+
+Do NOT restart the redesign from scratch.
+
+Do NOT blindly overwrite the current frontend.
+
+First inspect exactly what the previous environment already changed.
+
+Then continue only from the actual stopping point.
+
+==================================================
+PROJECT ARCHITECTURE
+==================================================
+
+Frontend: Vercel
+Backend: Render
+Database: Railway PostgreSQL
+Authentication: Clerk
+Repository: GitHub
+
+Replit is ONLY a development environment.
+
+The codebase must remain completely independent of Replit.
+
+Do NOT introduce:
+
+- @replit/* packages
+- REPLIT_* environment variables
+- Replit Database
+- Replit Auth
+- Replit-specific APIs
+- Replit deployment assumptions
+- hardcoded Replit paths
+
+==================================================
+PROJECT STATUS
+==================================================
+
+Backend Stage 1 — Foundation: COMPLETE
+Backend Stage 2 — Identity / Clerk: COMPLETE
+Backend Stage 3 — Reference Data: COMPLETE
+Backend Stage 4 — Users & Providers: COMPLETE
+Backend Stage 5 — Verification: COMPLETE
+Backend Stage 6 — Search & Ranking: COMPLETE
+Backend Stage 7 — Messaging: COMPLETE
+Backend Stage 8 — Payments: COMPLETE
+Backend Stage 9 — Operations: NOT STARTED
+
+DO NOT START STAGE 9.
+
+The current task is ONLY to finish the frontend mobile UI polish.
+
+==================================================
+MOBILE UI PROBLEM
+==================================================
+
+The application was previewed on modern mobile devices, including Samsung S25-sized screens.
+
+The mobile UI currently feels too sharp and too much like a desktop interface compressed into a phone viewport.
+
+The intended direction is:
+
+- softer
+- more spacious
+- more rounded
+- more premium
+- more comfortable
+- more intentional on mobile
+
+The goal is NOT to redesign the entire application.
+
+Preserve:
+
+- PMP branding
+- Precious Market Place identity
+- existing crimson-led design system
+- existing glassmorphism aesthetic
+- all five themes
+- typography
+- existing desktop layout
+- existing routes
+- existing functionality
+- existing API architecture
+
+==================================================
+PHASE 1 — AUDIT THE CURRENT GITHUB STATE
+==================================================
+
+Before modifying anything, inspect:
+
+git status
+git log --oneline -10
+
+Then inspect the current frontend changes.
+
+Determine:
+
+1. Which files were modified by the previous redesign attempt?
+2. Which mobile spacing changes were already made?
+3. Which border-radius changes were already made?
+4. Was the mobile bottom navigation changed?
+5. Were any shared design tokens changed?
+6. Were any routes or business logic accidentally modified?
+7. Are there incomplete or inconsistent changes?
+8. Are there any TypeScript or build errors?
+
+Do not assume the previous environment completed anything.
+
+==================================================
+PHASE 2 — RUN VERIFICATION BEFORE EDITING
+==================================================
+
+Run the existing frontend verification commands.
+
+At minimum:
+
+- frontend typecheck
+- frontend production build
+
+Also inspect the backend status and confirm that the redesign did not modify backend logic.
+
+If the frontend is currently broken, fix the actual issue before continuing the redesign.
+
+Do not delete functionality to make checks pass.
+
+==================================================
+PHASE 3 — CONTINUE THE MOBILE UI POLISH
+==================================================
+
+Continue from the actual state left by the previous environment.
+
+Focus only on the following.
+
+--------------------------------------------------
+1. MOBILE SCREEN EDGE SPACING
+--------------------------------------------------
+
+On small screens, content should have consistent horizontal breathing room.
+
+Avoid:
+
+- sharp content blocks touching the viewport edge unnecessarily
+- inconsistent padding between routes
+- cards that feel glued to the screen edge
+
+Use shared responsive spacing tokens/utilities where possible.
+
+Do not scatter unnecessary one-off values throughout components.
+
+--------------------------------------------------
+2. CORNER RADIUS POLISH
+--------------------------------------------------
+
+Audit mobile:
+
+- cards
+- glass panels
+- search containers
+- inputs
+- buttons
+- dialogs
+- provider profiles
+- messaging surfaces
+- verification surfaces
+- account pages
+- dashboard cards
+- bottom navigation
+
+Make major surfaces noticeably softer and more rounded.
+
+Use hierarchy:
+
+- small controls: moderately rounded
+- inputs/buttons: comfortably rounded
+- cards/panels: clearly rounded
+- major mobile surfaces: generously rounded where appropriate
+
+Do not make everything a pill.
+
+--------------------------------------------------
+3. MOBILE BOTTOM NAVIGATION
+--------------------------------------------------
+
+Audit the bottom navigation carefully.
+
+Improve where necessary:
+
+- sharp edges
+- cramped spacing
+- icon/label spacing
+- visual separation from content
+- safe-area handling
+- content hidden behind navigation
+
+It should feel like a polished mobile navigation surface.
+
+Do not break navigation behavior.
+
+--------------------------------------------------
+4. MOBILE FORMS
+--------------------------------------------------
+
+Ensure:
+
+- comfortable input heights
+- clear label spacing
+- buttons are easy to tap
+- forms have breathing room
+- fields do not touch viewport edges unnecessarily
+- long text wraps correctly
+- errors do not create overflow
+
+Do not change validation logic.
+
+--------------------------------------------------
+5. MOBILE CARDS AND CONTENT
+--------------------------------------------------
+
+Audit:
+
+- provider cards
+- search results
+- profiles
+- messages
+- verification
+- account pages
+- dashboards
+
+Ensure:
+
+- no sharp desktop-like rectangles
+- consistent horizontal spacing
+- comfortable line height
+- no horizontal overflow
+- usable buttons at narrow widths
+
+==================================================
+PHASE 4 — RESPONSIVE TESTING
+==================================================
+
+Test at minimum:
+
+- 320px
+- 360px
+- 375px
+- 390px
+- 412px
+- 430px
+
+Treat Samsung S25-sized screens as a first-class target.
+
+Also verify:
+
+- tablet layout
+- desktop layout
+
+Do not regress desktop.
+
+==================================================
+PHASE 5 — FIVE THEME REGRESSION CHECK
+==================================================
+
+Verify that the mobile polish works across all five themes:
+
+- Light
+- Dark
+- Midnight
+- Sunrise
+- Ocean
+
+Confirm:
+
+- text remains readable
+- cards remain visually distinct
+- borders remain visible
+- controls remain usable
+- glass surfaces remain distinguishable
+- contrast is not weakened
+
+==================================================
+PHASE 6 — SCOPE PROTECTION
+==================================================
+
+Do NOT modify:
+
+- backend code
+- database schema
+- migrations
+- payment logic
+- Clerk authentication
+- API contracts
+- business logic
+
+Only modify frontend presentation and responsive layout where necessary.
+
+Before changing shared components, inspect their consumers.
+
+Avoid unnecessary desktop changes.
+
+==================================================
+PHASE 7 — VERIFICATION
+==================================================
+
+After completing the mobile polish:
+
+Run:
+
+1. Frontend typecheck
+2. Frontend production build
+3. Backend tests
+4. Backend typecheck
+5. Backend lint if configured
+6. Replit portability scan
+
+Confirm no new:
+
+- @replit/* packages
+- REPLIT_* variables
+- Replit-specific APIs
+
+==================================================
+IMPORTANT
+==================================================
+
+This is a continuation task.
+
+First inspect what the previous environment already did.
+
+Do not restart the work.
+
+Do not redesign the entire application.
+
+Do not change the brand.
+
+Do not change the backend.
+
+Do not change payments.
+
+Do not begin Stage 9.
+
+Finish the mobile UI polish efficiently and preserve all existing functionality.
+
+==================================================
+FINAL REPORT
+==================================================
+
+At the end, report:
+
+1. What the previous environment had already completed.
+2. What was completed in this environment.
+3. Files changed.
+4. Mobile spacing improvements.
+5. Corner-radius improvements.
+6. Bottom navigation improvements.
+7. Form improvements.
+8. Responsive widths tested.
+9. Five-theme verification results.
+10. Frontend typecheck result.
+11. Frontend build result.
+12. Backend test result.
+13. Backend typecheck result.
+14. Portability audit result.
+15. Remaining visual limitations.
+
+If the mobile redesign is complete, explicitly state:
+
+MOBILE UI POLISH — COMPLETE AND VERIFIED.
