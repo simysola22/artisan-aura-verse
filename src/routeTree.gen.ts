@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerificationRouteImport } from './routes/verification'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -32,6 +33,11 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 const VerificationRoute = VerificationRouteImport.update({
   id: '/verification',
   path: '/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/messages'
     | '/search'
+    | '/sitemap.xml'
     | '/verification'
     | '/auth/login'
     | '/auth/recover'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/messages'
     | '/search'
+    | '/sitemap.xml'
     | '/verification'
     | '/auth/login'
     | '/auth/recover'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/messages'
     | '/search'
+    | '/sitemap.xml'
     | '/verification'
     | '/auth/login'
     | '/auth/recover'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   MessagesRoute: typeof MessagesRouteWithChildren
   SearchRoute: typeof SearchRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerificationRoute: typeof VerificationRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRecoverRoute: typeof AuthRecoverRoute
@@ -283,6 +296,13 @@ declare module '@tanstack/react-router' {
       path: '/verification'
       fullPath: '/verification'
       preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -435,6 +455,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   MessagesRoute: MessagesRouteWithChildren,
   SearchRoute: SearchRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerificationRoute: VerificationRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRecoverRoute: AuthRecoverRoute,
