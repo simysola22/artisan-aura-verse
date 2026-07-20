@@ -1,0 +1,510 @@
+We are now implementing PMP Backend Stage 7 — MESSAGING.
+
+Project: Precious Market Place (PMP)
+
+IMPORTANT: Work directly from the existing repository and preserve the current architecture.
+
+The backend must remain completely independent of Replit.
+
+DO NOT USE:
+
+- @replit/* packages
+- REPLIT_* environment variables
+- Replit databases
+- Replit authentication
+- Replit storage
+- Replit-specific APIs
+- hardcoded Replit paths
+- any Replit-specific runtime assumptions
+
+The backend must remain portable to:
+
+- Render for backend hosting
+- Railway PostgreSQL for the database
+- Vercel for frontend hosting
+- Docker
+- any standard Bun-compatible server environment
+
+Use only standard environment variables and portable dependencies.
+
+==================================================
+CURRENT PMP BACKEND STAGES
+==================================================
+
+Stage 1 — Foundation ✅
+
+- Backend framework setup
+- Project structure
+- Configuration
+- Environment handling
+- Database connection
+- Migration system
+- Logging
+- Error handling
+- API versioning
+- Health checks
+- Request validation
+- Security headers
+- Rate-limiting foundation
+
+Stage 2 — Identity ✅
+
+The current authentication architecture uses Clerk.
+
+- Clerk authentication
+- Clerk token verification
+- PMP identity synchronization
+- /auth/me
+- Roles
+- Permissions
+- PMP authorization
+
+Do NOT create a separate JWT authentication system.
+
+Do NOT create password authentication.
+
+Do NOT create a second session/authentication system.
+
+Preserve the distinction between:
+
+Clerk authentication
+→ PMP identity
+→ PMP authorization
+
+Stage 3 — Reference Data ✅
+
+- Categories
+- Skills
+- Provider types
+- Controlled vocabularies
+
+Stage 4 — Users and Providers ✅
+
+- Employer profiles
+- Provider profiles
+- Artisans
+- Professionals
+- Experience
+- Certifications
+- Portfolio
+- Completeness scoring
+
+Stage 5 — Verification ✅
+
+- Verification submissions
+- Human verification workflow
+- Internal team permissions
+- Status transitions
+- File upload architecture
+
+Stage 6 — Search and Ranking ✅
+
+- Search
+- Filtering
+- Pagination
+- Ranking
+- Future AI scoring compatibility
+
+The existing implementation includes:
+
+- provider search
+- filters
+- ranking
+- deterministic ranking functions
+- pagination
+- accurate total counts
+- targeted PostgreSQL indexes
+- repository/service/route separation
+
+==================================================
+NOW IMPLEMENT STAGE 7 — MESSAGING
+==================================================
+
+Stage 7 consists of:
+
+1. Conversations
+2. Messages
+3. Moderation
+4. Realtime transport
+
+Do not implement payments or operations/admin systems yet.
+
+Those belong to:
+
+Stage 8 — Payments
+- Subscriptions
+- Entitlements
+- Payment provider
+- Webhooks
+
+Stage 9 — Operations
+- Admin
+- Verification team
+- Support team
+- Moderation team
+- Audit logs
+
+==================================================
+PHASE 1 — AUDIT BEFORE CODING
+==================================================
+
+Before writing code, inspect the existing implementation.
+
+Read and understand:
+
+- backend/src/
+- backend/src/db/schema/
+- backend/src/services/
+- backend/src/repositories/
+- backend/src/routes/
+- backend/src/middleware/
+- backend/src/lib/
+- backend/migrations/
+- backend/tests/
+- src/api/contracts.md
+- docs/frontend-handoff.md
+- docs/backend-architecture.md
+- backend/package.json
+
+Also search for any existing messaging-related implementation, including:
+
+- conversations
+- messages
+- direct messages
+- chat
+- realtime
+- WebSocket
+- SSE
+- subscribe
+- moderation
+- block
+- report
+
+Determine:
+
+1. Whether any messaging schema already exists.
+2. Whether the frontend already expects messaging endpoints.
+3. Whether any previous messaging mock data exists.
+4. Whether the frontend contract already defines conversations or messages.
+5. Which existing user roles can send messages.
+6. Whether users can message themselves.
+7. Whether blocked, suspended, deleted, or unverified users have restrictions.
+8. Whether providers and employers have different messaging rules.
+9. Whether moderation architecture already exists.
+10. Which realtime transport is most compatible with the current portable architecture.
+
+Do not assume the answer to any of these questions.
+
+==================================================
+PHASE 2 — DESIGN
+==================================================
+
+Before implementation, design the Stage 7 architecture.
+
+The design must cover:
+
+A. CONVERSATIONS
+
+Determine the correct conversation model.
+
+A conversation should have an appropriate representation of:
+
+- conversation ID
+- participants
+- creation timestamp
+- last activity
+- last message preview if appropriate
+- unread state/count if appropriate
+- archived/deleted state if required
+- moderation state if required
+
+Ensure the data model prevents duplicate direct conversations where appropriate.
+
+Use database constraints where possible.
+
+B. MESSAGES
+
+Design messages with appropriate support for:
+
+- message ID
+- conversation ID
+- sender identity
+- message content
+- timestamps
+- edit/delete state if supported
+- moderation state
+- read/delivery state if appropriate
+
+Do not expose internal database rows directly.
+
+Use DTOs.
+
+C. AUTHORIZATION
+
+Messaging must use the existing Clerk + PMP identity + PMP authorization architecture.
+
+A user must only be able to:
+
+- access conversations they participate in
+- read messages in conversations they participate in
+- send messages where permitted
+- modify/delete only messages they own, if modification is supported
+
+Prevent:
+
+- unauthorized conversation access
+- cross-user message access
+- IDOR vulnerabilities
+- impersonation
+- arbitrary sender IDs supplied by clients
+
+The sender identity must come from the authenticated PMP identity, never from an untrusted request body.
+
+D. MODERATION
+
+Design a foundation for moderation without prematurely implementing the entire Stage 9 operations system.
+
+Consider support for:
+
+- reporting a message
+- reporting a conversation
+- soft moderation states
+- message removal/hiding
+- blocked users
+- basic content moderation hooks
+
+Keep moderation logic extensible for the future Operations stage.
+
+Do not build a full admin dashboard yet.
+
+Do not invent hardcoded admin credentials.
+
+E. REALTIME TRANSPORT
+
+The realtime architecture must remain portable.
+
+Choose the most appropriate approach for the current architecture.
+
+Possible approaches may include:
+
+- Server-Sent Events
+- WebSockets
+- a transport abstraction that allows future replacement
+
+The implementation must not depend on Replit infrastructure.
+
+The architecture should allow the frontend to receive new-message events without requiring the database to be replaced.
+
+If the existing architecture already contains a realtime abstraction, extend it rather than replacing it.
+
+If the existing system uses an abstraction/stub, implement the real transport behind the abstraction.
+
+Keep the transport layer separate from domain logic.
+
+==================================================
+PHASE 3 — DATABASE
+==================================================
+
+If database changes are required:
+
+- create a new numbered PostgreSQL migration
+- never modify an already-applied migration
+- use foreign keys
+- add appropriate indexes
+- add uniqueness constraints where necessary
+- consider transaction boundaries
+- handle concurrent conversation creation safely
+- preserve ownership and authorization integrity
+
+Potential database entities may include:
+
+- conversations
+- conversation participants
+- messages
+- message reports
+- blocks
+
+But do not blindly create all of these.
+
+Only create the tables actually justified by the final design.
+
+==================================================
+PHASE 4 — IMPLEMENTATION
+==================================================
+
+Implement Stage 7 using the existing architecture:
+
+Repository
+→ Service
+→ Route
+→ Middleware/Authorization
+
+Use:
+
+- Zod for request validation
+- existing AppError classes
+- existing Clerk middleware
+- existing PMP identity resolution
+- existing permission system
+- existing Drizzle/PostgreSQL patterns
+- dependency injection where useful for testing
+- DTOs to prevent internal data leakage
+
+Possible endpoints should be designed based on the existing API conventions.
+
+Examples may include:
+
+GET    /v1/conversations
+POST   /v1/conversations
+GET    /v1/conversations/:id
+GET    /v1/conversations/:id/messages
+POST   /v1/conversations/:id/messages
+PATCH  /v1/messages/:id
+DELETE /v1/messages/:id
+
+But do not blindly implement these exact routes if the existing contract or architecture uses a different convention.
+
+Every endpoint must have:
+
+- correct authentication requirement
+- correct authorization requirement
+- Zod validation
+- safe error handling
+- consistent response shape
+- tests
+
+==================================================
+PHASE 5 — TESTING
+==================================================
+
+Write comprehensive tests covering:
+
+CONVERSATIONS
+
+- creating a conversation
+- preventing invalid participants
+- preventing self-conversations if appropriate
+- duplicate conversation behavior
+- listing conversations
+- pagination
+- participant authorization
+
+MESSAGES
+
+- sending messages
+- reading messages
+- pagination
+- ownership
+- editing if supported
+- deletion if supported
+- invalid content
+- empty messages
+- oversized messages
+
+AUTHORIZATION
+
+- unauthenticated access
+- unauthorized conversation access
+- IDOR attempts
+- cross-user message access
+- forged sender IDs
+- blocked-user behavior
+
+MODERATION
+
+- reporting messages
+- reporting conversations
+- moderation state behavior
+- blocked users if implemented
+
+REALTIME
+
+- event publication
+- subscription authorization
+- only authorized participants receiving events
+- connection cleanup
+- transport failure behavior
+
+Preserve all existing tests.
+
+Do not weaken existing tests to make the new implementation pass.
+
+==================================================
+PHASE 6 — VERIFICATION
+==================================================
+
+Run:
+
+1. All backend tests
+2. Backend TypeScript typecheck
+3. Backend ESLint
+4. Frontend TypeScript check
+5. Frontend production build
+6. Migration validation
+7. Portability audit
+8. Secret scan
+9. Replit dependency scan
+
+The portability audit must confirm:
+
+- no @replit packages
+- no REPLIT_* environment variables
+- no Replit APIs
+- no Replit database
+- no Replit storage
+- no hardcoded Replit paths
+- no environment-specific assumptions
+
+The backend must be deployable to Render using standard environment variables.
+
+The database must be deployable on Railway PostgreSQL using DATABASE_URL.
+
+The frontend must remain deployable to Vercel.
+
+==================================================
+IMPORTANT EXECUTION RULES
+==================================================
+
+Move quickly but do not skip the architecture audit.
+
+Use parallel work only for independent tasks.
+
+Do not rewrite working Stage 1–6 systems unnecessarily.
+
+Do not modify authentication architecture.
+
+Do not add payments yet.
+
+Do not build the full admin/operations system yet.
+
+Do not create hardcoded admin credentials.
+
+When a failure occurs:
+
+1. Identify the root cause.
+2. Fix the smallest correct layer.
+3. Re-run affected tests.
+4. Run the complete verification suite before declaring completion.
+
+At the end, provide a concise Stage 7 completion report containing:
+
+- what was built
+- files created
+- files modified
+- migration added
+- routes added
+- conversation model
+- message model
+- moderation model
+- realtime transport chosen
+- authorization rules
+- tests added
+- total tests passing
+- TypeScript result
+- ESLint result
+- frontend build result
+- migration result
+- portability audit result
+- known limitations
+
+Do not move to Stage 8 until Stage 7 is fully verified.
