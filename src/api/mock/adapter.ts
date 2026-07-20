@@ -87,9 +87,9 @@ export const mockAuth = {
   async logout() {
     await delay(60);
   },
-  async recover(_email: string) {
+  async recover(_email: string): Promise<{ ok: true }> {
     await delay();
-    return { ok: true };
+    return { ok: true as const };
   },
 };
 
