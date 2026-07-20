@@ -43,7 +43,7 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
           >
             <ul className="divide-y divide-border/60">
               {conversations.data?.map((c) => {
-                const other = c.participants.find((p) => p.id !== "me") ?? c.participants[0]!;
+                const other = c.participants.find((p) => p.id !== currentUserId) ?? c.participants[0]!;
                 const active = c.id === activeId;
                 return (
                   <li key={c.id}>
@@ -96,6 +96,9 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
 }
 
 export function ConversationView({ conversationId }: { conversationId: string }) {
+  const { user } = useAuth();
+  const currentUserId = user?.id ?? "me";
+
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
   const messages = useQuery({
