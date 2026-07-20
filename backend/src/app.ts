@@ -19,10 +19,12 @@ import { createReferenceRouter } from "./routes/reference.js";
 import { createVerificationRouter } from "./routes/verification.js";
 import { createSearchRouter } from "./routes/search.js";
 import { createMessagingRouter } from "./routes/messaging.js";
+import { createBillingRouter } from "./routes/billing.js";
 import { pubsub as defaultPubsub, type PubSub } from "./lib/pubsub.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
+import { type PaymentProvider, getPaystackProvider } from "./lib/payment/index.js";
 import { getDb } from "./db/client.js";
 import { resolveIdentity, provisionUser, updateCachedProfile } from "./services/identity.js";
 
@@ -51,6 +53,11 @@ export interface AppOptions {
    * When omitted, the in-memory singleton is used.
    */
   pubsub?: PubSub;
+  /**
+   * Inject a mock payment provider for tests.
+   * When omitted, the real Paystack provider is used (lazily from PAYSTACK_SECRET_KEY).
+   */
+  paymentProvider?: PaymentProvider;
 }
 
 export function createApp(options: AppOptions = {}): Hono {
@@ -124,6 +131,10 @@ export function createApp(options: AppOptions = {}): Hono {
   // Stage 7 — Messaging
   const ps = options.pubsub ?? defaultPubsub;
   app.route("/", createMessagingRouter(db, clerkAdapter, identityService.resolve, ps));
+
+  // Stage 8 — Payments / Billing
+  const paymentProvider: PaymentProvider = options.paymentProvider ?? getPaystackProvider();
+  app.route("/", createBillingRouter(db, clerkAdapter, identityService.resolve, paymentProvider));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 

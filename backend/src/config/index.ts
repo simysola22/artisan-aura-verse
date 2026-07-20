@@ -57,6 +57,13 @@ const configSchema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   EMAIL_FROM: z.string().email().default("noreply@example.com"),
+
+  // Payments (Stage 8)
+  // Backend-only — never exposed to the frontend, never use VITE_ prefix.
+  // Optional in schema so the app starts without payment keys configured;
+  // payment operations will fail at call time if the key is absent.
+  PAYSTACK_SECRET_KEY: z.string().optional(),
+  PAYSTACK_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export type Config = z.infer<typeof configSchema>;
