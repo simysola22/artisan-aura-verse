@@ -1,0 +1,497 @@
+We are now implementing PMP Backend Stage 5: SEARCH & RANKING.
+
+COMPLETED STAGES:
+
+Stage 1 — Backend Foundation                 ✅
+Stage 2 — Clerk + Identity + Authorization   ✅
+Stage 3 — Core Domain & Profiles              ✅
+Stage 4 — Verification System                ✅
+Stage 5 — Search & Ranking                   ← CURRENT
+
+Do not restart the project.
+Do not rebuild existing systems.
+Do not modify working authentication, identity, permissions, verification, or profile architecture unnecessarily.
+
+The production architecture is:
+
+Vercel  → Frontend
+Render  → Backend API
+Railway → PostgreSQL
+Clerk   → Authentication
+
+Replit is only a development environment.
+
+Do not use:
+
+- Replit Database
+- Replit Auth
+- Replit SDKs
+- @replit packages
+- REPLIT_* environment variables
+- Replit-specific production services
+
+==================================================
+OBJECTIVE
+==================================================
+
+Build the backend search and provider discovery system for Precious Market Place (PMP).
+
+The main use case is:
+
+Employer searches for a service or type of provider
+        ↓
+PMP finds matching providers
+        ↓
+Providers are filtered
+        ↓
+Providers are ranked
+        ↓
+Results are returned in a useful order
+
+The system must support both:
+
+1. ARTISANS
+2. PROFESSIONALS
+
+The search system must be designed for:
+
+- Fast search
+- Accurate filtering
+- Explainable ranking
+- Future scaling
+- Future caching
+- Future search engine integration if needed
+
+==================================================
+IMPORTANT RANKING PRINCIPLE
+==================================================
+
+The frontend must NOT calculate ranking.
+
+Ranking is backend-owned.
+
+The frontend must render providers in the exact order returned by the backend.
+
+The ranking system must be deterministic and testable.
+
+Do not create a black-box ranking system that cannot be explained.
+
+==================================================
+SEARCH INPUTS
+==================================================
+
+Support searching by:
+
+- Provider name
+- Headline
+- About/profile text
+- Category
+- Skill
+- Location
+- Provider type
+- Verification status
+- Availability
+
+The API should support keyword search.
+
+Example:
+
+GET /v1/search/providers?q=web developer
+
+Potential matches may include:
+
+- Web Developer
+- Frontend Developer
+- Software Engineer
+- React Developer
+
+Search should use the existing provider profile, category, skill, experience, certification, portfolio, location, and verification data.
+
+==================================================
+FILTERS
+==================================================
+
+Support appropriate filters such as:
+
+- categoryId
+- skillId
+- category kind
+- artisan/professional
+- location
+- verification status
+- availability status
+- minimum completeness score
+- minimum rating when ratings exist
+- pagination
+
+Do not add filters that do not have corresponding backend data.
+
+If a requested filter cannot yet be supported by the current schema, document it as a future extension instead of creating fake data.
+
+==================================================
+RANKING SYSTEM
+==================================================
+
+Create a centralized ranking service.
+
+Do not scatter ranking calculations across route handlers.
+
+Conceptually:
+
+Search Query
+     ↓
+Candidate Retrieval
+     ↓
+Filtering
+     ↓
+Ranking Service
+     ↓
+Paginated Results
+
+The ranking system should consider relevant factors such as:
+
+1. Text relevance
+2. Category match
+3. Skill match
+4. Provider type match
+5. Verification status
+6. Profile completeness
+7. Experience
+8. Certifications
+9. Portfolio strength
+10. Availability
+11. Location relevance where applicable
+
+The exact scoring model must be:
+
+- Centralized
+- Deterministic
+- Testable
+- Documented
+
+Use a weighted scoring approach.
+
+Do not make "verified" the only ranking factor.
+
+Do not guarantee that paying providers will automatically rank higher.
+
+The future subscription system may support promoted recommendations, but this must be implemented as a separate, transparent ranking signal rather than secretly corrupting organic relevance.
+
+==================================================
+RECOMMENDED RANKING ARCHITECTURE
+==================================================
+
+Use separate scoring components.
+
+Conceptually:
+
+finalScore =
+    textRelevanceScore
+  + categoryMatchScore
+  + skillMatchScore
+  + verificationScore
+  + completenessScore
+  + experienceScore
+  + certificationScore
+  + portfolioScore
+  + availabilityScore
+  + locationScore
+  + promotionScore (future)
+
+Each component should be explainable.
+
+Do not necessarily expose the complete internal score publicly.
+
+However, the system should internally be able to explain why a provider ranked highly.
+
+Example internal ranking explanation:
+
+{
+  "matchedSkills": 3,
+  "categoryMatch": true,
+  "verified": true,
+  "completenessScore": 92,
+  "experienceScore": 78
+}
+
+This may be used later for analytics and debugging.
+
+==================================================
+SEARCH IMPLEMENTATION
+==================================================
+
+Start with PostgreSQL-compatible search.
+
+Do not prematurely introduce Elasticsearch, Algolia, Meilisearch, or another external search engine.
+
+Use the existing PostgreSQL database and schema.
+
+The implementation should be structured so a future search provider can replace the database search layer without rewriting the ranking domain logic.
+
+Conceptually:
+
+SearchProvider
+    │
+    ├── PostgreSQLSearchProvider
+    │
+    └── Future:
+        ├── MeilisearchProvider
+        ├── AlgoliaProvider
+        └── ElasticsearchProvider
+
+Do not implement the future providers now.
+
+==================================================
+DATABASE PERFORMANCE
+==================================================
+
+Inspect the existing schema before implementing.
+
+Add only useful indexes.
+
+Consider indexes for:
+
+- Provider profile category
+- Provider type
+- Verification status
+- Availability
+- Location fields where appropriate
+- Join tables for provider skills
+- Searchable fields where appropriate
+
+Do not add random indexes everywhere.
+
+Document why each new index exists.
+
+The search system must remain PostgreSQL-compatible for Railway.
+
+==================================================
+API
+==================================================
+
+Implement:
+
+GET /v1/search/providers
+
+Support:
+
+- q
+- categoryId
+- skillId
+- providerType
+- location
+- verificationStatus
+- availabilityStatus
+- page
+- limit
+- sort
+
+The API must return a stable paginated response.
+
+Use the existing API response conventions.
+
+The response should include:
+
+- Provider identity
+- Public profile information
+- Relevant category
+- Skills
+- Verification status appropriate for public display
+- Completeness information where appropriate
+- Ranking results in backend-determined order
+
+Do not expose:
+
+- Private verification evidence
+- Internal reviewer notes
+- Private employer information
+- Internal ranking data that should not be public
+
+==================================================
+SORTING
+==================================================
+
+Support a controlled set of sorting options.
+
+Examples:
+
+- relevance
+- newest
+- completeness
+- experience
+
+Do not accept arbitrary SQL sort fields directly from users.
+
+Use an allowlist.
+
+The default should be relevance.
+
+If no search query is provided, the backend should return a sensible discovery order rather than attempting text relevance against an empty query.
+
+==================================================
+PAGINATION
+==================================================
+
+Use a scalable pagination strategy.
+
+Review the existing API contracts before choosing the exact approach.
+
+If the existing contract requires page/limit, preserve that contract.
+
+Ensure:
+
+- Maximum page size is enforced.
+- Invalid page sizes are rejected or safely normalized.
+- Results are stable.
+- Total counts are handled efficiently.
+
+Do not fetch every provider into application memory and rank thousands of records in Node/Bun if PostgreSQL can perform the filtering efficiently.
+
+However, keep ranking logic centralized and testable.
+
+If the first implementation uses a bounded candidate set before application-level ranking, document the tradeoff clearly.
+
+==================================================
+CACHING PREPARATION
+==================================================
+
+Do not implement a full Redis cache in this stage unless the existing architecture already requires it.
+
+However, design the search service so caching can later be added around:
+
+- Popular searches
+- Reference data
+- Stable discovery queries
+
+Do not make the search logic dependent on cache availability.
+
+==================================================
+SECURITY
+==================================================
+
+Ensure:
+
+- Public search only exposes public provider data.
+- Private providers are not exposed improperly.
+- Internal verification information is never returned.
+- Query parameters are validated.
+- SQL injection is impossible through query construction.
+- Sort fields are allowlisted.
+- Pagination limits are enforced.
+- Search abuse can later be protected by the existing rate-limiting layer.
+
+Do not expose internal ranking explanations publicly unless explicitly intended by the API contract.
+
+==================================================
+TESTING
+==================================================
+
+Add comprehensive tests for:
+
+- Keyword search
+- Category filtering
+- Skill filtering
+- Artisan filtering
+- Professional filtering
+- Location filtering
+- Verification filtering
+- Availability filtering
+- Multiple filters together
+- Relevance ranking
+- Category match scoring
+- Skill match scoring
+- Verification scoring
+- Completeness scoring
+- Experience scoring
+- Stable ordering
+- Tie-breaking
+- Pagination
+- Maximum page size
+- Invalid query parameters
+- Invalid sort values
+- Public/private provider visibility
+- No internal verification data leakage
+
+Preserve every existing test.
+
+Do not weaken or delete existing tests.
+
+==================================================
+IMPLEMENTATION PROCESS
+==================================================
+
+Move efficiently.
+
+1. Inspect the existing Stage 1–4 implementation.
+2. Read the current database schema and verification architecture.
+3. Read the existing frontend search contract.
+4. Design the ranking model before implementation.
+5. Add only necessary database indexes/migrations.
+6. Implement search repository/provider abstraction.
+7. Implement ranking service.
+8. Implement search service.
+9. Implement API route.
+10. Add tests.
+11. Run all checks.
+
+Do not begin Stage 6.
+
+==================================================
+REQUIRED VERIFICATION
+==================================================
+
+Run:
+
+- Backend typecheck
+- Full backend test suite
+- Backend lint
+- Backend build if configured
+- Frontend typecheck
+- Frontend production build
+
+Perform a security audit:
+
+- No SQL injection
+- No arbitrary sort injection
+- No private data leakage
+- No verification evidence leakage
+- No authorization bypass
+- Pagination limits enforced
+
+Perform a portability audit:
+
+- No Replit dependencies
+- No Replit-specific services
+- PostgreSQL-compatible
+- Railway-compatible
+- Render-compatible
+- Vercel-compatible
+
+==================================================
+COMPLETION REPORT
+==================================================
+
+When complete, report:
+
+1. Files changed.
+2. Database changes.
+3. Search architecture.
+4. Ranking architecture.
+5. Ranking formula and weights.
+6. Search filters.
+7. Sorting options.
+8. Pagination strategy.
+9. Indexes added and why.
+10. API endpoint details.
+11. Security audit.
+12. Portability audit.
+13. Tests added.
+14. Exact test results.
+15. TypeScript result.
+16. Lint result.
+17. Build result.
+18. Remaining limitations.
+
+Then stop.
+
+Do not start Stage 6.

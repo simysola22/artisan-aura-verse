@@ -17,6 +17,7 @@ import { createProviderRouter } from "./routes/providers.js";
 import { createEmployerRouter } from "./routes/employers.js";
 import { createReferenceRouter } from "./routes/reference.js";
 import { createVerificationRouter } from "./routes/verification.js";
+import { createSearchRouter } from "./routes/search.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
@@ -109,6 +110,9 @@ export function createApp(options: AppOptions = {}): Hono {
 
   // Stage 4 — Verification system
   app.route("/", createVerificationRouter(db, clerkAdapter, identityService.resolve));
+
+  // Stage 5 — Search & Ranking (public endpoint, no auth required)
+  app.route("/", createSearchRouter(db));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 

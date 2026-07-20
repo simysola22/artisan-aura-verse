@@ -18,7 +18,7 @@ description: Precious Market Place — stack, architecture, and stage progress
 - Stage 2 — Clerk + Identity + Authorization: COMPLETE
 - Stage 3 — Core Domain & Profiles: COMPLETE
 - Stage 4 — Verification System: COMPLETE
-- Stage 5 — Search & Ranking: NOT STARTED
+- Stage 5 — Search & Ranking: COMPLETE
 - Stage 6 — Messaging: NOT STARTED
 
 **Do NOT use:** Replit Database, Replit Auth, Replit SDKs, REPLIT_* env vars
@@ -35,5 +35,14 @@ description: Precious Market Place — stack, architecture, and stage progress
 - `verification.submit` — providers
 - `verification.read`, `verification.review`, `verification.request_info`, `verification.approve`, `verification.reject` — verification_team
 - `verification.manage` — system_admin
+
+**Stage 5 key decisions:**
+- Bounded candidate fetch (500) ranked in app layer; `total` from separate COUNT query (accurate)
+- Text search: PostgreSQL ILIKE on headline/about/location — swappable with Meilisearch via repository only
+- Ranking: pure functions in `ranking.ts` — no DB, fully testable independently
+- `sort: "rating"` → `"relevance"` (ratings not yet built); `"recent"` → `"newest"` (frontend alias)
+- `id` in public response = profile ID (matches /providers/:id routing)
+- `exactOptionalPropertyTypes: true` — use conditional spreads (`...(x ? {k:x} : {})`) not `{k: undefined}` when building SearchQuery
+- Migration `0004_search_indexes.sql`: 3 new indexes (skill_id reverse lookup, location partial, years_experience partial)
 
 **Frontend:** Mock-backed; does not require backend to run (`bun run dev` in root)
