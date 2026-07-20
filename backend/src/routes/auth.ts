@@ -13,14 +13,9 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import type { ClerkAuthAdapter } from "../lib/clerk.js";
 import type { UserResolver } from "../middleware/auth.js";
-import {
-  requireClerkAuth,
-} from "../middleware/auth.js";
+import { requireClerkAuth, requireClerkTokenOnly } from "../middleware/auth.js";
 import type { ResolvedIdentity } from "../services/identity.js";
-import {
-  serializeIdentity,
-  type ProvisionUserParams,
-} from "../services/identity.js";
+import { serializeIdentity, type ProvisionUserParams } from "../services/identity.js";
 import { UnauthorizedError } from "../errors/index.js";
 
 // ─── Injected identity service interface ──────────────────────────────────────
@@ -52,14 +47,13 @@ const syncBodySchema = z.object({
 
 // ─── Router factory ───────────────────────────────────────────────────────────
 
-export function createAuthRouter(
-  adapter: ClerkAuthAdapter,
-  service: AuthIdentityService,
-): Hono {
+export function createAuthRouter(adapter: ClerkAuthAdapter, service: AuthIdentityService): Hono {
   const router = new Hono();
 
-  // Build the auth middleware using the injected resolver
+  // Full auth: verify Clerk token AND require an existing PMP identity
   const auth = requireClerkAuth(adapter, service.resolve);
+  // Token-only auth: verify Clerk token but don't require a PMP identity (used on /sync)
+  const clerkOnly = requireClerkTokenOnly(adapter);
 
   /**
    * GET /v1/auth/me
@@ -77,9 +71,7 @@ export function createAuthRouter(
     // Load fresh identity — permissions always from DB
     const identity = await service.resolve(authCtx.clerkUserId);
     if (!identity) {
-      throw new UnauthorizedError(
-        "No PMP account found. Call POST /v1/auth/sync to create one.",
-      );
+      throw new UnauthorizedError("No PMP account found. Call POST /v1/auth/sync to create one.");
     }
 
     // Opportunistically update cached Clerk profile fields from query params.
@@ -109,19 +101,19 @@ export function createAuthRouter(
    *   - Internal types (owner, system_admin, etc.) are also blocked by
    *     provisionUser() throwing ForbiddenError — double enforcement.
    */
-  router.post("/v1/auth/sync", auth, zValidator("json", syncBodySchema), async (c) => {
-    const authCtx = c.get("auth");
+  router.post("/v1/auth/sync", clerkOnly, zValidator("json", syncBodySchema), async (c) => {
+    const { clerkUserId } = c.get("clerkAuth");
     const body = c.req.valid("json");
 
     // Idempotent: return existing record if already provisioned
-    const existing = await service.resolve(authCtx.clerkUserId);
+    const existing = await service.resolve(clerkUserId);
     if (existing) {
       return c.json(serializeIdentity(existing), 200);
     }
 
     // Build provision params — only include optional fields when present
     const provisionParams: ProvisionUserParams = {
-      clerkUserId: authCtx.clerkUserId,
+      clerkUserId,
       accountType: body.accountType,
     };
     if (body.providerKind !== undefined) provisionParams.providerKind = body.providerKind;

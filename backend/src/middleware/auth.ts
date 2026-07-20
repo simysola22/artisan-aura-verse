@@ -22,10 +22,7 @@ import { createMiddleware } from "hono/factory";
 import type { MiddlewareHandler } from "hono";
 import type { ClerkAuthAdapter } from "../lib/clerk.js";
 import type { ResolvedIdentity } from "../services/identity.js";
-import {
-  UnauthorizedError,
-  ForbiddenError,
-} from "../errors/index.js";
+import { UnauthorizedError, ForbiddenError } from "../errors/index.js";
 import type { AccountType } from "../db/schema/users.js";
 
 // ─── Request context type ─────────────────────────────────────────────────────
@@ -45,6 +42,8 @@ export interface AuthContext {
 declare module "hono" {
   interface ContextVariableMap {
     auth: AuthContext;
+    /** Set by requireClerkTokenOnly — available on routes that don't need a PMP identity yet. */
+    clerkAuth: { clerkUserId: string };
   }
 }
 
@@ -54,9 +53,7 @@ declare module "hono" {
  * Returns null if the user has no PMP account (or is deleted).
  * Throws ForbiddenError if the account is suspended.
  */
-export type UserResolver = (
-  clerkUserId: string,
-) => Promise<ResolvedIdentity | null>;
+export type UserResolver = (clerkUserId: string) => Promise<ResolvedIdentity | null>;
 
 // ─── Middleware factories ──────────────────────────────────────────────────────
 
@@ -111,6 +108,34 @@ export function requireClerkAuth(
 }
 
 /**
+ * Verify a Clerk token but do NOT require an existing PMP identity.
+ *
+ * Used on POST /v1/auth/sync — the whole point of that endpoint is to create
+ * the PMP record for a Clerk user who has just registered. The user has a
+ * valid Clerk session but no PMP row yet, so requireClerkAuth (which resolves
+ * the PMP identity and throws 401 when absent) is the wrong guard there.
+ *
+ * Sets c.var.clerkAuth = { clerkUserId } on success.
+ * Returns 401 if the token is missing or invalid.
+ */
+export function requireClerkTokenOnly(adapter: ClerkAuthAdapter): MiddlewareHandler {
+  return createMiddleware(async (c, next) => {
+    const header = c.req.header("authorization");
+    if (!header?.startsWith("Bearer ")) {
+      throw new UnauthorizedError();
+    }
+    const token = header.slice(7);
+    try {
+      const { clerkUserId } = await adapter.verifyToken(token);
+      c.set("clerkAuth", { clerkUserId });
+    } catch {
+      throw new UnauthorizedError("Invalid or expired authentication token");
+    }
+    await next();
+  });
+}
+
+/**
  * Optionally attach auth if a valid token is present.
  * Does NOT throw on missing/invalid token.
  */
@@ -154,9 +179,7 @@ export function requirePermission(permission: string): MiddlewareHandler {
     const auth = c.get("auth");
     if (!auth) throw new UnauthorizedError();
     if (!auth.permissions.has(permission)) {
-      throw new ForbiddenError(
-        `Permission denied: '${permission}' is required for this action.`,
-      );
+      throw new ForbiddenError(`Permission denied: '${permission}' is required for this action.`);
     }
     await next();
   });
@@ -172,9 +195,7 @@ export function requireAnyPermission(...perms: string[]): MiddlewareHandler {
     if (!auth) throw new UnauthorizedError();
     const hasAny = perms.some((p) => auth.permissions.has(p));
     if (!hasAny) {
-      throw new ForbiddenError(
-        `Permission denied: one of [${perms.join(", ")}] is required.`,
-      );
+      throw new ForbiddenError(`Permission denied: one of [${perms.join(", ")}] is required.`);
     }
     await next();
   });

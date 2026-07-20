@@ -5,7 +5,12 @@
  * DB calls via vi.spyOn. No real database is required.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { provisionUser, resolveIdentity, isPublicAccountType, PUBLIC_ACCOUNT_TYPES } from "../src/services/identity.js";
+import {
+  provisionUser,
+  resolveIdentity,
+  isPublicAccountType,
+  PUBLIC_ACCOUNT_TYPES,
+} from "../src/services/identity.js";
 import type { Db } from "../src/db/client.js";
 import { ForbiddenError, BadRequestError } from "../src/errors/index.js";
 
@@ -50,7 +55,7 @@ describe("isPublicAccountType()", () => {
 describe("provisionUser() — security invariants", () => {
   // We need to mock the DB. Since provisionUser takes `db: Db`,
   // we can mock the transaction and subsequent queries.
-  
+
   const mockSelect = vi.fn();
   const mockInsert = vi.fn();
   const mockTransaction = vi.fn();
@@ -119,37 +124,49 @@ describe("provisionUser() — security invariants", () => {
   });
 
   it("accepts 'employer' account type without providerKind", async () => {
-    // Mock the post-insert selects to return valid data
-    let callCount = 0;
-    mockSelect.mockImplementation(() => ({
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      innerJoin: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockImplementation(async () => {
-        callCount++;
-        if (callCount === 1) {
-          // loadPermissionsForRoles query
-          return [{ name: "profile.read" }, { name: "profile.update" }];
-        }
-        if (callCount === 2) {
-          // role query
-          return [{ name: "employer" }];
-        }
-        // user query
-        return [{
-          id: "pmp_new",
-          clerkUserId: "user_abc",
-          accountType: "employer",
-          providerKind: null,
-          status: "active",
-          displayName: null,
-          email: null,
-          avatarUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }];
-      }),
-    }));
+    // loadPermissionsForRoles uses: db.select().from().innerJoin().where() — no .limit().
+    // The Drizzle query builder is thenable; the mock chain must be too so that
+    // `await chain` resolves to an array rather than the chain object itself.
+    let selectCallCount = 0;
+    mockSelect.mockImplementation(() => {
+      selectCallCount++;
+      const call = selectCallCount;
+
+      // call 1 → loadPermissionsForRoles (awaited directly, no .limit())
+      // call 2 → role name lookup         (.limit(1))
+      // call 3 → inserted user lookup     (.limit(1))
+      const resolveWith: unknown[] =
+        call === 1
+          ? [{ name: "profile.read" }, { name: "profile.update" }]
+          : call === 2
+            ? [{ name: "employer" }]
+            : [
+                {
+                  id: "pmp_new",
+                  clerkUserId: "user_abc",
+                  accountType: "employer",
+                  providerKind: null,
+                  status: "active",
+                  displayName: null,
+                  email: null,
+                  avatarUrl: null,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              ];
+
+      const p = Promise.resolve(resolveWith);
+      const chain: Record<string, unknown> = {
+        from: () => chain,
+        where: () => chain,
+        innerJoin: () => chain,
+        limit: vi.fn().mockResolvedValue(resolveWith),
+        // Make the chain itself thenable so `await chain` works
+        then: p.then.bind(p),
+        catch: p.catch.bind(p),
+      };
+      return chain;
+    });
 
     const identity = await provisionUser(mockDb, {
       clerkUserId: "user_abc",
@@ -160,29 +177,42 @@ describe("provisionUser() — security invariants", () => {
   });
 
   it("accepts 'provider' account type with valid providerKind", async () => {
-    let callCount = 0;
-    mockSelect.mockImplementation(() => ({
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      innerJoin: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockImplementation(async () => {
-        callCount++;
-        if (callCount === 1) return [{ name: "profile.read" }];
-        if (callCount === 2) return [{ name: "provider" }];
-        return [{
-          id: "pmp_provider",
-          clerkUserId: "user_prov",
-          accountType: "provider",
-          providerKind: "artisan",
-          status: "active",
-          displayName: null,
-          email: null,
-          avatarUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }];
-      }),
-    }));
+    let selectCallCount = 0;
+    mockSelect.mockImplementation(() => {
+      selectCallCount++;
+      const call = selectCallCount;
+
+      const resolveWith: unknown[] =
+        call === 1
+          ? [{ name: "profile.read" }]
+          : call === 2
+            ? [{ name: "provider" }]
+            : [
+                {
+                  id: "pmp_provider",
+                  clerkUserId: "user_prov",
+                  accountType: "provider",
+                  providerKind: "artisan",
+                  status: "active",
+                  displayName: null,
+                  email: null,
+                  avatarUrl: null,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              ];
+
+      const p = Promise.resolve(resolveWith);
+      const chain: Record<string, unknown> = {
+        from: () => chain,
+        where: () => chain,
+        innerJoin: () => chain,
+        limit: vi.fn().mockResolvedValue(resolveWith),
+        then: p.then.bind(p),
+        catch: p.catch.bind(p),
+      };
+      return chain;
+    });
 
     const identity = await provisionUser(mockDb, {
       clerkUserId: "user_prov",
@@ -214,18 +244,20 @@ describe("resolveIdentity()", () => {
       select: vi.fn().mockReturnValue({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{
-          id: "pmp_del",
-          clerkUserId: "user_del",
-          accountType: "employer",
-          providerKind: null,
-          status: "deleted",
-          displayName: null,
-          email: null,
-          avatarUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }]),
+        limit: vi.fn().mockResolvedValue([
+          {
+            id: "pmp_del",
+            clerkUserId: "user_del",
+            accountType: "employer",
+            providerKind: null,
+            status: "deleted",
+            displayName: null,
+            email: null,
+            avatarUrl: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]),
       }),
     } as unknown as Db;
 
@@ -238,18 +270,20 @@ describe("resolveIdentity()", () => {
       select: vi.fn().mockReturnValue({
         from: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        limit: vi.fn().mockResolvedValue([{
-          id: "pmp_sus",
-          clerkUserId: "user_sus",
-          accountType: "employer",
-          providerKind: null,
-          status: "suspended",
-          displayName: null,
-          email: null,
-          avatarUrl: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }]),
+        limit: vi.fn().mockResolvedValue([
+          {
+            id: "pmp_sus",
+            clerkUserId: "user_sus",
+            accountType: "employer",
+            providerKind: null,
+            status: "suspended",
+            displayName: null,
+            email: null,
+            avatarUrl: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ]),
       }),
     } as unknown as Db;
 

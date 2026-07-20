@@ -69,10 +69,7 @@ const ACCOUNT_TYPE_TO_ROLE_ID: Record<AccountType, string> = {
  * Load all permission strings held by a set of role IDs.
  * Used internally and exposed for testing.
  */
-export async function loadPermissionsForRoles(
-  db: Db,
-  roleIds: string[],
-): Promise<Set<string>> {
+export async function loadPermissionsForRoles(db: Db, roleIds: string[]): Promise<Set<string>> {
   if (roleIds.length === 0) return new Set();
 
   const rows = await db
@@ -98,11 +95,7 @@ export async function resolveIdentity(
   clerkUserId: string,
 ): Promise<ResolvedIdentity | null> {
   // Load user
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.clerkUserId, clerkUserId))
-    .limit(1);
+  const [user] = await db.select().from(users).where(eq(users.clerkUserId, clerkUserId)).limit(1);
 
   if (!user) return null;
   if (user.status === "deleted") return null;
@@ -138,8 +131,7 @@ export async function provisionUser(
   db: Db,
   params: ProvisionUserParams,
 ): Promise<ResolvedIdentity> {
-  const { clerkUserId, accountType, providerKind, displayName, email, avatarUrl } =
-    params;
+  const { clerkUserId, accountType, providerKind, displayName, email, avatarUrl } = params;
 
   // ── Security check: block internal account type self-assignment ────────────
   if (!isPublicAccountType(accountType)) {
@@ -188,11 +180,7 @@ export async function provisionUser(
     .where(eq(roles.id, roleId))
     .limit(1);
 
-  const [insertedUser] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, id))
-    .limit(1);
+  const [insertedUser] = await db.select().from(users).where(eq(users.id, id)).limit(1);
 
   if (!insertedUser || !roleRow) {
     throw new Error("Failed to load newly created user after insert");

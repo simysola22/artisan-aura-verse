@@ -59,7 +59,10 @@ function makeApp(
     return c.json({ status: 500, code: "internal_error", message: "unexpected" }, 500);
   });
 
-  app.use("*", optional ? optionalClerkAuth(adapter, resolver) : requireClerkAuth(adapter, resolver));
+  app.use(
+    "*",
+    optional ? optionalClerkAuth(adapter, resolver) : requireClerkAuth(adapter, resolver),
+  );
   app.get("/protected", (c) => {
     const auth = c.get("auth");
     return c.json({
@@ -92,10 +95,7 @@ describe("requireClerkAuth middleware", () => {
   });
 
   it("returns 401 when Clerk rejects the token", async () => {
-    const app = makeApp(
-      new Map([["bad-token", new Error("Invalid signature")]]),
-      new Map(),
-    );
+    const app = makeApp(new Map([["bad-token", new Error("Invalid signature")]]), new Map());
     const res = await app.request("/protected", {
       headers: { authorization: "Bearer bad-token" },
     });
@@ -119,10 +119,7 @@ describe("requireClerkAuth middleware", () => {
 
   it("attaches auth context when token is valid and PMP user exists", async () => {
     const identity = makeIdentity("user_abc", "employer");
-    const app = makeApp(
-      new Map([["valid-token", "user_abc"]]),
-      new Map([["user_abc", identity]]),
-    );
+    const app = makeApp(new Map([["valid-token", "user_abc"]]), new Map([["user_abc", identity]]));
     const res = await app.request("/protected", {
       headers: { authorization: "Bearer valid-token" },
     });
@@ -134,10 +131,7 @@ describe("requireClerkAuth middleware", () => {
 
   it("attaches correct context for a provider account", async () => {
     const identity = makeIdentity("user_prov", "provider");
-    const app = makeApp(
-      new Map([["prov-token", "user_prov"]]),
-      new Map([["user_prov", identity]]),
-    );
+    const app = makeApp(new Map([["prov-token", "user_prov"]]), new Map([["user_prov", identity]]));
     const res = await app.request("/protected", {
       headers: { authorization: "Bearer prov-token" },
     });
@@ -159,11 +153,7 @@ describe("optionalClerkAuth middleware", () => {
   });
 
   it("continues without auth when token is invalid", async () => {
-    const app = makeApp(
-      new Map([["bad", new Error("bad")]]),
-      new Map(),
-      true,
-    );
+    const app = makeApp(new Map([["bad", new Error("bad")]]), new Map(), true);
     const res = await app.request("/protected", {
       headers: { authorization: "Bearer bad" },
     });

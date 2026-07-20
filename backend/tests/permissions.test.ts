@@ -19,7 +19,9 @@ import type { AppError } from "../src/errors/index.js";
 // requireClerkAuth already having run), then applies the guard under test.
 function makeApp(
   auth: AuthContext | null,
-  guard: ReturnType<typeof requirePermission | typeof requireAnyPermission | typeof requireAccountType>,
+  guard: ReturnType<
+    typeof requirePermission | typeof requireAnyPermission | typeof requireAccountType
+  >,
 ) {
   const app = new Hono();
 
@@ -162,54 +164,98 @@ describe("requireAccountType()", () => {
 // ─── Role-based permission isolation ──────────────────────────────────────────
 
 describe("role-based permission isolation", () => {
-  const employerPerms = new Set(["profile.read", "profile.update", "providers.search", "providers.view", "messaging.use"]);
-  const providerPerms = new Set(["profile.read", "profile.update", "verification.submit", "messaging.use"]);
-  const verificationPerms = new Set(["verification.read", "verification.review", "verification.request_info", "verification.approve", "verification.reject"]);
+  const employerPerms = new Set([
+    "profile.read",
+    "profile.update",
+    "providers.search",
+    "providers.view",
+    "messaging.use",
+  ]);
+  const providerPerms = new Set([
+    "profile.read",
+    "profile.update",
+    "verification.submit",
+    "messaging.use",
+  ]);
+  const verificationPerms = new Set([
+    "verification.read",
+    "verification.review",
+    "verification.request_info",
+    "verification.approve",
+    "verification.reject",
+  ]);
   const supportPerms = new Set(["support.read", "support.respond", "support.manage"]);
   const moderationPerms = new Set(["moderation.read", "moderation.review", "moderation.action"]);
 
   it("employer has providers.search permission", async () => {
-    const app = makeApp(makeAuth({ accountType: "employer", permissions: employerPerms }), requirePermission("providers.search"));
+    const app = makeApp(
+      makeAuth({ accountType: "employer", permissions: employerPerms }),
+      requirePermission("providers.search"),
+    );
     expect((await app.request("/guarded")).status).toBe(200);
   });
 
   it("employer does NOT have verification.review", async () => {
-    const app = makeApp(makeAuth({ accountType: "employer", permissions: employerPerms }), requirePermission("verification.review"));
+    const app = makeApp(
+      makeAuth({ accountType: "employer", permissions: employerPerms }),
+      requirePermission("verification.review"),
+    );
     expect((await app.request("/guarded")).status).toBe(403);
   });
 
   it("provider has verification.submit", async () => {
-    const app = makeApp(makeAuth({ accountType: "provider", permissions: providerPerms }), requirePermission("verification.submit"));
+    const app = makeApp(
+      makeAuth({ accountType: "provider", permissions: providerPerms }),
+      requirePermission("verification.submit"),
+    );
     expect((await app.request("/guarded")).status).toBe(200);
   });
 
   it("provider does NOT have providers.search", async () => {
-    const app = makeApp(makeAuth({ accountType: "provider", permissions: providerPerms }), requirePermission("providers.search"));
+    const app = makeApp(
+      makeAuth({ accountType: "provider", permissions: providerPerms }),
+      requirePermission("providers.search"),
+    );
     expect((await app.request("/guarded")).status).toBe(403);
   });
 
   it("verification_team has verification.approve", async () => {
-    const app = makeApp(makeAuth({ accountType: "verification_team", permissions: verificationPerms }), requirePermission("verification.approve"));
+    const app = makeApp(
+      makeAuth({ accountType: "verification_team", permissions: verificationPerms }),
+      requirePermission("verification.approve"),
+    );
     expect((await app.request("/guarded")).status).toBe(200);
   });
 
   it("verification_team does NOT have support.manage", async () => {
-    const app = makeApp(makeAuth({ accountType: "verification_team", permissions: verificationPerms }), requirePermission("support.manage"));
+    const app = makeApp(
+      makeAuth({ accountType: "verification_team", permissions: verificationPerms }),
+      requirePermission("support.manage"),
+    );
     expect((await app.request("/guarded")).status).toBe(403);
   });
 
   it("support_team cannot perform verification actions", async () => {
-    const app = makeApp(makeAuth({ accountType: "support_team", permissions: supportPerms }), requirePermission("verification.approve"));
+    const app = makeApp(
+      makeAuth({ accountType: "support_team", permissions: supportPerms }),
+      requirePermission("verification.approve"),
+    );
     expect((await app.request("/guarded")).status).toBe(403);
   });
 
   it("moderation_team has moderation.action", async () => {
-    const app = makeApp(makeAuth({ accountType: "moderation_team", permissions: moderationPerms }), requirePermission("moderation.action"));
+    const app = makeApp(
+      makeAuth({ accountType: "moderation_team", permissions: moderationPerms }),
+      requirePermission("moderation.action"),
+    );
     expect((await app.request("/guarded")).status).toBe(200);
   });
 
   it("moderation_team does NOT have system.manage", async () => {
-    const app = makeApp(makeAuth({ accountType: "moderation_team", permissions: moderationPerms }), requirePermission("system.manage"));
+    const app = makeApp(
+      makeAuth({ accountType: "moderation_team", permissions: moderationPerms }),
+      requirePermission("system.manage"),
+    );
     expect((await app.request("/guarded")).status).toBe(403);
   });
 });

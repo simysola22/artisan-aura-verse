@@ -30,7 +30,13 @@ const employerIdentity: ResolvedIdentity = {
     updatedAt: now,
   },
   roleNames: ["employer"],
-  permissions: new Set(["profile.read", "profile.update", "providers.search", "providers.view", "messaging.use"]),
+  permissions: new Set([
+    "profile.read",
+    "profile.update",
+    "providers.search",
+    "providers.view",
+    "messaging.use",
+  ]),
 };
 
 const providerIdentity: ResolvedIdentity = {
@@ -64,7 +70,14 @@ const systemAdminIdentity: ResolvedIdentity = {
     updatedAt: now,
   },
   roleNames: ["system_admin"],
-  permissions: new Set(["users.read", "users.manage", "verification.manage", "support.manage", "moderation.manage", "system.manage"]),
+  permissions: new Set([
+    "users.read",
+    "users.manage",
+    "verification.manage",
+    "support.manage",
+    "moderation.manage",
+    "system.manage",
+  ]),
 };
 
 const ownerIdentity: ResolvedIdentity = {
@@ -81,7 +94,13 @@ const ownerIdentity: ResolvedIdentity = {
     updatedAt: now,
   },
   roleNames: ["owner"],
-  permissions: new Set(["profile.read", "users.manage", "system.manage", "verification.manage", "moderation.manage"]),
+  permissions: new Set([
+    "profile.read",
+    "users.manage",
+    "system.manage",
+    "verification.manage",
+    "moderation.manage",
+  ]),
 };
 
 // ─── App builder ──────────────────────────────────────────────────────────────
@@ -131,10 +150,7 @@ describe("GET /v1/auth/me", () => {
   });
 
   it("returns 401 with an invalid Clerk token", async () => {
-    const app = makeTestApp(
-      new Map([["bad", new Error("invalid")]]),
-      new Map(),
-    );
+    const app = makeTestApp(new Map([["bad", new Error("invalid")]]), new Map());
     const res = await app.request("/v1/auth/me", {
       headers: { authorization: "Bearer bad" },
     });
@@ -227,7 +243,12 @@ describe("GET /v1/auth/me", () => {
       headers: { authorization: "Bearer token_employer" },
     });
     const perms = ((await res.json()) as Record<string, unknown>)["permissions"] as string[];
-    const internalPerms = ["verification.approve", "users.manage", "system.manage", "moderation.action"];
+    const internalPerms = [
+      "verification.approve",
+      "users.manage",
+      "system.manage",
+      "moderation.action",
+    ];
     for (const p of internalPerms) {
       expect(perms).not.toContain(p);
     }
@@ -272,7 +293,11 @@ describe("POST /v1/auth/sync", () => {
     const res = await app.request("/v1/auth/sync", {
       method: "POST",
       headers: { authorization: "Bearer token_prov", "content-type": "application/json" },
-      body: JSON.stringify({ accountType: "provider", providerKind: "artisan", displayName: "Bob" }),
+      body: JSON.stringify({
+        accountType: "provider",
+        providerKind: "artisan",
+        displayName: "Bob",
+      }),
     });
     expect(res.status).toBe(201);
     const body = (await res.json()) as Record<string, unknown>;

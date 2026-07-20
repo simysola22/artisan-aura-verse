@@ -17,11 +17,7 @@ import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
 import { getDb } from "./db/client.js";
-import {
-  resolveIdentity,
-  provisionUser,
-  updateCachedProfile,
-} from "./services/identity.js";
+import { resolveIdentity, provisionUser, updateCachedProfile } from "./services/identity.js";
 
 export interface AppOptions {
   corsOrigin?: string;
@@ -45,8 +41,7 @@ export function createApp(options: AppOptions = {}): Hono {
 
   // ── Clerk adapter — real in production, injected mock in tests ────────────
   const clerkAdapter: ClerkAuthAdapter =
-    options.clerkAdapter ??
-    createClerkAdapter(process.env["CLERK_SECRET_KEY"] ?? "");
+    options.clerkAdapter ?? createClerkAdapter(process.env["CLERK_SECRET_KEY"] ?? "");
 
   // ── Identity service — real in production, injected mock in tests ─────────
   const identityService: AuthIdentityService = options.identityService ?? {
