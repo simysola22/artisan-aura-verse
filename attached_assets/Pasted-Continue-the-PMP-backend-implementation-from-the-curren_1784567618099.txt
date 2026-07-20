@@ -1,0 +1,168 @@
+Continue the PMP backend implementation from the current repository state.
+
+The previous Replit environment ran out of quota during Backend Stage 2. The current repository is the authoritative source of truth. Do not restart the project and do not rebuild existing work.
+
+The audit has already established that the repository contains the Stage 2 Clerk authentication and PMP authorization foundation, including:
+
+- @clerk/backend integration
+- Clerk authentication abstraction
+- PMP identity service
+- Clerk user ID → PMP user mapping
+- PMP roles and permissions
+- Server-side authentication middleware
+- Authentication routes
+- Database schema/migrations
+- Tests for Clerk authentication
+- Tests for identity
+- Tests for permissions
+- Tests for authentication routes
+- Dependency-injection-based testing architecture
+
+The previous environment stopped while finalizing the authentication test refactor.
+
+Your task is to CONTINUE from the current codebase and finish Backend Stage 2.
+
+IMPORTANT:
+Do not start from scratch.
+Do not delete existing architecture.
+Do not replace working abstractions unnecessarily.
+Do not create a parallel authentication system.
+Do not create custom JWT authentication.
+Do not create a second custom session system.
+
+AUTHENTICATION ARCHITECTURE:
+
+Clerk is the sole authentication provider.
+
+The backend must verify Clerk-authenticated requests using @clerk/backend.
+
+The backend must then resolve the authenticated Clerk user to a PMP user record in PostgreSQL.
+
+The conceptual flow is:
+
+Client
+→ Clerk authentication
+→ Clerk session token
+→ Backend request
+→ Clerk token verification
+→ Clerk user identity
+→ PMP user lookup/creation
+→ PMP role and permission resolution
+→ Route authorization
+
+Clerk handles authentication.
+
+PostgreSQL stores PMP application identity, roles, permissions, and business data.
+
+The backend is responsible for authorization.
+
+The frontend must never be treated as a security boundary.
+
+PORTABILITY REQUIREMENT:
+
+Replit is only a development environment.
+
+The backend must remain portable to Render.
+
+The database must remain portable to Railway PostgreSQL.
+
+The frontend must remain portable to Vercel.
+
+Do not add:
+
+- Replit Auth
+- Replit Database
+- Replit SDKs
+- @replit packages
+- REPLIT_* environment variables
+- Replit-specific APIs
+- Replit-specific production infrastructure
+
+STAGE 2 COMPLETION REQUIREMENTS:
+
+1. Finish the Clerk authentication implementation.
+2. Finish the identity resolution flow.
+3. Ensure Clerk users can be mapped to PMP users.
+4. Ensure the backend can identify the authenticated PMP user.
+5. Ensure unauthenticated requests are rejected correctly.
+6. Ensure authenticated requests can access authorized endpoints.
+7. Ensure unauthorized roles receive the correct forbidden response.
+8. Ensure the permission system is server-side and authoritative.
+9. Ensure the auth routes work according to the existing frontend contract.
+10. Ensure all authentication and authorization tests pass.
+11. Ensure dependency injection is used where necessary for testability.
+12. Preserve the existing API contract and frontend handoff contract.
+
+Before changing anything:
+
+- Inspect the current implementation of all Stage 2 files.
+- Identify exactly what remains incomplete.
+- Do not modify unrelated frontend code.
+- Do not modify API contracts unless a genuine implementation inconsistency exists.
+- If a contract must change, document the reason before changing it.
+
+Then implement only the minimum required changes to complete Stage 2.
+
+After implementation, run all of the following:
+
+BACKEND:
+- TypeScript typecheck
+- Full test suite
+- Lint
+- Production build if configured
+
+FRONTEND:
+- TypeScript typecheck
+- Production build
+
+SECURITY:
+- Confirm no secrets are hardcoded.
+- Confirm Clerk secret keys are only read from server-side environment variables.
+- Confirm no private secrets are exposed through VITE_* variables.
+- Confirm frontend role checks are not treated as authorization.
+- Confirm backend authorization is enforced server-side.
+- Confirm no custom JWT authentication was accidentally introduced.
+- Confirm no old custom session system remains unless explicitly required by the architecture.
+
+PORTABILITY:
+- Confirm no Replit-specific dependencies exist.
+- Confirm the backend can run using standard Node/Bun-compatible environment variables and PostgreSQL.
+- Confirm the backend does not require Replit services.
+- Confirm deployment assumptions remain compatible with Render.
+- Confirm DATABASE_URL remains compatible with Railway PostgreSQL.
+
+DATABASE:
+- Verify the schema and migration are internally consistent.
+- Verify the Clerk user identifier mapping is correctly represented.
+- Verify role and permission data is represented correctly.
+- Do not create unnecessary duplicate identity or session tables.
+
+TESTING:
+- Run the complete test suite after all changes.
+- If tests fail, diagnose the root cause and fix it properly.
+- Do not weaken tests simply to make them pass.
+- Do not remove tests.
+- Do not skip tests.
+- Do not claim completion until the full relevant test suite passes.
+
+At the end, provide a concise implementation report containing:
+
+1. Files changed.
+2. What was completed.
+3. What authentication flow now exists.
+4. What authorization flow now exists.
+5. Database changes.
+6. Tests added or modified.
+7. Exact test results.
+8. Typecheck result.
+9. Lint result.
+10. Build result.
+11. Security audit result.
+12. Replit portability audit result.
+13. Any remaining limitations.
+
+The final goal is:
+
+Backend Stage 2 = Clerk Authentication + PMP Identity + Roles + Permissions + Server-Side Authorization
+
+fully implemented, tested, and portable outside Replit.
