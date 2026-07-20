@@ -20,10 +20,14 @@ function MessagesIndex() {
 }
 
 export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
+  const { user } = useAuth();
+  // Fallback to the mock seed id so the demo works before real auth is wired.
+  const currentUserId = user?.id ?? "me";
   const conversations = useQuery({
     queryKey: ["conversations"],
     queryFn: messagingApi.listConversations,
   });
+
 
   return (
     <PublicShell>
