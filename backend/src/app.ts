@@ -20,6 +20,7 @@ import { createVerificationRouter } from "./routes/verification.js";
 import { createSearchRouter } from "./routes/search.js";
 import { createMessagingRouter } from "./routes/messaging.js";
 import { createBillingRouter } from "./routes/billing.js";
+import { createOpsRouter } from "./routes/ops.js";
 import { pubsub as defaultPubsub, type PubSub } from "./lib/pubsub.js";
 import type { AppError } from "./errors/index.js";
 import { logger } from "./lib/logger.js";
@@ -135,6 +136,9 @@ export function createApp(options: AppOptions = {}): Hono {
   // Stage 8 — Payments / Billing
   const paymentProvider: PaymentProvider = options.paymentProvider ?? getPaystackProvider();
   app.route("/", createBillingRouter(db, clerkAdapter, identityService.resolve, paymentProvider));
+
+  // Stage 9 — Operations (user management, support, moderation, audit)
+  app.route("/", createOpsRouter(db, clerkAdapter, identityService.resolve));
 
   // ── 404 fallback ─────────────────────────────────────────────────────────
 
