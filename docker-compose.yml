@@ -1,0 +1,61 @@
+version: "3.9"
+
+# Local development compose file.
+#
+# Starts a PostgreSQL database that the backend can connect to.
+# The backend itself runs via `bun run dev` on the host machine (not inside
+# Docker) for fast hot-reload. Use the `backend` service below to run it
+# inside a container if preferred.
+#
+# External managed services (RDS, Cloud SQL, Upstash, S3, etc.) are NOT
+# represented here — add the relevant environment variables in .env.
+# This file must remain optional, not a production requirement.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: pmp
+      POSTGRES_PASSWORD: pmp_dev_password
+      POSTGRES_DB: pmp_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pmp -d pmp_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: run the backend inside Docker alongside the database.
+  # Comment this out to run the backend on the host instead.
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgres://pmp:pmp_dev_password@postgres:5432/pmp_dev
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-http://localhost:5000}"
+      EMAIL_DRIVER: console
+      STORAGE_DRIVER: local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bun -e \"fetch('http://localhost:3000/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  postgres_data:

@@ -1,0 +1,487 @@
+# PMP BACKEND STAGE 1 — CONTINUE FROM GITHUB CHECKPOINT
+
+This project has been imported from the official GitHub repository.
+
+A previous Replit environment began implementing the PMP Backend Stage 1 portable foundation but reached its daily quota limit before completing the final verification process.
+
+You are continuing an existing implementation.
+
+## CRITICAL RULE
+
+Do not rebuild the backend from scratch.
+
+Do not delete or replace existing backend files simply because you would structure them differently.
+
+Do not blindly repeat the original implementation.
+
+First inspect the current repository and determine exactly what already exists.
+
+Replit is only the development environment.
+
+The application must remain completely portable and must not depend on Replit-specific runtime services, APIs, databases, storage, authentication, deployment, or filesystem behavior.
+
+---
+
+# AUTHORITATIVE DOCUMENTS
+
+Before modifying code, read:
+
+```text
+docs/frontend-handoff.md
+src/api/contracts.md
+docs/backend-architecture.md
+replit.md
+package.json
+.env.example
+.gitignore
+```
+
+Also inspect the complete backend directory.
+
+The existing backend implementation may be partially complete.
+
+---
+
+# PHASE 1 — AUDIT THE IMPORTED STATE
+
+First inspect and report:
+
+## Existing backend structure
+
+Identify:
+
+* Backend entry point
+* Server implementation
+* Application factory
+* Configuration
+* Database layer
+* Migration system
+* Logging
+* Error handling
+* Request IDs
+* Rate limiting
+* Authentication middleware
+* Health/readiness endpoints
+* Cache abstraction
+* Storage abstraction
+* Email abstraction
+* Infrastructure abstractions
+* Tests
+* Docker configuration
+
+## Existing package configuration
+
+Verify:
+
+* Runtime
+* Package manager
+* Scripts
+* Dependencies
+* Dev dependencies
+* TypeScript configuration
+* Test configuration
+
+## Git state
+
+Check:
+
+```bash
+git status
+git log --oneline -10
+```
+
+Do not reset or discard existing commits or changes.
+
+---
+
+# PHASE 2 — DO NOT ASSUME THE PREVIOUS IMPLEMENTATION IS COMPLETE
+
+The previous environment had begun:
+
+* Installing dependencies
+* Running tests
+* Updating the Vitest version
+* Fixing compatibility issues
+* Editing the database connection
+* Editing health tests
+
+The previous environment stopped before the final validation was completed.
+
+Therefore, inspect the actual files and current state rather than assuming the implementation is complete.
+
+---
+
+# PHASE 3 — RUN CHECKS
+
+Run the available checks independently.
+
+At minimum:
+
+```text
+TypeScript
+Lint
+Tests
+Production build
+```
+
+Use the project's actual scripts.
+
+Do not hide errors by disabling checks.
+
+Do not remove tests merely to make them pass.
+
+If a test or implementation is genuinely incorrect, fix the underlying issue.
+
+If an issue is caused by environment-specific behavior, make the implementation portable rather than adding a Replit-specific workaround.
+
+---
+
+# PHASE 4 — COMPLETE THE BACKEND FOUNDATION
+
+Complete only the Backend Stage 1 foundation.
+
+The following must be operational or clearly established:
+
+## Configuration
+
+* Centralized configuration
+* Environment validation
+* `.env.example`
+* Clear failure for invalid required configuration
+* No committed secrets
+
+## HTTP/API
+
+* Portable server
+* Centralized application creation
+* Versioned API strategy
+* Request validation foundation
+* Centralized error handling
+* Consistent error format
+* Request IDs
+
+## Database
+
+* PostgreSQL-compatible architecture
+* Drizzle ORM or the already-selected database layer
+* Version-controlled migrations
+* Configurable database connection
+* Connection pooling
+* Database health/readiness integration
+
+## Logging
+
+* Structured logging
+* Request context
+* Request ID support
+* Safe error logging
+* No passwords, tokens, or secrets in logs
+
+## Security
+
+* CORS configuration
+* Security headers
+* Authentication middleware foundation
+* Authorization middleware foundation
+* Safe error responses
+* Server-side validation foundation
+
+## Rate limiting
+
+Maintain a provider abstraction capable of supporting a distributed deployment.
+
+An in-memory fallback may exist for local development only.
+
+Do not represent in-memory rate limiting as sufficient for a multi-instance production deployment.
+
+## Cache
+
+Maintain a replaceable cache abstraction.
+
+It must be possible to use an external Redis-compatible cache without rewriting business logic.
+
+## Storage
+
+Maintain a replaceable storage abstraction.
+
+Local development storage must not become a production requirement.
+
+The architecture must support external object storage.
+
+## Email
+
+Maintain a replaceable email abstraction.
+
+Console email may be used for development only.
+
+## Health
+
+Implement and verify:
+
+```text
+GET /health
+```
+
+and, where appropriate:
+
+```text
+GET /ready
+```
+
+Clearly distinguish liveness from readiness.
+
+## Graceful shutdown
+
+The server must:
+
+1. Stop accepting new requests.
+2. Allow active requests to finish appropriately.
+3. Close database connections.
+4. Close external connections.
+5. Stop workers where applicable.
+6. Exit cleanly.
+
+---
+
+# PHASE 5 — PORTABILITY AUDIT
+
+Search the complete project for Replit-specific dependencies.
+
+Look for:
+
+* Replit imports
+* Replit SDK usage
+* Replit database assumptions
+* Replit-only environment variables
+* Replit-specific filesystem assumptions
+* Replit-only deployment assumptions
+* Replit-only authentication assumptions
+
+If any are found:
+
+* Remove them,
+* Make them optional,
+* Or isolate them behind an abstraction.
+
+The application must be capable of running outside Replit.
+
+Verify that the backend can conceptually run using:
+
+```text
+Local machine
+Docker
+External PostgreSQL
+External Redis-compatible cache
+External object storage
+Cloud VM
+Container platform
+```
+
+---
+
+# PHASE 6 — DOCKER VERIFICATION
+
+Inspect:
+
+```text
+Dockerfile
+docker-compose.yml
+```
+
+Ensure they do not contain unnecessary Replit assumptions.
+
+The backend should be able to run in a portable containerized environment.
+
+Do not force every production dependency to run inside one Docker Compose file.
+
+External managed services must remain possible.
+
+---
+
+# PHASE 7 — CONTRACT PROTECTION
+
+The frontend contract remains authoritative:
+
+```text
+src/api/contracts.md
+```
+
+Do not silently change the contract.
+
+If a discrepancy is found:
+
+1. Document it.
+2. Explain why it exists.
+3. Update the contract only if necessary.
+4. Update affected adapters.
+5. Document contract drift.
+
+The backend must remain compatible with the frontend architecture:
+
+```text
+Frontend UI
+    ↓
+Feature
+    ↓
+Domain API abstraction
+    ↓
+Backend API
+    ↓
+Application services
+    ↓
+Repositories
+    ↓
+Database
+```
+
+---
+
+# PHASE 8 — DOCUMENTATION
+
+Update:
+
+```text
+docs/backend-architecture.md
+```
+
+only where the actual implementation differs from the documented architecture.
+
+Document:
+
+* What was completed
+* What remains incomplete
+* Technology decisions
+* Portability decisions
+* Infrastructure abstractions
+* Security foundation
+* Database strategy
+* Testing strategy
+* Deployment options
+* Known limitations
+
+Do not claim that future systems exist when they are only planned.
+
+---
+
+# PHASE 9 — FINAL VALIDATION
+
+Run:
+
+* Typecheck
+* Lint
+* Tests
+* Production build
+
+If Docker is available, also validate the Docker configuration.
+
+Confirm:
+
+* Frontend still works.
+* Backend starts.
+* Configuration validation works.
+* Health endpoint works.
+* Readiness behavior is clear.
+* Database configuration is portable.
+* Migrations are version-controlled.
+* Errors are centralized.
+* Logging is structured.
+* Request IDs work.
+* Rate limiting has a portable abstraction.
+* Cache has a portable abstraction.
+* Storage has a portable abstraction.
+* Email has a portable abstraction.
+* Graceful shutdown is implemented.
+* No secrets are committed.
+* No Replit-specific production dependency exists.
+
+---
+
+# IMPORTANT SCOPE LIMIT
+
+Do not move on to full business feature implementation yet.
+
+Do not fully implement:
+
+* Complete registration
+* Complete login
+* Complete provider profiles
+* Complete employer profiles
+* Verification workflows
+* Search ranking
+* Messaging
+* Payments
+* Subscriptions
+* AI verification
+* Full operations workflows
+
+Those are later stages.
+
+This stage is only about completing and validating the portable backend foundation.
+
+---
+
+# FINAL REPORT
+
+At the end, provide a detailed report containing:
+
+## 1. Imported state audit
+
+What already existed when this environment started?
+
+## 2. Files modified
+
+List every file modified.
+
+## 3. Files created
+
+List every file created.
+
+## 4. Existing implementation preserved
+
+Explain what was not rebuilt and why.
+
+## 5. Technology decisions
+
+Explain the actual backend stack.
+
+## 6. Portability audit
+
+Explain exactly how the application can run outside Replit.
+
+## 7. Security foundation
+
+List what is implemented and what remains.
+
+## 8. Infrastructure abstractions
+
+List all replaceable service boundaries.
+
+## 9. Tests and checks
+
+Report exact results for:
+
+* TypeScript
+* Lint
+* Tests
+* Production build
+* Docker validation, if available
+
+## 10. Remaining limitations
+
+Be precise.
+
+## 11. Backend Stage 1 verdict
+
+Return exactly one:
+
+```text
+BACKEND FOUNDATION COMPLETE
+```
+
+or:
+
+```text
+BACKEND FOUNDATION INCOMPLETE
+```
+
+Do not begin the next backend stage until the final report is complete.
