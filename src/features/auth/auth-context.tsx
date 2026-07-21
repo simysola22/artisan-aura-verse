@@ -329,5 +329,3 @@ export function useAuth(): AuthContextValue {
   return ctx;
 }
 
-// Re-export so callers can import from the single auth barrel.
-export { storePendingRegistration } from "./pending-registration";
