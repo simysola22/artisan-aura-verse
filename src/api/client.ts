@@ -1,9 +1,12 @@
 /**
  * Thin API client wrapper.
  *
- * Today all domain modules route through the in-memory mock adapter (see
- * `src/api/mock/`), but this client is where a real backend transport will
- * be wired in. Keep transport concerns here — never in feature components.
+ * Transport concerns live here — never in feature components.
+ *
+ * Token getting: the auth context calls setApiTokenGetter() once on mount
+ * to register an async getter that returns the current Clerk session token.
+ * apiFetch() awaits that getter before every authenticated request so the
+ * token is always fresh.
  */
 
 export class ApiError extends Error {
@@ -45,7 +48,22 @@ function buildUrl(path: string, query?: RequestOptions["query"]): string {
     : url.pathname + url.search;
 }
 
-function getAuthToken(): string | null {
+/**
+ * Async token getter registered by the auth context.
+ *
+ * In real mode: returns the Clerk session token (via useAuth().getToken).
+ * In mock mode: returns the localStorage mock token for backward compat.
+ * Null means no active session → request is sent without Authorization header.
+ */
+let _tokenGetter: (() => Promise<string | null>) | null = null;
+
+export function setApiTokenGetter(getter: (() => Promise<string | null>) | null): void {
+  _tokenGetter = getter;
+}
+
+async function getAuthToken(): Promise<string | null> {
+  if (_tokenGetter) return _tokenGetter();
+  // Fallback: legacy localStorage mock token (only active when no getter is registered)
   if (typeof window === "undefined") return null;
   try {
     return window.localStorage.getItem("mp.session.token");
@@ -62,7 +80,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
     finalHeaders.set("Content-Type", "application/json");
   }
   if (auth) {
-    const token = getAuthToken();
+    const token = await getAuthToken();
     if (token) finalHeaders.set("Authorization", `Bearer ${token}`);
   }
 

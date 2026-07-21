@@ -1,14 +1,50 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { SignIn } from "@clerk/clerk-react";
 import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
+import { USE_MOCK_API } from "@/api/client";
 
 export const Route = createFileRoute("/auth/login")({
   head: () => ({ meta: [{ title: "Sign in — PMP" }] }),
   component: LoginPage,
 });
 
-function LoginPage() {
+// ─── Real mode: Clerk SignIn embedded in our shell ────────────────────────────
+
+function ClerkLoginPage() {
+  return (
+    <AuthShell
+      title="Welcome back"
+      subtitle="Sign in to continue to your workspace."
+      footer={
+        <>
+          New here?{" "}
+          <Link to="/auth/register" className="font-medium text-primary hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <div className="flex justify-center">
+        <SignIn
+          afterSignInUrl="/dashboard"
+          routing="hash"
+          appearance={{
+            elements: {
+              card: "shadow-none bg-transparent p-0",
+              rootBox: "w-full",
+            },
+          }}
+        />
+      </div>
+    </AuthShell>
+  );
+}
+
+// ─── Mock mode: existing email / password form ────────────────────────────────
+
+function MockLoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -92,4 +128,9 @@ function LoginPage() {
       </form>
     </AuthShell>
   );
+}
+
+function LoginPage() {
+  if (USE_MOCK_API) return <MockLoginPage />;
+  return <ClerkLoginPage />;
 }

@@ -4,9 +4,9 @@ import type { Provider } from "@/types";
 
 export function list(): Promise<Provider[]> {
   if (USE_MOCK_API) return mockProviders.list();
-  return apiFetch<Provider[]>("/providers");
+  return apiFetch<Provider[]>("/v1/providers");
 }
 export function get(id: string): Promise<Provider> {
   if (USE_MOCK_API) return mockProviders.get(id);
-  return apiFetch<Provider>(`/providers/${id}`);
+  return apiFetch<Provider>(`/v1/providers/${id}`);
 }

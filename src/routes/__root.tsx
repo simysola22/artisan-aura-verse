@@ -8,11 +8,18 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { ClerkProvider } from "@clerk/clerk-react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/features/theme/theme-context";
 import { AuthProvider } from "@/features/auth/auth-context";
+import { USE_MOCK_API } from "@/api/client";
+
+const CLERK_PUBLISHABLE_KEY =
+  typeof import.meta !== "undefined"
+    ? (import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY as string | undefined)
+    : undefined;
 
 function NotFoundComponent() {
   return (
@@ -125,7 +132,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  return (
+
+  const inner = (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <AuthProvider>
@@ -134,4 +142,12 @@ function RootComponent() {
       </ThemeProvider>
     </QueryClientProvider>
   );
+
+  // Wrap with ClerkProvider in real mode only (requires a publishable key).
+  // In mock mode, ClerkProvider is skipped entirely so Clerk hooks are never called.
+  if (!USE_MOCK_API && CLERK_PUBLISHABLE_KEY) {
+    return <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>{inner}</ClerkProvider>;
+  }
+
+  return inner;
 }

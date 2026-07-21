@@ -4,14 +4,14 @@ import type { VerificationApplication } from "@/types";
 
 export function status(providerId: string): Promise<VerificationApplication> {
   if (USE_MOCK_API) return mockVerification.status(providerId);
-  return apiFetch<VerificationApplication>(`/verification/${providerId}`);
+  return apiFetch<VerificationApplication>(`/v1/verification/${providerId}`);
 }
 export function submit(
   providerId: string,
   payload: Partial<VerificationApplication>,
 ): Promise<VerificationApplication> {
   if (USE_MOCK_API) return mockVerification.submit(providerId, payload);
-  return apiFetch<VerificationApplication>(`/verification/${providerId}`, {
+  return apiFetch<VerificationApplication>(`/v1/verification/${providerId}`, {
     method: "POST",
     body: payload,
   });

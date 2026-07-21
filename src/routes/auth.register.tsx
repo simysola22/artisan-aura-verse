@@ -1,16 +1,146 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { SignUp } from "@clerk/clerk-react";
 import { AuthShell } from "@/layouts/AuthShell";
-import { useAuth } from "@/features/auth/auth-context";
+import { useAuth, storePendingRegistration } from "@/features/auth/auth-context";
 import { Briefcase, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { USE_MOCK_API } from "@/api/client";
 
 export const Route = createFileRoute("/auth/register")({
   head: () => ({ meta: [{ title: "Create your account — PMP" }] }),
   component: RegisterPage,
 });
 
-function RegisterPage() {
+const roleOptions = [
+  {
+    value: "employer" as const,
+    label: "I want to hire",
+    icon: Briefcase,
+    description: "Find and message providers.",
+  },
+  {
+    value: "provider" as const,
+    label: "I offer services",
+    icon: Wrench,
+    description: "Artisan or professional.",
+  },
+];
+
+// ─── Real mode: role picker → Clerk SignUp ────────────────────────────────────
+
+function ClerkRegisterPage() {
+  const [role, setRole] = useState<"employer" | "provider">("employer");
+  const [step, setStep] = useState<"role" | "signup">("role");
+
+  function handleContinue() {
+    // Store the selected role so the auth context can provision the PMP identity
+    // after Clerk's sign-up flow completes and the Clerk session becomes active.
+    storePendingRegistration({ accountType: role });
+    setStep("signup");
+  }
+
+  if (step === "signup") {
+    return (
+      <AuthShell
+        title="Create your account"
+        subtitle="Complete your details to get started."
+        footer={
+          <>
+            Already have an account?{" "}
+            <Link to="/auth/login" className="font-medium text-primary hover:underline">
+              Sign in
+            </Link>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          {/* Compact role reminder with change option */}
+          <div className="flex items-center gap-2 rounded-lg border border-input bg-accent/40 px-3 py-2 text-sm">
+            {role === "employer" ? (
+              <Briefcase className="h-4 w-4 shrink-0 text-primary" />
+            ) : (
+              <Wrench className="h-4 w-4 shrink-0 text-primary" />
+            )}
+            <span>
+              Joining as{" "}
+              <span className="font-medium">{role === "employer" ? "hirer" : "provider"}</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setStep("role")}
+              className="ml-auto text-xs text-muted-foreground underline-offset-2 hover:underline"
+            >
+              Change
+            </button>
+          </div>
+          <div className="flex justify-center">
+            <SignUp
+              afterSignUpUrl="/dashboard"
+              routing="hash"
+              appearance={{
+                elements: {
+                  card: "shadow-none bg-transparent p-0",
+                  rootBox: "w-full",
+                },
+              }}
+            />
+          </div>
+        </div>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell
+      title="Create your account"
+      subtitle="It takes a minute. You can complete your profile after."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/auth/login" className="font-medium text-primary hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <fieldset>
+          <legend className="mb-2 block text-sm font-medium">I'm joining as</legend>
+          <div className="grid grid-cols-2 gap-2">
+            {roleOptions.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => setRole(o.value)}
+                className={cn(
+                  "flex flex-col items-start gap-1 rounded-xl border border-input p-3 text-left transition-colors hover:bg-accent",
+                  role === o.value && "border-primary bg-primary/5",
+                )}
+                aria-pressed={role === o.value}
+              >
+                <o.icon className={cn("h-4 w-4", role === o.value && "text-primary")} />
+                <span className="text-sm font-semibold">{o.label}</span>
+                <span className="text-xs text-muted-foreground">{o.description}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="w-full rounded-lg gradient-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-crimson transition-opacity hover:opacity-95"
+        >
+          Continue
+        </button>
+      </div>
+    </AuthShell>
+  );
+}
+
+// ─── Mock mode: existing email / password / role form ─────────────────────────
+
+function MockRegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [role, setRole] = useState<"employer" | "provider">("employer");
@@ -33,21 +163,6 @@ function RegisterPage() {
       setLoading(false);
     }
   }
-
-  const roleOptions = [
-    {
-      value: "employer" as const,
-      label: "I want to hire",
-      icon: Briefcase,
-      description: "Find and message providers.",
-    },
-    {
-      value: "provider" as const,
-      label: "I offer services",
-      icon: Wrench,
-      description: "Artisan or professional.",
-    },
-  ];
 
   return (
     <AuthShell
@@ -84,7 +199,6 @@ function RegisterPage() {
             ))}
           </div>
         </fieldset>
-
         <div>
           <label htmlFor="displayName" className="block text-sm font-medium">
             Full name
@@ -142,4 +256,9 @@ function RegisterPage() {
       </form>
     </AuthShell>
   );
+}
+
+function RegisterPage() {
+  if (USE_MOCK_API) return <MockRegisterPage />;
+  return <ClerkRegisterPage />;
 }
