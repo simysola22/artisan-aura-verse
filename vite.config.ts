@@ -18,5 +18,13 @@ export default defineConfig({
       port: 5000,
       allowedHosts: true,
     },
+    define: {
+      // Expose CLERK_PUBLISHABLE_KEY (Replit secret) as VITE_CLERK_PUBLISHABLE_KEY so Vite
+      // bundles it into the client bundle without requiring the VITE_ prefix on the secret name.
+      // Falls back to VITE_CLERK_PUBLISHABLE_KEY if that is set directly instead.
+      "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
+        process.env.VITE_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY || "",
+      ),
+    },
   },
 });

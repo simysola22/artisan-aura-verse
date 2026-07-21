@@ -6,7 +6,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { storePendingRegistration } from "@/features/auth/pending-registration";
 import { Briefcase, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { USE_MOCK_API } from "@/api/client";
+import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
 
 export const Route = createFileRoute("/auth/register")({
   head: () => ({ meta: [{ title: "Create your account — PMP" }] }),
@@ -77,7 +77,7 @@ function ClerkRegisterPage() {
           </div>
           <div className="flex justify-center">
             <SignUp
-              afterSignUpUrl="/dashboard"
+              forceRedirectUrl="/dashboard"
               routing="hash"
               appearance={{
                 elements: {
@@ -260,6 +260,6 @@ function MockRegisterPage() {
 }
 
 function RegisterPage() {
-  if (USE_MOCK_API) return <MockRegisterPage />;
+  if (!CLERK_PUBLISHABLE_KEY) return <MockRegisterPage />;
   return <ClerkRegisterPage />;
 }

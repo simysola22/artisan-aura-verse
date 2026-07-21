@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/features/theme/theme-context";
 import { AuthProvider } from "@/features/auth/auth-context";
-import { USE_MOCK_API, CLERK_PUBLISHABLE_KEY } from "@/api/client";
+import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
 
 function NotFoundComponent() {
   return (
@@ -138,9 +138,10 @@ function RootComponent() {
     </QueryClientProvider>
   );
 
-  // Wrap with ClerkProvider in real mode only (requires a publishable key).
-  // In mock mode, ClerkProvider is skipped entirely so Clerk hooks are never called.
-  if (!USE_MOCK_API && CLERK_PUBLISHABLE_KEY) {
+  // Wrap with ClerkProvider whenever a publishable key is available.
+  // Auth mode (Clerk vs mock) is controlled by CLERK_PUBLISHABLE_KEY alone,
+  // independently of whether the PMP backend API is connected.
+  if (CLERK_PUBLISHABLE_KEY) {
     return <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>{inner}</ClerkProvider>;
   }
 

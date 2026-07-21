@@ -3,7 +3,7 @@ import { useState } from "react";
 import { SignIn } from "@clerk/clerk-react";
 import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
-import { USE_MOCK_API } from "@/api/client";
+import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
 
 export const Route = createFileRoute("/auth/login")({
   head: () => ({ meta: [{ title: "Sign in — PMP" }] }),
@@ -28,7 +28,7 @@ function ClerkLoginPage() {
     >
       <div className="flex justify-center">
         <SignIn
-          afterSignInUrl="/dashboard"
+          forceRedirectUrl="/dashboard"
           routing="hash"
           appearance={{
             elements: {
@@ -131,6 +131,6 @@ function MockLoginPage() {
 }
 
 function LoginPage() {
-  if (USE_MOCK_API) return <MockLoginPage />;
+  if (!CLERK_PUBLISHABLE_KEY) return <MockLoginPage />;
   return <ClerkLoginPage />;
 }

@@ -1,2 +1,3 @@
 - [PMP project setup](pmp-project.md) — Precious Market Place (PMP): TanStack Start + React, Bun, Tailwind v4, five themes, mock-backed frontend, backend not started.
 - [Stage 9 ops system](stage9-ops.md) — Operations system complete: migration 0007, ops/users + ops/support + ops/moderation + ops/audit services, 19 routes in routes/ops.ts, 505 tests pass.
+- [Clerk auth env var injection](clerk-auth-env.md) — CLERK_PUBLISHABLE_KEY secret must be injected via vite define; auth gate decoupled from USE_MOCK_API.
