@@ -72,7 +72,7 @@ export interface CheckoutResult {
 
 /** Return active subscription plans. No auth required. */
 export function listPlans(): Promise<Plan[]> {
-  return apiFetch<Plan[]>("/billing/plans");
+  return apiFetch<Plan[]>("/v1/billing/plans");
 }
 
 /**
@@ -86,15 +86,15 @@ export function initializeCheckout(
   planId: string,
   callbackUrl?: string,
 ): Promise<CheckoutResult> {
-  return apiFetch<CheckoutResult>("/billing/checkout", {
+  return apiFetch<CheckoutResult>("/v1/billing/checkout", {
     method: "POST",
-    body: JSON.stringify({ planId, ...(callbackUrl ? { callbackUrl } : {}) }),
+    body: { planId, ...(callbackUrl ? { callbackUrl } : {}) },
   });
 }
 
 /** Return the calling user's subscription and recent payment history. */
 export function getMyBilling(): Promise<MyBilling> {
-  return apiFetch<MyBilling>("/billing/me");
+  return apiFetch<MyBilling>("/v1/billing/me");
 }
 
 /**
@@ -104,7 +104,7 @@ export function getMyBilling(): Promise<MyBilling> {
  * must never use local state to gate access to premium features.
  */
 export function getEntitlements(): Promise<Entitlements> {
-  return apiFetch<Entitlements>("/billing/me/entitlements");
+  return apiFetch<Entitlements>("/v1/billing/me/entitlements");
 }
 
 // ─── Convenience export ───────────────────────────────────────────────────────

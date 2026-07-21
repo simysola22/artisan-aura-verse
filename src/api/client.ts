@@ -70,7 +70,7 @@ export function setApiTokenGetter(getter: (() => Promise<string | null>) | null)
   _tokenGetter = getter;
 }
 
-async function getAuthToken(): Promise<string | null> {
+export async function getAuthToken(): Promise<string | null> {
   if (_tokenGetter) return _tokenGetter();
   // Fallback: legacy localStorage mock token (only active when no getter is registered)
   if (typeof window === "undefined") return null;

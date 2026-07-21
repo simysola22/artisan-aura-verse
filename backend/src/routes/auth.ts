@@ -59,6 +59,7 @@ export function createAuthRouter(adapter: ClerkAuthAdapter, service: AuthIdentit
    * GET /v1/auth/me
    *
    * Returns the current authenticated PMP user with roles and permissions.
+   * This endpoint is strictly read-only — it never mutates any data.
    * Frontend should call this on boot instead of trusting a cached User.
    *
    * Returns 401 if:
@@ -74,21 +75,49 @@ export function createAuthRouter(adapter: ClerkAuthAdapter, service: AuthIdentit
       throw new UnauthorizedError("No PMP account found. Call POST /v1/auth/sync to create one.");
     }
 
-    // Opportunistically update cached Clerk profile fields from query params.
-    const { displayName, email, avatarUrl } = c.req.query();
-    if (displayName ?? email ?? avatarUrl) {
-      const profileUpdate: { displayName?: string; email?: string; avatarUrl?: string } = {};
-      if (displayName !== undefined) profileUpdate.displayName = displayName;
-      if (email !== undefined) profileUpdate.email = email;
-      if (avatarUrl !== undefined) profileUpdate.avatarUrl = avatarUrl;
-      await service.updateProfile(identity.user.id, profileUpdate);
-      // Re-resolve to reflect the update
-      const refreshed = await service.resolve(authCtx.clerkUserId);
-      if (refreshed) return c.json(serializeIdentity(refreshed));
-    }
-
     return c.json(serializeIdentity(identity));
   });
+
+  /**
+   * PATCH /v1/auth/me
+   *
+   * Updates cached Clerk profile fields (displayName, email, avatarUrl) on the
+   * authenticated user's PMP record. Used to sync Clerk profile changes to the
+   * PMP database without a full re-provision.
+   *
+   * All fields are optional — only provided fields are updated.
+   */
+  router.patch(
+    "/v1/auth/me",
+    auth,
+    zValidator(
+      "json",
+      z.object({
+        displayName: z.string().min(1).max(200).optional(),
+        email: z.string().email().max(320).optional(),
+        avatarUrl: z.string().url().max(2000).optional(),
+      }),
+    ),
+    async (c) => {
+      const authCtx = c.get("auth");
+
+      const identity = await service.resolve(authCtx.clerkUserId);
+      if (!identity) {
+        throw new UnauthorizedError(
+          "No PMP account found. Call POST /v1/auth/sync to create one.",
+        );
+      }
+
+      const body = c.req.valid("json");
+      if (body.displayName !== undefined || body.email !== undefined || body.avatarUrl !== undefined) {
+        await service.updateProfile(identity.user.id, body);
+      }
+
+      const refreshed = await service.resolve(authCtx.clerkUserId);
+      if (!refreshed) throw new UnauthorizedError("Failed to reload identity after update.");
+      return c.json(serializeIdentity(refreshed));
+    },
+  );
 
   /**
    * POST /v1/auth/sync

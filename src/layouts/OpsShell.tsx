@@ -1,8 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
-import { LifeBuoy, Users, ShieldCheck, Flag, Gauge, Cog } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useEffect, type ReactNode } from "react";
+import { LifeBuoy, Users, ShieldCheck, Flag, Gauge, Cog, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/features/theme/theme-toggle";
+import { useAuth } from "@/features/auth/auth-context";
 
 const items = [
   { to: "/ops", label: "Overview", icon: Gauge },
@@ -13,11 +14,34 @@ const items = [
 ] as const;
 
 /**
- * Private operations shell. URL separation only — backend authorization is
- * authoritative. Never treat this shell as a security boundary.
+ * Private operations shell.
+ *
+ * Frontend auth guard: redirects unauthenticated users and non-ops accounts
+ * to the home page before rendering the shell.
+ * Backend authorization is still authoritative — every ops API call is
+ * permission-gated server-side regardless of what the frontend renders.
  */
 export function OpsShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { status, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect non-ops users once auth state is resolved.
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "anon" || user?.role !== "ops") {
+      void navigate({ to: "/" });
+    }
+  }, [status, user, navigate]);
+
+  // Show a spinner while auth is loading or while redirecting.
+  if (status === "loading" || status === "anon" || user?.role !== "ops") {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="grid min-h-dvh grid-cols-1 bg-background md:grid-cols-[260px_1fr]">
@@ -50,7 +74,7 @@ export function OpsShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="px-5 py-4 text-xs text-muted-foreground">
-          Authorization is enforced by the backend. UI visibility ≠ access.
+          Authorization is enforced by the backend.
         </div>
       </aside>
 
