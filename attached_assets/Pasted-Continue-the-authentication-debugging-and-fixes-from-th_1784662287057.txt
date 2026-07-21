@@ -1,0 +1,57 @@
+Continue the authentication debugging and fixes from the previous Replit environment.
+
+The previous environment stopped after identifying these root causes:
+
+1. /v1/auth/me returns 404 when VITE_API_BASE_URL is absent, causing the frontend to silently treat the user as anonymous instead of syncing the valid Clerk session.
+
+2. sessionStorage loses pmp.pending_account_type during Clerk's external email-verification redirect. This causes provider signups to fall back to the employer role.
+
+3. There is no Vite dev proxy, so frontend API requests cannot reach the backend during local development when VITE_API_BASE_URL is absent.
+
+4. The backend has no configured Replit workflow, so the backend may not be running during development.
+
+5. Auth error handling conflates "no PMP identity" with "backend unavailable". Only 401 currently triggers identity sync, while 404/network/500 errors can silently leave the user unauthenticated.
+
+The previous environment had already started implementing fixes:
+- Replacing sessionStorage reads with localStorage for pending account type.
+- Adding a Vite proxy to route API requests to the backend.
+- Moving the proxy into the correct Vite server configuration.
+- Hardening backend CORS.
+- Fixing mock-ID fallbacks.
+- Wiring up a backend workflow.
+
+First inspect the current repository and git diff. Do not redo completed work.
+
+Then:
+1. Identify exactly which of the above changes are already present.
+2. Complete any unfinished changes.
+3. Verify the complete Clerk → frontend session → API token → backend Clerk verification → PMP identity sync → role resolution flow.
+4. Test both employer and provider signup flows.
+5. Ensure provider signup remains a provider after external Clerk redirects and page refreshes.
+6. Ensure authenticated users remain authenticated after navigation and refresh.
+7. Ensure backend-unavailable errors are not silently treated as anonymous users.
+8. Ensure the frontend dev server can reach the backend through the configured proxy.
+9. Ensure the backend workflow actually starts and listens on the expected port.
+10. Do not use mock authentication as a production fallback.
+
+Run:
+- frontend typecheck
+- backend typecheck
+- backend tests
+- lint
+- production build
+
+Do not start the broader marketplace feature audit yet. Finish and verify authentication first.
+
+Report:
+- What was already completed
+- What remained unfinished
+- What you fixed
+- Employer signup result
+- Provider signup result
+- Refresh/session persistence result
+- Typecheck result
+- Test result
+- Lint result
+- Production build result
+- Any remaining authentication blockers
