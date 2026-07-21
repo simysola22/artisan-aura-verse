@@ -36,7 +36,7 @@ import {
 } from "@clerk/clerk-react";
 import type { AuthSession, User, UserRole } from "@/types";
 import { authApi } from "@/api";
-import { USE_MOCK_API, setApiTokenGetter } from "@/api/client";
+import { USE_MOCK_API, CLERK_PUBLISHABLE_KEY, setApiTokenGetter } from "@/api/client";
 import type { PmpIdentityResponse } from "@/api/auth";
 import {
   PENDING_ACCOUNT_TYPE_KEY,
@@ -315,7 +315,10 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
 // ─── Public provider — selects real vs mock automatically ─────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  if (USE_MOCK_API) {
+  // Mirror the exact condition used by RootComponent when deciding whether to mount
+  // <ClerkProvider>. If the publishable key is absent (e.g. not set in Vercel env vars),
+  // ClerkProvider is never mounted, so Clerk hooks must not be called — fall back to mock.
+  if (USE_MOCK_API || !CLERK_PUBLISHABLE_KEY) {
     return <MockAuthProvider>{children}</MockAuthProvider>;
   }
   return <ClerkBackedAuthProvider>{children}</ClerkBackedAuthProvider>;

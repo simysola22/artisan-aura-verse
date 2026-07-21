@@ -29,6 +29,15 @@ export const USE_MOCK_API =
   !API_BASE_URL ||
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_USE_MOCK_API === "true");
 
+/**
+ * The Clerk publishable key baked in at build time.
+ * Empty string when not provided (treated as falsy — app falls back to mock mode).
+ */
+export const CLERK_PUBLISHABLE_KEY =
+  (typeof import.meta !== "undefined" &&
+    (import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY as string | undefined)) ||
+  "";
+
 export interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   query?: Record<string, string | number | boolean | undefined | null>;
