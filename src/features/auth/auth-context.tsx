@@ -38,12 +38,11 @@ import type { AuthSession, User, UserRole } from "@/types";
 import { authApi } from "@/api";
 import { USE_MOCK_API, setApiTokenGetter } from "@/api/client";
 import type { PmpIdentityResponse } from "@/api/auth";
-
-// ─── sessionStorage keys for pending registration data ────────────────────────
-
-const PENDING_ACCOUNT_TYPE_KEY = "pmp.pending_account_type";
-const PENDING_DISPLAY_NAME_KEY = "pmp.pending_display_name";
-const PENDING_PROVIDER_KIND_KEY = "pmp.pending_provider_kind";
+import {
+  PENDING_ACCOUNT_TYPE_KEY,
+  PENDING_DISPLAY_NAME_KEY,
+  PENDING_PROVIDER_KIND_KEY,
+} from "./pending-registration";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -330,19 +329,5 @@ export function useAuth(): AuthContextValue {
   return ctx;
 }
 
-// ─── Helper for register page ─────────────────────────────────────────────────
-
-/**
- * Store pending registration data in sessionStorage so the auth context can
- * read it after Clerk's sign-up flow completes and the session becomes active.
- * Call this when the user selects their role on the register page.
- */
-export function storePendingRegistration(opts: {
-  accountType: "employer" | "provider";
-  displayName?: string;
-  providerKind?: "artisan" | "professional";
-}): void {
-  sessionStorage.setItem(PENDING_ACCOUNT_TYPE_KEY, opts.accountType);
-  if (opts.displayName) sessionStorage.setItem(PENDING_DISPLAY_NAME_KEY, opts.displayName);
-  if (opts.providerKind) sessionStorage.setItem(PENDING_PROVIDER_KIND_KEY, opts.providerKind);
-}
+// Re-export so callers can import from the single auth barrel.
+export { storePendingRegistration } from "./pending-registration";
