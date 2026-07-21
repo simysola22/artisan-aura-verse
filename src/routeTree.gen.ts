@@ -9,65 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerificationRouteImport } from './routes/verification'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as MessagesRouteImport } from './routes/messages'
-import { Route as HowItWorksRouteImport } from './routes/how-it-works'
-import { Route as ForProvidersRouteImport } from './routes/for-providers'
-import { Route as ForEmployersRouteImport } from './routes/for-employers'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as OpsIndexRouteImport } from './routes/ops.index'
-import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
-import { Route as OpsVerificationRouteImport } from './routes/ops.verification'
-import { Route as OpsUsersRouteImport } from './routes/ops.users'
-import { Route as OpsSupportRouteImport } from './routes/ops.support'
-import { Route as OpsModerationRouteImport } from './routes/ops.moderation'
-import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
-import { Route as AuthRegisterRouteImport } from './routes/auth.register'
-import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ForEmployersRouteImport } from './routes/for-employers'
+import { Route as ForProvidersRouteImport } from './routes/for-providers'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
+import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
+import { Route as AuthRegisterRouteImport } from './routes/auth.register'
+import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
+import { Route as OpsIndexRouteImport } from './routes/ops.index'
+import { Route as OpsModerationRouteImport } from './routes/ops.moderation'
+import { Route as OpsSupportRouteImport } from './routes/ops.support'
+import { Route as OpsUsersRouteImport } from './routes/ops.users'
+import { Route as OpsVerificationRouteImport } from './routes/ops.verification'
+import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
 
-const VerificationRoute = VerificationRouteImport.update({
-  id: '/verification',
-  path: '/verification',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MessagesRoute = MessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HowItWorksRoute = HowItWorksRouteImport.update({
-  id: '/how-it-works',
-  path: '/how-it-works',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForProvidersRoute = ForProvidersRouteImport.update({
-  id: '/for-providers',
-  path: '/for-providers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForEmployersRoute = ForEmployersRouteImport.update({
-  id: '/for-employers',
-  path: '/for-employers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -75,49 +40,49 @@ const AccountRoute = AccountRouteImport.update({
   path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpsIndexRoute = OpsIndexRouteImport.update({
-  id: '/ops/',
-  path: '/ops/',
+const ForEmployersRoute = ForEmployersRouteImport.update({
+  id: '/for-employers',
+  path: '/for-employers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
-  id: '/providers/$providerId',
-  path: '/providers/$providerId',
+const ForProvidersRoute = ForProvidersRouteImport.update({
+  id: '/for-providers',
+  path: '/for-providers',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpsVerificationRoute = OpsVerificationRouteImport.update({
-  id: '/ops/verification',
-  path: '/ops/verification',
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpsUsersRoute = OpsUsersRouteImport.update({
-  id: '/ops/users',
-  path: '/ops/users',
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpsSupportRoute = OpsSupportRouteImport.update({
-  id: '/ops/support',
-  path: '/ops/support',
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OpsModerationRoute = OpsModerationRouteImport.update({
-  id: '/ops/moderation',
-  path: '/ops/moderation',
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
-  id: '/$conversationId',
-  path: '/$conversationId',
-  getParentRoute: () => MessagesRoute,
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/auth/register',
-  path: '/auth/register',
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRecoverRoute = AuthRecoverRouteImport.update({
@@ -125,9 +90,44 @@ const AuthRecoverRoute = AuthRecoverRouteImport.update({
   path: '/auth/recover',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/auth/register',
+  path: '/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
+  id: '/$conversationId',
+  path: '/$conversationId',
+  getParentRoute: () => MessagesRoute,
+} as any)
+const OpsIndexRoute = OpsIndexRouteImport.update({
+  id: '/ops/',
+  path: '/ops/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsModerationRoute = OpsModerationRouteImport.update({
+  id: '/ops/moderation',
+  path: '/ops/moderation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsSupportRoute = OpsSupportRouteImport.update({
+  id: '/ops/support',
+  path: '/ops/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsUsersRoute = OpsUsersRouteImport.update({
+  id: '/ops/users',
+  path: '/ops/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpsVerificationRoute = OpsVerificationRouteImport.update({
+  id: '/ops/verification',
+  path: '/ops/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
+  id: '/providers/$providerId',
+  path: '/providers/$providerId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -291,60 +291,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/verification': {
-      id: '/verification'
-      path: '/verification'
-      fullPath: '/verification'
-      preLoaderRoute: typeof VerificationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/messages': {
-      id: '/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof MessagesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/how-it-works': {
-      id: '/how-it-works'
-      path: '/how-it-works'
-      fullPath: '/how-it-works'
-      preLoaderRoute: typeof HowItWorksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/for-providers': {
-      id: '/for-providers'
-      path: '/for-providers'
-      fullPath: '/for-providers'
-      preLoaderRoute: typeof ForProvidersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/for-employers': {
-      id: '/for-employers'
-      path: '/for-employers'
-      fullPath: '/for-employers'
-      preLoaderRoute: typeof ForEmployersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -354,67 +305,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ops/': {
-      id: '/ops/'
-      path: '/ops'
-      fullPath: '/ops/'
-      preLoaderRoute: typeof OpsIndexRouteImport
+    '/for-employers': {
+      id: '/for-employers'
+      path: '/for-employers'
+      fullPath: '/for-employers'
+      preLoaderRoute: typeof ForEmployersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/providers/$providerId': {
-      id: '/providers/$providerId'
-      path: '/providers/$providerId'
-      fullPath: '/providers/$providerId'
-      preLoaderRoute: typeof ProvidersProviderIdRouteImport
+    '/for-providers': {
+      id: '/for-providers'
+      path: '/for-providers'
+      fullPath: '/for-providers'
+      preLoaderRoute: typeof ForProvidersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ops/verification': {
-      id: '/ops/verification'
-      path: '/ops/verification'
-      fullPath: '/ops/verification'
-      preLoaderRoute: typeof OpsVerificationRouteImport
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ops/users': {
-      id: '/ops/users'
-      path: '/ops/users'
-      fullPath: '/ops/users'
-      preLoaderRoute: typeof OpsUsersRouteImport
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ops/support': {
-      id: '/ops/support'
-      path: '/ops/support'
-      fullPath: '/ops/support'
-      preLoaderRoute: typeof OpsSupportRouteImport
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ops/moderation': {
-      id: '/ops/moderation'
-      path: '/ops/moderation'
-      fullPath: '/ops/moderation'
-      preLoaderRoute: typeof OpsModerationRouteImport
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/messages/$conversationId': {
-      id: '/messages/$conversationId'
-      path: '/$conversationId'
-      fullPath: '/messages/$conversationId'
-      preLoaderRoute: typeof MessagesConversationIdRouteImport
-      parentRoute: typeof MessagesRoute
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/recover': {
@@ -424,11 +375,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRecoverRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages/$conversationId': {
+      id: '/messages/$conversationId'
+      path: '/$conversationId'
+      fullPath: '/messages/$conversationId'
+      preLoaderRoute: typeof MessagesConversationIdRouteImport
+      parentRoute: typeof MessagesRoute
+    }
+    '/ops/': {
+      id: '/ops/'
+      path: '/ops'
+      fullPath: '/ops/'
+      preLoaderRoute: typeof OpsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/moderation': {
+      id: '/ops/moderation'
+      path: '/ops/moderation'
+      fullPath: '/ops/moderation'
+      preLoaderRoute: typeof OpsModerationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/support': {
+      id: '/ops/support'
+      path: '/ops/support'
+      fullPath: '/ops/support'
+      preLoaderRoute: typeof OpsSupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/users': {
+      id: '/ops/users'
+      path: '/ops/users'
+      fullPath: '/ops/users'
+      preLoaderRoute: typeof OpsUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ops/verification': {
+      id: '/ops/verification'
+      path: '/ops/verification'
+      fullPath: '/ops/verification'
+      preLoaderRoute: typeof OpsVerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/providers/$providerId': {
+      id: '/providers/$providerId'
+      path: '/providers/$providerId'
+      fullPath: '/providers/$providerId'
+      preLoaderRoute: typeof ProvidersProviderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

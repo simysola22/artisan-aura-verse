@@ -142,18 +142,10 @@ export async function normaliseSearchQuery(db: Db, raw: RawSearchInput): Promise
 
   const location = raw.location?.trim() || undefined;
   const availabilityStatus = raw.availabilityStatus as
-    | "available"
-    | "limited"
-    | "unavailable"
-    | undefined;
+    "available" | "limited" | "unavailable" | undefined;
   const kind = raw.kind as "artisan" | "professional" | undefined;
   const vs = verificationStatus as
-    | "unverified"
-    | "in_review"
-    | "additional_info_requested"
-    | "verified"
-    | "rejected"
-    | undefined;
+    "unverified" | "in_review" | "additional_info_requested" | "verified" | "rejected" | undefined;
 
   return {
     ...(q !== undefined ? { q } : {}),

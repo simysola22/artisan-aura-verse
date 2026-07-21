@@ -52,11 +52,7 @@ export interface SearchQuery {
    * If verified=true shorthand is used instead, this is set to "verified".
    */
   verificationStatus?:
-    | "unverified"
-    | "in_review"
-    | "additional_info_requested"
-    | "verified"
-    | "rejected";
+    "unverified" | "in_review" | "additional_info_requested" | "verified" | "rejected";
 
   /** Availability status filter. */
   availabilityStatus?: "available" | "limited" | "unavailable";

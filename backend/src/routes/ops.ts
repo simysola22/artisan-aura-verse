@@ -175,6 +175,22 @@ const listAuditSchema = z.object({
   offset: z.coerce.number().int().min(0).optional(),
 });
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Remove keys whose value is `undefined` from an object.
+ * Needed because zod's `.optional()` produces `T | undefined` for each optional
+ * field, but service interfaces use exact optional properties (no explicit `undefined`).
+ * With `exactOptionalPropertyTypes: true` these are incompatible; stripping the
+ * undefined values at the boundary makes the types line up.
+ */
+type WithoutUndefined<T> = { [K in keyof T]: Exclude<T[K], undefined> };
+function compact<T extends object>(obj: T): WithoutUndefined<T> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined),
+  ) as WithoutUndefined<T>;
+}
+
 // ─── Router factory ───────────────────────────────────────────────────────────
 
 export function createOpsRouter(
@@ -198,7 +214,7 @@ export function createOpsRouter(
     zValidator("query", listUsersSchema),
     async (c) => {
       const query = c.req.valid("query");
-      const result = await listUsers(db, query);
+      const result = await listUsers(db, compact(query));
       return c.json({ users: result });
     },
   );
@@ -315,7 +331,7 @@ export function createOpsRouter(
     async (c) => {
       const { pmpUserId } = c.get("auth");
       const body = c.req.valid("json");
-      const ticket = await createTicket(db, pmpUserId, body);
+      const ticket = await createTicket(db, pmpUserId, compact(body));
       return c.json({ ticket }, 201);
     },
   );
@@ -331,7 +347,7 @@ export function createOpsRouter(
     zValidator("query", listTicketsSchema),
     async (c) => {
       const query = c.req.valid("query");
-      const tickets = await listTickets(db, query);
+      const tickets = await listTickets(db, compact(query));
       return c.json({ tickets });
     },
   );
@@ -426,7 +442,7 @@ export function createOpsRouter(
     async (c) => {
       const { pmpUserId } = c.get("auth");
       const body = c.req.valid("json");
-      const report = await submitReport(db, pmpUserId, body);
+      const report = await submitReport(db, pmpUserId, compact(body));
       return c.json({ report }, 201);
     },
   );
@@ -442,7 +458,7 @@ export function createOpsRouter(
     zValidator("query", listReportsSchema),
     async (c) => {
       const query = c.req.valid("query");
-      const reports = await listReports(db, query);
+      const reports = await listReports(db, compact(query));
       return c.json({ reports });
     },
   );
@@ -491,7 +507,7 @@ export function createOpsRouter(
       const { pmpUserId } = c.get("auth");
       const reportId = c.req.param("id");
       const body = c.req.valid("json");
-      const result = await takeModerationAction(db, reportId, pmpUserId, body);
+      const result = await takeModerationAction(db, reportId, pmpUserId, compact(body));
       return c.json(result);
     },
   );
@@ -509,7 +525,7 @@ export function createOpsRouter(
     zValidator("query", listAuditSchema),
     async (c) => {
       const query = c.req.valid("query");
-      const entries = await listOpsAudit(db, query);
+      const entries = await listOpsAudit(db, compact(query));
       return c.json({ entries });
     },
   );

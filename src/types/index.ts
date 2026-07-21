@@ -100,7 +100,11 @@ export interface Provider extends UserBase {
   currency?: string;
 }
 
-export type User = Employer | Provider;
+export interface OpsUser extends UserBase {
+  role: "ops";
+}
+
+export type User = Employer | Provider | OpsUser;
 
 export interface Category {
   id: UUID;

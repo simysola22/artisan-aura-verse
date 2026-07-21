@@ -103,14 +103,16 @@ export function createAuthRouter(adapter: ClerkAuthAdapter, service: AuthIdentit
 
       const identity = await service.resolve(authCtx.clerkUserId);
       if (!identity) {
-        throw new UnauthorizedError(
-          "No PMP account found. Call POST /v1/auth/sync to create one.",
-        );
+        throw new UnauthorizedError("No PMP account found. Call POST /v1/auth/sync to create one.");
       }
 
       const body = c.req.valid("json");
-      if (body.displayName !== undefined || body.email !== undefined || body.avatarUrl !== undefined) {
-        await service.updateProfile(identity.user.id, body);
+      const profile: { displayName?: string; email?: string; avatarUrl?: string } = {};
+      if (body.displayName !== undefined) profile.displayName = body.displayName;
+      if (body.email !== undefined) profile.email = body.email;
+      if (body.avatarUrl !== undefined) profile.avatarUrl = body.avatarUrl;
+      if (Object.keys(profile).length > 0) {
+        await service.updateProfile(identity.user.id, profile);
       }
 
       const refreshed = await service.resolve(authCtx.clerkUserId);

@@ -102,6 +102,16 @@ function toFrontendUser(identity: PmpIdentityResponse): User {
       verification: "unverified",
     };
   }
+  if (role === "ops") {
+    return {
+      id: user.id,
+      email: user.email ?? "",
+      role: "ops",
+      displayName: user.displayName ?? "",
+      avatarUrl: user.avatarUrl ?? undefined,
+      createdAt: user.createdAt,
+    };
+  }
   return {
     id: user.id,
     email: user.email ?? "",

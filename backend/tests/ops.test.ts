@@ -910,7 +910,7 @@ describe("POST /v1/ops/moderation/reports/:id/action", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      actionId: "action_1",
+      actionId: "00000000-0000-0000-0000-000000000001",
     });
   });
 
@@ -938,7 +938,7 @@ describe("POST /v1/ops/moderation/reports/:id/action", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       },
-      actionId: "action_2",
+      actionId: "00000000-0000-0000-0000-000000000002",
     });
     const app = makeApp();
     const res = await app.request("/v1/ops/moderation/reports/report_1/action", {

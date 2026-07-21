@@ -195,7 +195,7 @@ export async function suspendUser(
     targetUserId,
     entityType: "user",
     entityId: targetUserId,
-    metadata: reason !== undefined ? { reason } : undefined,
+    ...(reason !== undefined ? { metadata: { reason } } : {}),
   });
 }
 
