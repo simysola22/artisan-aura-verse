@@ -1,10 +1,18 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutDashboard, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Home, LayoutDashboard, Loader2, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { GlassNav } from "@/components/glass/glass";
 import { ThemeToggle } from "@/features/theme/theme-toggle";
 import { useAuth } from "@/features/auth/auth-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const primary = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -13,10 +21,77 @@ const primary = [
   { to: "/verification", label: "Verification", icon: ShieldCheck },
 ] as const;
 
+function AccountMenu() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const initials = (user?.displayName ?? "")
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "?";
+
+  async function handleSignOut() {
+    await logout();
+    void navigate({ to: "/", replace: true });
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full gradient-primary text-sm font-semibold text-primary-foreground shadow-crimson ring-offset-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="Account menu"
+        >
+          {initials}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold leading-tight">
+              {user?.displayName || "My Account"}
+            </span>
+            {user?.email ? (
+              <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+            ) : null}
+            <span className="mt-0.5 text-[11px] capitalize text-primary">
+              {user?.role ?? ""}
+            </span>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/account" className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            My Account
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => void handleSignOut()}
+          className="cursor-pointer text-destructive focus:text-destructive"
+        >
+          Sign out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function PublicShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { status, user, logout } = useAuth();
+  const navigate = useNavigate();
   const authed = status === "authed";
+  const loading = status === "loading";
+
+  async function handleSignOut() {
+    await logout();
+    void navigate({ to: "/", replace: true });
+  }
 
   return (
     <div className="relative min-h-dvh bg-background bg-aurora">
@@ -36,6 +111,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             </span>
             <span>PMP</span>
           </Link>
+
           <div className="flex items-center gap-1">
             {authed
               ? primary.map((item) => {
@@ -54,7 +130,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
                     </Link>
                   );
                 })
-              : (
+              : !loading && (
                   [
                     { to: "/for-employers", label: "For hirers" },
                     { to: "/for-providers", label: "For providers" },
@@ -70,25 +146,13 @@ export function PublicShell({ children }: { children: ReactNode }) {
                   </Link>
                 ))}
           </div>
+
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            {authed ? (
-              <>
-                <Link
-                  to="/account"
-                  className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
-                >
-                  <User className="h-4 w-4" />
-                  {user?.displayName}
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => void logout()}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent"
-                >
-                  Sign out
-                </button>
-              </>
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            ) : authed ? (
+              <AccountMenu />
             ) : (
               <>
                 <Link
@@ -119,14 +183,58 @@ export function PublicShell({ children }: { children: ReactNode }) {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          {!authed ? (
+          {loading ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : authed ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full gradient-primary text-sm font-semibold text-primary-foreground shadow-crimson"
+                  aria-label="Account menu"
+                >
+                  {(user?.displayName ?? "")
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase() || "?"}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-semibold">{user?.displayName || "My Account"}</span>
+                    {user?.email ? (
+                      <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                    ) : null}
+                    <span className="mt-0.5 text-[11px] capitalize text-primary">{user?.role ?? ""}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/account" className="cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    My Account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => void handleSignOut()}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
             <Link
               to="/auth/login"
               className="rounded-xl glass-surface px-3 py-2 text-sm font-medium"
             >
               Sign in
             </Link>
-          ) : null}
+          )}
         </div>
       </div>
 

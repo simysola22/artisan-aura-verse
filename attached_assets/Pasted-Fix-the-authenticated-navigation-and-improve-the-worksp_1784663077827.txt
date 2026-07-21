@@ -1,0 +1,69 @@
+Fix the authenticated navigation and improve the workspace dashboard.
+
+CURRENT PROBLEMS:
+1. Clicking Sign In jumps directly to the workspace.
+2. The workspace has no visible profile/account menu or Sign Out option.
+3. The dashboard feels empty and does not clearly show the marketplace's core purpose.
+
+AUTHENTICATION:
+- If unauthenticated, Sign In must show the proper Clerk sign-in flow.
+- If already authenticated, direct navigation to the workspace is acceptable.
+- After authentication, show the correct workspace.
+- Add a visible profile/avatar/account button to the authenticated header.
+- The account menu must show the user's identity and include Sign Out.
+- Sign Out must use Clerk, clear the relevant frontend/PMP auth state, and redirect to the public landing page.
+- Do not render authenticated workspace content while Clerk is still loading.
+
+MARKETPLACE DASHBOARD:
+Add useful marketplace sections using clean, realistic placeholder/demo data until the backend data is connected.
+
+For the employer/hirer experience, add:
+1. "Available Professionals" / "Find Talent"
+   - Professional/artisan cards
+   - Name
+   - Skill/category
+   - Location
+   - Verification status
+   - Rating or experience placeholder
+   - View Profile / Contact action
+
+2. "Available Jobs" / "Open Opportunities"
+   - Job title
+   - Category
+   - Location
+   - Budget or payment placeholder
+   - Posted time
+   - View Job / Apply action
+
+For the provider/artisan experience, add:
+1. "Available Jobs"
+   - Job cards
+   - Category
+   - Location
+   - Budget
+   - Posted time
+   - View / Apply action
+
+2. "Recommended Opportunities"
+   - Placeholder recommendations based on the user's selected skills/categories.
+
+IMPORTANT:
+- Clearly label all placeholder/demo data so it is not mistaken for real marketplace data.
+- Structure the UI so these sections can later be replaced with real API data without redesigning the components.
+- Use the existing design system and responsive layout.
+- Make the mobile experience excellent.
+- Do not create fake backend records or pretend placeholder data is real.
+- Do not redesign the entire application.
+- Fix the authentication flow and add these dashboard sections using reusable components.
+
+Test:
+- Sign In
+- Sign Up as employer/hirer
+- Sign Up as provider/artisan
+- Authenticated workspace
+- Profile/account menu
+- Sign Out
+- Refresh while authenticated
+- Mobile layout
+
+Run frontend typecheck, backend typecheck, tests, lint, and production build after the changes.

@@ -1,6 +1,7 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SignIn } from "@clerk/clerk-react";
+import { Loader2 } from "lucide-react";
 import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
 import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
@@ -13,6 +14,33 @@ export const Route = createFileRoute("/auth/login")({
 // ─── Real mode: Clerk SignIn embedded in our shell ────────────────────────────
 
 function ClerkLoginPage() {
+  const { status } = useAuth();
+  const navigate = useNavigate();
+
+  // If the user is already signed in, send them straight to the workspace.
+  useEffect(() => {
+    if (status === "authed") {
+      void navigate({ to: "/dashboard", replace: true });
+    }
+  }, [status, navigate]);
+
+  // While Clerk resolves the session, show a neutral loading state so we
+  // don't flash the sign-in form to an already-authenticated user.
+  if (status === "loading") {
+    return (
+      <AuthShell title="Signing you in…" subtitle="Just a moment while we load your account.">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthShell>
+    );
+  }
+
+  if (status === "authed") {
+    // Redirect is in-flight; render nothing to avoid a flash.
+    return null;
+  }
+
   return (
     <AuthShell
       title="Welcome back"
@@ -45,12 +73,18 @@ function ClerkLoginPage() {
 // ─── Mock mode: existing email / password form ────────────────────────────────
 
 function MockLoginPage() {
-  const { login } = useAuth();
+  const { login, status } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authed") {
+      void navigate({ to: "/dashboard", replace: true });
+    }
+  }, [status, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +98,16 @@ function MockLoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "loading") {
+    return (
+      <AuthShell title="Loading…" subtitle="">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthShell>
+    );
   }
 
   return (
