@@ -1,0 +1,105 @@
+We have two urgent tasks.
+
+TASK 1 — FIX AUTHENTICATION COMPLETELY
+
+When a user signs up as a provider/artisan, Clerk successfully shows the workspace/account creation flow, but after returning to the app, the application does not recognize the user as logged in.
+
+Audit and fix the complete authentication flow end-to-end:
+
+Clerk signup/login
+→ Clerk session
+→ frontend auth state
+→ API authentication token
+→ backend Clerk token verification
+→ PMP identity creation/sync
+→ user role/profile resolution
+→ authenticated application state
+
+Test both:
+- Employer/hirer signup
+- Provider/artisan signup
+
+The user must remain authenticated after signup, refresh, navigation, and returning to the app.
+
+Do not use mock authentication in production.
+Do not bypass Clerk.
+Do not create duplicate identities.
+Fix the actual root cause.
+
+TASK 2 — COMPLETE MARKETPLACE FEATURE AUDIT
+
+After fixing authentication, audit the entire application as a production two-sided marketplace for employers/hirers and providers/artisans.
+
+Do not just check whether pages exist. Test the actual user journeys.
+
+Audit these complete flows:
+
+1. New employer signup → onboarding → profile → search providers → view provider → contact/message → hire/workflow.
+2. New provider signup → onboarding → create profile → add skills/experience/portfolio → submit verification → become discoverable → receive messages/work opportunities.
+3. Search and discovery:
+   - search
+   - filtering
+   - pagination
+   - ranking
+   - empty states
+   - error states
+4. Profiles:
+   - create
+   - edit
+   - view
+   - privacy
+   - role-specific fields
+5. Verification:
+   - submission
+   - evidence upload
+   - status tracking
+   - review workflow
+   - status transitions
+6. Messaging:
+   - conversations
+   - sending/receiving messages
+   - realtime updates
+   - SSE reconnect behavior
+   - blocking/reporting/moderation
+7. Payments:
+   - checkout
+   - Paystack flow
+   - webhook handling
+   - subscription status
+   - entitlements
+8. Operations:
+   - admin
+   - verification team
+   - support
+   - moderation
+   - audit logs
+   - permission enforcement
+9. Production reliability:
+   - loading states
+   - empty states
+   - API errors
+   - unauthorized states
+   - expired sessions
+   - backend unavailable
+   - mobile responsiveness
+   - SSR/server-side rendering failures
+10. Security:
+   - IDOR
+   - authorization bypasses
+   - frontend-only permission checks
+   - missing backend permission checks
+   - unsafe user input
+   - exposed secrets
+   - mock/demo data appearing in production
+
+For every issue found, report:
+
+- Feature/flow
+- Exact broken behavior
+- Root cause
+- Severity: Critical / High / Medium / Low
+- Recommended fix
+
+Do not make broad changes yet.
+
+First fix TASK 1, then perform TASK 2 and give me a prioritized production-readiness report.

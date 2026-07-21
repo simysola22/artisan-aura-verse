@@ -17,6 +17,17 @@ export default defineConfig({
       host: "0.0.0.0",
       port: 5000,
       allowedHosts: true,
+      // In dev, proxy all /v1/* requests to the Hono backend (port 3000).
+      // This avoids CORS issues and removes the need to set VITE_API_BASE_URL
+      // during local development. In production VITE_API_BASE_URL is set to the
+      // deployed backend URL and this proxy is unused (it only applies to the
+      // Vite dev server, not the production build).
+      proxy: {
+        "/v1": {
+          target: "http://localhost:3000",
+          changeOrigin: true,
+        },
+      },
     },
     define: {
       // Expose CLERK_PUBLISHABLE_KEY (Replit secret) as VITE_CLERK_PUBLISHABLE_KEY so Vite
@@ -24,6 +35,12 @@ export default defineConfig({
       // Falls back to VITE_CLERK_PUBLISHABLE_KEY if that is set directly instead.
       "import.meta.env.VITE_CLERK_PUBLISHABLE_KEY": JSON.stringify(
         process.env.VITE_CLERK_PUBLISHABLE_KEY || process.env.CLERK_PUBLISHABLE_KEY || "",
+      ),
+      // Expose API_BASE_URL (non-prefixed Replit secret) as VITE_API_BASE_URL.
+      // When empty the app uses the Vite dev proxy above; no env var needed for
+      // local development. For production set VITE_API_BASE_URL to the backend URL.
+      "import.meta.env.VITE_API_BASE_URL": JSON.stringify(
+        process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || "",
       ),
     },
   },

@@ -251,42 +251,59 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
         setPmpIdentity(identity);
         setUser(toFrontendUser(identity));
         setStatus("authed");
-      } catch (err) {
-        const errStatus = (err as { status?: number }).status;
-        if (errStatus === 401) {
-          // No PMP identity yet — new user. Provision one using the pending
-          // registration data stored in sessionStorage by the register page.
-          const accountType =
-            (sessionStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as "employer" | "provider") ??
-            "employer";
-          const pendingDisplayName = sessionStorage.getItem(PENDING_DISPLAY_NAME_KEY);
-          const displayName = pendingDisplayName ?? clerkUser?.fullName ?? undefined;
-          const providerKind =
-            (sessionStorage.getItem(PENDING_PROVIDER_KIND_KEY) as
-              | "artisan"
-              | "professional"
-              | null) ?? undefined;
+      } catch (meErr) {
+        const meStatus = (meErr as { status?: number }).status;
 
-          try {
-            const syncInput: { accountType: "employer" | "provider"; displayName?: string; providerKind?: "artisan" | "professional" } = { accountType };
-            if (displayName) syncInput.displayName = displayName;
-            if (providerKind) syncInput.providerKind = providerKind;
+        // 403 = account suspended. Do not attempt to provision — surface as anon.
+        if (meStatus === 403) {
+          console.warn("[PMP] Account suspended — contact support.");
+          setStatus("anon");
+          return;
+        }
 
-            const identity = await authApi.sync(syncInput);
+        // All other failures (401 = no PMP identity yet, 404 = backend not reachable
+        // via the dev proxy, network error, 5xx, etc.): attempt sync.
+        //
+        // sync() is idempotent — if the user already has a PMP account the
+        // endpoint returns it unchanged, so calling sync when we should have
+        // called me() is always safe.
+        //
+        // Pending registration data is stored in localStorage (not sessionStorage)
+        // so it survives Clerk's email-verification round-trip through accounts.clerk.com.
+        const accountType =
+          (localStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as "employer" | "provider") ??
+          "employer";
+        const pendingDisplayName = localStorage.getItem(PENDING_DISPLAY_NAME_KEY);
+        const displayName = pendingDisplayName ?? clerkUser?.fullName ?? undefined;
+        const providerKind =
+          (localStorage.getItem(PENDING_PROVIDER_KIND_KEY) as
+            | "artisan"
+            | "professional"
+            | null) ?? undefined;
 
-            // Clean up pending keys after successful sync.
-            sessionStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
-            sessionStorage.removeItem(PENDING_DISPLAY_NAME_KEY);
-            sessionStorage.removeItem(PENDING_PROVIDER_KIND_KEY);
+        try {
+          const syncInput: {
+            accountType: "employer" | "provider";
+            displayName?: string;
+            providerKind?: "artisan" | "professional";
+          } = { accountType };
+          if (displayName) syncInput.displayName = displayName;
+          if (providerKind) syncInput.providerKind = providerKind;
 
-            setPmpIdentity(identity);
-            setUser(toFrontendUser(identity));
-            setStatus("authed");
-          } catch {
-            // Sync failed — Clerk session is valid but PMP provisioning failed.
-            setStatus("anon");
-          }
-        } else {
+          const identity = await authApi.sync(syncInput);
+
+          // Clean up pending keys after successful sync.
+          localStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
+          localStorage.removeItem(PENDING_DISPLAY_NAME_KEY);
+          localStorage.removeItem(PENDING_PROVIDER_KIND_KEY);
+
+          setPmpIdentity(identity);
+          setUser(toFrontendUser(identity));
+          setStatus("authed");
+        } catch {
+          // Sync also failed — backend is unreachable or there is a server error.
+          // Clerk session is valid but PMP identity cannot be established.
+          console.error("[PMP] Failed to load or provision identity. Backend may be unavailable.");
           setStatus("anon");
         }
       } finally {

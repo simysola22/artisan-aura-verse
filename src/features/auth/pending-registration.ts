@@ -20,7 +20,11 @@ export function storePendingRegistration(opts: {
   displayName?: string;
   providerKind?: "artisan" | "professional";
 }): void {
-  sessionStorage.setItem(PENDING_ACCOUNT_TYPE_KEY, opts.accountType);
-  if (opts.displayName) sessionStorage.setItem(PENDING_DISPLAY_NAME_KEY, opts.displayName);
-  if (opts.providerKind) sessionStorage.setItem(PENDING_PROVIDER_KIND_KEY, opts.providerKind);
+  // Use localStorage (not sessionStorage) so the values survive the full-page
+  // redirect that Clerk performs during email verification. sessionStorage is
+  // scoped to the browser tab AND the origin, so a round-trip through
+  // accounts.clerk.com wipes it before the auth context can read it.
+  localStorage.setItem(PENDING_ACCOUNT_TYPE_KEY, opts.accountType);
+  if (opts.displayName) localStorage.setItem(PENDING_DISPLAY_NAME_KEY, opts.displayName);
+  if (opts.providerKind) localStorage.setItem(PENDING_PROVIDER_KIND_KEY, opts.providerKind);
 }
