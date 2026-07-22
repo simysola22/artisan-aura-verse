@@ -5,7 +5,7 @@ import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard, GlassPanel } from "@/components/glass/glass";
 import { billingApi, type Plan, type Subscription } from "@/api/subscriptions";
 import { useAuth } from "@/features/auth/auth-context";
-import { BadgeCheck, CheckCircle2, CreditCard, Loader2, Zap } from "lucide-react";
+import { BadgeCheck, CheckCircle2, CreditCard, Loader2, Settings, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/billing")({
   head: () => ({ meta: [{ title: "Billing & Plans — PMP" }] }),
@@ -80,6 +80,39 @@ function PlanCard({
   );
 }
 
+function BillingUnavailable() {
+  return (
+    <PublicShell>
+      <header className="mb-8">
+        <div className="flex items-center gap-2 text-sm text-primary font-medium mb-1">
+          <Zap className="h-4 w-4" />
+          Billing & Plans
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight">Billing unavailable</h1>
+        <p className="mt-2 text-muted-foreground max-w-xl">
+          Online payments are not yet enabled for this deployment.
+        </p>
+      </header>
+
+      <GlassPanel className="flex items-start gap-4 p-6 max-w-lg">
+        <Settings className="h-6 w-6 text-muted-foreground shrink-0 mt-0.5" />
+        <div>
+          <p className="text-sm font-medium">Payment provider not configured</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The <code className="rounded bg-muted px-1 py-0.5 text-xs">PAYSTACK_SECRET_KEY</code>{" "}
+            environment variable has not been set on the server. All other PMP features — jobs,
+            profiles, messaging, and verification — work normally.
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            To enable billing, add the secret key to your backend environment and restart the
+            server.
+          </p>
+        </div>
+      </GlassPanel>
+    </PublicShell>
+  );
+}
+
 function BillingPage() {
   const { status } = useAuth();
   const navigate = useNavigate();
@@ -91,20 +124,29 @@ function BillingPage() {
     }
   }, [status, navigate]);
 
+  // Check whether the payment provider is configured — no auth required.
+  // This query runs immediately so we can gate the rest of the UI without
+  // making any payment-related requests that might fail or mislead the user.
+  const statusQuery = useQuery({
+    queryKey: ["billing-status"],
+    queryFn: billingApi.getBillingStatus,
+    staleTime: 60_000,
+  });
+
   const plansQuery = useQuery({
     queryKey: ["billing-plans"],
     queryFn: billingApi.listPlans,
-    enabled: status === "authed",
+    enabled: status === "authed" && statusQuery.data?.paymentsEnabled === true,
   });
 
   const billingQuery = useQuery({
     queryKey: ["my-billing"],
     queryFn: billingApi.getMyBilling,
-    enabled: status === "authed",
+    enabled: status === "authed" && statusQuery.data?.paymentsEnabled === true,
     // 404 is expected when user has no billing history — treat as empty
     retry: (count, err) => {
-      const status = (err as { status?: number }).status;
-      if (status === 404) return false;
+      const httpStatus = (err as { status?: number }).status;
+      if (httpStatus === 404) return false;
       return count < 2;
     },
   });
@@ -131,6 +173,14 @@ function BillingPage() {
   }
 
   if (status === "anon") return null;
+
+  // Show unavailable panel when the backend confirms payments are off.
+  // We only show this after the status query settles so we don't flash it
+  // during the initial load; while it's loading we fall through to the
+  // normal skeleton (plans loading state).
+  if (statusQuery.isSuccess && !statusQuery.data.paymentsEnabled) {
+    return <BillingUnavailable />;
+  }
 
   const subscription = billingQuery.data?.subscription ?? null;
   const recentPayments = billingQuery.data?.recentPayments ?? [];

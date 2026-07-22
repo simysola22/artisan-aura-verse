@@ -14,6 +14,13 @@ import type {
 } from "./types.js";
 
 export class MockPaymentProvider implements PaymentProvider {
+  /** Set to false in tests that verify the "billing not configured" path. */
+  configured = true;
+
+  isConfigured(): boolean {
+    return this.configured;
+  }
+
   /** Calls made to initializeCheckout — inspect in tests. */
   readonly initCalls: InitializeCheckoutParams[] = [];
   /** Calls made to verifyPayment — inspect in tests. */

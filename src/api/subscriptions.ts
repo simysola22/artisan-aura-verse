@@ -68,7 +68,22 @@ export interface CheckoutResult {
   paymentIntentId: string;
 }
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface BillingStatus {
+  /** True when PAYSTACK_SECRET_KEY is configured on the backend. */
+  paymentsEnabled: boolean;
+}
+
 // ─── API calls ────────────────────────────────────────────────────────────────
+
+/**
+ * Check whether the payment provider is configured on the backend.
+ * No auth required. Safe to call before showing any billing UI.
+ */
+export function getBillingStatus(): Promise<BillingStatus> {
+  return apiFetch<BillingStatus>("/v1/billing/status");
+}
 
 /** Return active subscription plans. No auth required. */
 export function listPlans(): Promise<Plan[]> {
@@ -110,6 +125,7 @@ export function getEntitlements(): Promise<Entitlements> {
 // ─── Convenience export ───────────────────────────────────────────────────────
 
 export const billingApi = {
+  getBillingStatus,
   listPlans,
   initializeCheckout,
   getMyBilling,

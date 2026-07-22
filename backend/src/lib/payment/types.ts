@@ -70,6 +70,13 @@ export interface WebhookVerifyResult {
 
 export interface PaymentProvider {
   /**
+   * Returns true when the provider is fully configured and ready to process
+   * payments. Use this to gracefully disable billing UI when credentials are
+   * absent rather than letting requests fail with opaque errors.
+   */
+  isConfigured(): boolean;
+
+  /**
    * Initialize a hosted checkout session.
    * Returns a URL the user should be redirected to.
    */

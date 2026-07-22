@@ -82,6 +82,10 @@ export class PaystackProvider implements PaymentProvider {
     this.secretKey = secretKey;
   }
 
+  isConfigured(): boolean {
+    return !!this.secretKey;
+  }
+
   private assertKey(): void {
     if (!this.secretKey) {
       throw new Error(

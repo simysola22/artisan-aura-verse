@@ -58,6 +58,16 @@ export function createBillingRouter(
 
   const auth = requireClerkAuth(clerkAdapter, resolveUser);
 
+  // ── GET /v1/billing/status  (public — no auth required) ─────────────────
+  //
+  // Lets the frontend check whether payments are operational before showing
+  // checkout UI. Returns { paymentsEnabled: false } when PAYSTACK_SECRET_KEY
+  // is absent so the UI can degrade gracefully instead of crashing.
+
+  router.get("/v1/billing/status", (c) => {
+    return c.json({ paymentsEnabled: paymentProvider.isConfigured() });
+  });
+
   // ── GET /v1/billing/plans  (public — no auth required) ───────────────────
 
   router.get("/v1/billing/plans", async (c) => {
@@ -76,6 +86,22 @@ export function createBillingRouter(
   //   - The client supplies only the planId and an optional callbackUrl.
 
   router.post("/v1/billing/checkout", auth, zValidator("json", checkoutSchema), async (c) => {
+    // Fail early with a clear 503 when the payment provider is not configured.
+    // This prevents the opaque "PAYSTACK_SECRET_KEY is not configured" error
+    // from bubbling up as a 500 and keeps billing isolated from other features.
+    if (!paymentProvider.isConfigured()) {
+      return c.json(
+        {
+          status: 503,
+          code: "billing_unavailable",
+          message:
+            "Payments are not yet configured on this server. " +
+            "Set PAYSTACK_SECRET_KEY to enable billing.",
+        },
+        503,
+      );
+    }
+
     const { pmpUserId } = c.var.auth;
     const { planId, callbackUrl } = c.req.valid("json");
 
