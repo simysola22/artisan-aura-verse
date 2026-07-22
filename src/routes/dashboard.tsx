@@ -119,7 +119,7 @@ function DashboardPage() {
             value:
               providersQuery.data?.filter((p) => p.verification === "verified").length ?? "—",
           },
-          { icon: Clock, label: "Average response", value: "2h 14m" },
+          { icon: Clock, label: "Active jobs", value: "—" },
         ].map((s) => (
           <GlassCard key={s.label} className="p-5">
             <div className="flex items-center justify-between">

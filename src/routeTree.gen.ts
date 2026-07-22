@@ -24,6 +24,7 @@ import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
 import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as JobsApplicationsRouteImport } from './routes/jobs.applications'
 import { Route as JobsCreateRouteImport } from './routes/jobs.create'
 import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
 import { Route as OpsIndexRouteImport } from './routes/ops.index'
@@ -33,6 +34,7 @@ import { Route as OpsUsersRouteImport } from './routes/ops.users'
 import { Route as OpsVerificationRouteImport } from './routes/ops.verification'
 import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
 import { Route as JobsJobIdApplyRouteImport } from './routes/jobs.$jobId.apply'
+import { Route as JobsJobIdEditRouteImport } from './routes/jobs.$jobId.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -109,6 +111,11 @@ const JobsJobIdRoute = JobsJobIdRouteImport.update({
   path: '/$jobId',
   getParentRoute: () => JobsRoute,
 } as any)
+const JobsApplicationsRoute = JobsApplicationsRouteImport.update({
+  id: '/applications',
+  path: '/applications',
+  getParentRoute: () => JobsRoute,
+} as any)
 const JobsCreateRoute = JobsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -154,6 +161,11 @@ const JobsJobIdApplyRoute = JobsJobIdApplyRouteImport.update({
   path: '/apply',
   getParentRoute: () => JobsJobIdRoute,
 } as any)
+const JobsJobIdEditRoute = JobsJobIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => JobsJobIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -171,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
   '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/applications': typeof JobsApplicationsRoute
   '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
@@ -180,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops/': typeof OpsIndexRoute
   '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
+  '/jobs/$jobId/edit': typeof JobsJobIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -197,6 +211,7 @@ export interface FileRoutesByTo {
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
   '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/applications': typeof JobsApplicationsRoute
   '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
@@ -206,6 +221,7 @@ export interface FileRoutesByTo {
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops': typeof OpsIndexRoute
   '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
+  '/jobs/$jobId/edit': typeof JobsJobIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -224,6 +240,7 @@ export interface FileRoutesById {
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
   '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/applications': typeof JobsApplicationsRoute
   '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
@@ -233,6 +250,7 @@ export interface FileRoutesById {
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops/': typeof OpsIndexRoute
   '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
+  '/jobs/$jobId/edit': typeof JobsJobIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,6 +270,7 @@ export interface FileRouteTypes {
     | '/auth/recover'
     | '/auth/register'
     | '/jobs/$jobId'
+    | '/jobs/applications'
     | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
@@ -261,6 +280,7 @@ export interface FileRouteTypes {
     | '/providers/$providerId'
     | '/ops/'
     | '/jobs/$jobId/apply'
+    | '/jobs/$jobId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -278,6 +298,7 @@ export interface FileRouteTypes {
     | '/auth/recover'
     | '/auth/register'
     | '/jobs/$jobId'
+    | '/jobs/applications'
     | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
@@ -287,6 +308,7 @@ export interface FileRouteTypes {
     | '/providers/$providerId'
     | '/ops'
     | '/jobs/$jobId/apply'
+    | '/jobs/$jobId/edit'
   id:
     | '__root__'
     | '/'
@@ -304,6 +326,7 @@ export interface FileRouteTypes {
     | '/auth/recover'
     | '/auth/register'
     | '/jobs/$jobId'
+    | '/jobs/applications'
     | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
@@ -313,6 +336,7 @@ export interface FileRouteTypes {
     | '/providers/$providerId'
     | '/ops/'
     | '/jobs/$jobId/apply'
+    | '/jobs/$jobId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -445,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsJobIdRouteImport
       parentRoute: typeof JobsRoute
     }
+    '/jobs/applications': {
+      id: '/jobs/applications'
+      path: '/applications'
+      fullPath: '/jobs/applications'
+      preLoaderRoute: typeof JobsApplicationsRouteImport
+      parentRoute: typeof JobsRoute
+    }
     '/jobs/create': {
       id: '/jobs/create'
       path: '/create'
@@ -508,15 +539,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsJobIdApplyRouteImport
       parentRoute: typeof JobsJobIdRoute
     }
+    '/jobs/$jobId/edit': {
+      id: '/jobs/$jobId/edit'
+      path: '/edit'
+      fullPath: '/jobs/$jobId/edit'
+      preLoaderRoute: typeof JobsJobIdEditRouteImport
+      parentRoute: typeof JobsJobIdRoute
+    }
   }
 }
 
 interface JobsJobIdRouteChildren {
   JobsJobIdApplyRoute: typeof JobsJobIdApplyRoute
+  JobsJobIdEditRoute: typeof JobsJobIdEditRoute
 }
 
 const JobsJobIdRouteChildren: JobsJobIdRouteChildren = {
   JobsJobIdApplyRoute: JobsJobIdApplyRoute,
+  JobsJobIdEditRoute: JobsJobIdEditRoute,
 }
 
 const JobsJobIdRouteWithChildren = JobsJobIdRoute._addFileChildren(
@@ -525,11 +565,13 @@ const JobsJobIdRouteWithChildren = JobsJobIdRoute._addFileChildren(
 
 interface JobsRouteChildren {
   JobsJobIdRoute: typeof JobsJobIdRouteWithChildren
+  JobsApplicationsRoute: typeof JobsApplicationsRoute
   JobsCreateRoute: typeof JobsCreateRoute
 }
 
 const JobsRouteChildren: JobsRouteChildren = {
   JobsJobIdRoute: JobsJobIdRouteWithChildren,
+  JobsApplicationsRoute: JobsApplicationsRoute,
   JobsCreateRoute: JobsCreateRoute,
 }
 

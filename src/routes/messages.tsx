@@ -137,6 +137,21 @@ export function ConversationView({ conversationId }: { conversationId: string })
     },
   });
 
+  // SSE realtime subscription — inject incoming messages directly into the cache.
+  useEffect(() => {
+    const unsub = messagingApi.subscribe(conversationId, (msg) => {
+      qc.setQueryData(["messages", conversationId], (old: import("@/types").Message[] | undefined) => {
+        if (!old) return [msg];
+        // Deduplicate in case the sender's own message arrives via SSE too.
+        if (old.some((m) => m.id === msg.id)) return old;
+        return [...old, msg];
+      });
+      // Keep conversation list preview up to date.
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    });
+    return unsub;
+  }, [conversationId, qc]);
+
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!draft.trim()) return;

@@ -31,8 +31,11 @@ function ProviderProfilePage() {
       const conv = await messagingApi.createConversation(providerUserId);
       return conv;
     },
-    onSuccess: () => {
-      void navigate({ to: "/messages" });
+    onSuccess: (conv) => {
+      void navigate({
+        to: "/messages/$conversationId",
+        params: { conversationId: conv.id },
+      });
     },
   });
 
