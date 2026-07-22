@@ -1,10 +1,10 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SignUp } from "@clerk/clerk-react";
+import { Briefcase, Loader2, Wrench } from "lucide-react";
 import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
 import { storePendingRegistration } from "@/features/auth/pending-registration";
-import { Briefcase, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
 
@@ -28,19 +28,50 @@ const roleOptions = [
   },
 ];
 
-// ─── Real mode: role picker → Clerk SignUp ────────────────────────────────────
+// ─── Real mode: role picker → Clerk SignUp ─────────────────────────────────────
 
 function ClerkRegisterPage() {
+  const { status } = useAuth();
+  const navigate = useNavigate();
   const [role, setRole] = useState<"employer" | "provider">("employer");
   const [step, setStep] = useState<"role" | "signup">("role");
 
+  // If the user already has a fully authenticated PMP session, send them
+  // straight to the workspace — do not let an existing session trigger a
+  // new registration flow.
+  useEffect(() => {
+    if (status === "authed") {
+      void navigate({ to: "/dashboard", replace: true });
+    }
+  }, [status, navigate]);
+
   function handleContinue() {
-    // Store the selected role so the auth context can provision the PMP identity
-    // after Clerk's sign-up flow completes and the Clerk session becomes active.
+    // Write the selected role to localStorage BEFORE Clerk's sign-up flow
+    // starts. localStorage survives the full-page OAuth/email-verification
+    // redirects that Clerk performs (sessionStorage does not).
     storePendingRegistration({ accountType: role });
     setStep("signup");
   }
 
+  // While Clerk or PMP is resolving a session, show a neutral loading screen.
+  // This prevents the sign-up form from flashing to an already-authenticated
+  // user and prevents Clerk from auto-completing a signup for an existing session.
+  if (status === "loading" || status === "syncing") {
+    return (
+      <AuthShell title="Setting up your account…" subtitle="Just a moment.">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthShell>
+    );
+  }
+
+  // Redirect in-flight — render nothing to avoid a flash.
+  if (status === "authed") {
+    return null;
+  }
+
+  // ── Step 2: Clerk SignUp widget ──
   if (step === "signup") {
     return (
       <AuthShell
@@ -56,7 +87,7 @@ function ClerkRegisterPage() {
         }
       >
         <div className="space-y-4">
-          {/* Compact role reminder with change option */}
+          {/* Role reminder with change option */}
           <div className="flex items-center gap-2 rounded-lg border border-input bg-accent/40 px-3 py-2 text-sm">
             {role === "employer" ? (
               <Briefcase className="h-4 w-4 shrink-0 text-primary" />
@@ -75,7 +106,16 @@ function ClerkRegisterPage() {
               Change
             </button>
           </div>
+
           <div className="flex justify-center">
+            {/*
+              forceRedirectUrl sends the user to /dashboard after Clerk
+              completes sign-up (including after Google OAuth and email
+              verification redirects). The auth context's loadIdentity()
+              then runs on /dashboard: it calls /v1/auth/sync using the
+              accountType stored in localStorage above, creating the PMP
+              identity with the correct role before the user sees anything.
+            */}
             <SignUp
               forceRedirectUrl="/dashboard"
               routing="hash"
@@ -92,6 +132,7 @@ function ClerkRegisterPage() {
     );
   }
 
+  // ── Step 1: Role picker ──
   return (
     <AuthShell
       title="Create your account"
@@ -142,7 +183,7 @@ function ClerkRegisterPage() {
 // ─── Mock mode: existing email / password / role form ─────────────────────────
 
 function MockRegisterPage() {
-  const { register } = useAuth();
+  const { register, status } = useAuth();
   const navigate = useNavigate();
   const [role, setRole] = useState<"employer" | "provider">("employer");
   const [displayName, setDisplayName] = useState("");
@@ -150,6 +191,12 @@ function MockRegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (status === "authed") {
+      void navigate({ to: "/dashboard", replace: true });
+    }
+  }, [status, navigate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -163,6 +210,16 @@ function MockRegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (status === "loading") {
+    return (
+      <AuthShell title="Loading…" subtitle="">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthShell>
+    );
   }
 
   return (

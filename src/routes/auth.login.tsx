@@ -17,16 +17,16 @@ function ClerkLoginPage() {
   const { status } = useAuth();
   const navigate = useNavigate();
 
-  // If the user is already signed in, send them straight to the workspace.
+  // Already authenticated → go straight to workspace.
   useEffect(() => {
     if (status === "authed") {
       void navigate({ to: "/dashboard", replace: true });
     }
   }, [status, navigate]);
 
-  // While Clerk resolves the session, show a neutral loading state so we
-  // don't flash the sign-in form to an already-authenticated user.
-  if (status === "loading") {
+  // Clerk resolving session or PMP syncing — don't flash the sign-in form
+  // to a user who is already signed in.
+  if (status === "loading" || status === "syncing") {
     return (
       <AuthShell title="Signing you in…" subtitle="Just a moment while we load your account.">
         <div className="flex justify-center py-8">
@@ -36,8 +36,8 @@ function ClerkLoginPage() {
     );
   }
 
+  // Redirect in-flight — render nothing to avoid a flash.
   if (status === "authed") {
-    // Redirect is in-flight; render nothing to avoid a flash.
     return null;
   }
 
