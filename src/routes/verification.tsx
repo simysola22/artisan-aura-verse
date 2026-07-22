@@ -101,10 +101,11 @@ function VerificationPage() {
     );
   }
 
-  return <VerificationContent providerId={user.id} />;
+  const providerKind = (user as { kind?: string }).kind as "artisan" | "professional" | undefined;
+  return <VerificationContent providerId={user.id} providerKind={providerKind ?? "artisan"} />;
 }
 
-function VerificationContent({ providerId }: { providerId: string }) {
+function VerificationContent({ providerId, providerKind }: { providerId: string; providerKind: "artisan" | "professional" }) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["verification", providerId],
@@ -216,6 +217,7 @@ function VerificationContent({ providerId }: { providerId: string }) {
               stepIndex={step - 1}
               caseId={caseId}
               providerId={providerId}
+              providerKind={providerKind}
               evidence={currentStepEvidence}
               onEvidenceChange={() => {
                 void qc.invalidateQueries({ queryKey: ["verification-cases"] });
@@ -269,6 +271,7 @@ function EvidenceStepPanel({
   stepIndex,
   caseId,
   providerId,
+  providerKind,
   evidence,
   onEvidenceChange,
 }: {
@@ -276,6 +279,7 @@ function EvidenceStepPanel({
   stepIndex: number;
   caseId: string | null;
   providerId: string;
+  providerKind: "artisan" | "professional";
   evidence: EvidenceItem[];
   onEvidenceChange: () => void;
 }) {
@@ -289,7 +293,7 @@ function EvidenceStepPanel({
   const [formError, setFormError] = useState<string | null>(null);
 
   const createCaseMutation = useMutation({
-    mutationFn: () => verificationApi.createCase("artisan"),
+    mutationFn: () => verificationApi.createCase(providerKind),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ["verification-cases"] });
       void qc.invalidateQueries({ queryKey: ["verification", providerId] });
@@ -300,7 +304,7 @@ function EvidenceStepPanel({
     mutationFn: async (input: AddEvidenceInput) => {
       let activeCaseId = caseId;
       if (!activeCaseId) {
-        const created = await verificationApi.createCase("artisan");
+        const created = await verificationApi.createCase(providerKind);
         activeCaseId = created.case.id;
         await qc.invalidateQueries({ queryKey: ["verification-cases"] });
       }

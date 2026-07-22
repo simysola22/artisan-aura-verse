@@ -124,6 +124,9 @@ export interface SearchFilters {
   location?: string;
   minExperience?: number;
   sort?: "relevance" | "rating" | "recent";
+  /** Pagination */
+  limit?: number;
+  offset?: number;
 }
 
 export interface Paginated<T> {

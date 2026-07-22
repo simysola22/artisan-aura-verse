@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Briefcase, Home, LayoutDashboard, Loader2, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
+import { Briefcase, CreditCard, Home, LayoutDashboard, Loader2, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { GlassNav } from "@/components/glass/glass";
@@ -68,6 +68,12 @@ function AccountMenu() {
           <Link to="/account" className="cursor-pointer">
             <User className="mr-2 h-4 w-4" />
             My Account
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/billing" className="cursor-pointer">
+            <CreditCard className="mr-2 h-4 w-4" />
+            Billing & Plans
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -217,6 +223,12 @@ export function PublicShell({ children }: { children: ReactNode }) {
                   <Link to="/account" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     My Account
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/billing" className="cursor-pointer">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Billing & Plans
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

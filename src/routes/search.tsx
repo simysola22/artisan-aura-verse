@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Search as SearchIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search as SearchIcon } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
-import { GlassCard, GlassPanel } from "@/components/glass/glass";
+import { GlassPanel } from "@/components/glass/glass";
 import { searchApi, referenceApi } from "@/api";
 import { DataStateBoundary } from "@/components/common/data-state";
 import type { SearchFilters } from "@/types";
@@ -15,12 +15,23 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
+const PAGE_SIZE = 12;
+
 function SearchPage() {
   const [filters, setFilters] = useState<SearchFilters>({ sort: "relevance" });
+  const [locationInput, setLocationInput] = useState("");
+  const [page, setPage] = useState(0);
+
   const results = useQuery({
-    queryKey: ["search", filters],
-    queryFn: () => searchApi.providers(filters),
+    queryKey: ["search", filters, page] as const,
+    queryFn: () =>
+      searchApi.providers({
+        ...filters,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      }),
   });
+
   const categories = useQuery({
     queryKey: ["ref", "categories"],
     queryFn: referenceApi.categories,
@@ -28,7 +39,15 @@ function SearchPage() {
 
   function update<K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) {
     setFilters((f) => ({ ...f, [key]: value }));
+    setPage(0);
   }
+
+  function applyLocation() {
+    update("location", locationInput.trim() || undefined);
+  }
+
+  const totalItems = results.data?.total ?? results.data?.items.length ?? 0;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
 
   return (
     <PublicShell>
@@ -39,6 +58,7 @@ function SearchPage() {
         </p>
       </header>
 
+      {/* Main filter bar */}
       <GlassPanel className="mt-6 grid gap-3 p-4 md:grid-cols-[1fr_auto_auto_auto]">
         <label className="relative">
           <span className="sr-only">Search</span>
@@ -86,6 +106,7 @@ function SearchPage() {
         </select>
       </GlassPanel>
 
+      {/* Secondary filter row */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <FilterChip
           active={filters.verified === true}
@@ -93,14 +114,51 @@ function SearchPage() {
         >
           Verified only
         </FilterChip>
-        <FilterChip
-          active={!!filters.location}
-          onClick={() => update("location", filters.location ? undefined : "London")}
+
+        {/* Location filter — text input instead of hardcoded "London" */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            applyLocation();
+          }}
+          className="flex items-center gap-1"
         >
-          Near London
-        </FilterChip>
+          <input
+            type="text"
+            value={locationInput}
+            onChange={(e) => setLocationInput(e.target.value)}
+            placeholder="City / region…"
+            className={cn(
+              "h-7 rounded-full border px-3 text-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/30 transition-colors",
+              filters.location
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-border/60 bg-muted/40 text-muted-foreground",
+            )}
+          />
+          {locationInput.trim() && (
+            <button
+              type="submit"
+              className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/20"
+            >
+              Filter
+            </button>
+          )}
+          {filters.location && (
+            <button
+              type="button"
+              onClick={() => {
+                setLocationInput("");
+                update("location", undefined);
+              }}
+              className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              Clear location
+            </button>
+          )}
+        </form>
       </div>
 
+      {/* Results */}
       <section className="mt-6">
         <DataStateBoundary
           loading={results.isLoading}
@@ -110,11 +168,44 @@ function SearchPage() {
           emptyDescription="Try removing a filter or widening your search terms."
           onRetry={() => results.refetch()}
         >
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {results.data?.items.map((p) => (
-              <ProviderCard key={p.id} provider={p} />
-            ))}
-          </div>
+          <>
+            {results.data && totalItems > 0 && (
+              <p className="mb-3 text-xs text-muted-foreground">
+                {totalItems} result{totalItems !== 1 ? "s" : ""}
+                {filters.location ? ` near ${filters.location}` : ""}
+              </p>
+            )}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {results.data?.items.map((p) => (
+                <ProviderCard key={p.id} provider={p} />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-input disabled:opacity-40 hover:bg-accent"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-sm text-muted-foreground">
+                  Page {page + 1} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-input disabled:opacity-40 hover:bg-accent"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </>
         </DataStateBoundary>
       </section>
     </PublicShell>
@@ -146,6 +237,3 @@ function FilterChip({
     </button>
   );
 }
-
-// unused import guard
-void GlassCard;

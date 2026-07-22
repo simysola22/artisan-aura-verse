@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as BillingRouteImport } from './routes/billing'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ForEmployersRouteImport } from './routes/for-employers'
 import { Route as ForProvidersRouteImport } from './routes/for-providers'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as VerificationRouteImport } from './routes/verification'
@@ -44,6 +46,11 @@ const IndexRoute = IndexRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingRoute = BillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -74,6 +81,11 @@ const JobsRoute = JobsRouteImport.update({
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -170,12 +182,14 @@ const JobsJobIdEditRoute = JobsJobIdEditRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
@@ -198,12 +212,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
@@ -227,12 +243,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/billing': typeof BillingRoute
   '/dashboard': typeof DashboardRoute
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
   '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/verification': typeof VerificationRoute
@@ -257,12 +275,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/billing'
     | '/dashboard'
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
     | '/jobs'
     | '/messages'
+    | '/onboarding'
     | '/search'
     | '/sitemap.xml'
     | '/verification'
@@ -285,12 +305,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/billing'
     | '/dashboard'
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
     | '/jobs'
     | '/messages'
+    | '/onboarding'
     | '/search'
     | '/sitemap.xml'
     | '/verification'
@@ -313,12 +335,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/billing'
     | '/dashboard'
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
     | '/jobs'
     | '/messages'
+    | '/onboarding'
     | '/search'
     | '/sitemap.xml'
     | '/verification'
@@ -342,12 +366,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  BillingRoute: typeof BillingRoute
   DashboardRoute: typeof DashboardRoute
   ForEmployersRoute: typeof ForEmployersRoute
   ForProvidersRoute: typeof ForProvidersRoute
   HowItWorksRoute: typeof HowItWorksRoute
   JobsRoute: typeof JobsRouteWithChildren
   MessagesRoute: typeof MessagesRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   VerificationRoute: typeof VerificationRoute
@@ -376,6 +402,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing': {
+      id: '/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof BillingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -418,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -592,12 +632,14 @@ const MessagesRouteWithChildren = MessagesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  BillingRoute: BillingRoute,
   DashboardRoute: DashboardRoute,
   ForEmployersRoute: ForEmployersRoute,
   ForProvidersRoute: ForProvidersRoute,
   HowItWorksRoute: HowItWorksRoute,
   JobsRoute: JobsRouteWithChildren,
   MessagesRoute: MessagesRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   VerificationRoute: VerificationRoute,

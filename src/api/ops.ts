@@ -152,6 +152,52 @@ export function takeModerationAction(
   );
 }
 
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+export interface OpsUser {
+  id: string;
+  clerkUserId: string;
+  accountType: string;
+  status: string;
+  displayName: string | null;
+  email: string | null;
+  createdAt: string;
+  roles?: string[];
+}
+
+export function listUsers(params?: {
+  status?: string;
+  accountType?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ users: OpsUser[]; total: number }> {
+  const qs = params
+    ? "?" + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined && v !== null)
+          .map(([k, v]) => [k, String(v)])
+      ).toString()
+    : "";
+  return apiFetch<{ users: OpsUser[]; total: number }>(`/v1/ops/users${qs}`);
+}
+
+export function getOpsUser(userId: string): Promise<{ user: OpsUser }> {
+  return apiFetch<{ user: OpsUser }>(`/v1/ops/users/${userId}`);
+}
+
+export function suspendUser(userId: string, reason?: string): Promise<{ user: OpsUser }> {
+  return apiFetch<{ user: OpsUser }>(`/v1/ops/users/${userId}/suspend`, {
+    method: "POST",
+    body: reason ? { reason } : {},
+  });
+}
+
+export function reactivateUser(userId: string): Promise<{ user: OpsUser }> {
+  return apiFetch<{ user: OpsUser }>(`/v1/ops/users/${userId}/reactivate`, {
+    method: "POST",
+  });
+}
+
 // ─── Overview ─────────────────────────────────────────────────────────────────
 
 export function getOverview(): Promise<OpsOverview> {

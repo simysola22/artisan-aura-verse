@@ -1,10 +1,10 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BadgeCheck, Clock, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Briefcase, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard, GlassPanel } from "@/components/glass/glass";
-import { providersApi, messagingApi } from "@/api";
+import { providersApi, messagingApi, jobsApi, employersApi } from "@/api";
 import { DataStateBoundary } from "@/components/common/data-state";
 import { useAuth } from "@/features/auth/auth-context";
 import { ProviderCard } from "@/features/providers/provider-card";
@@ -23,6 +23,39 @@ function DashboardPage() {
   const conversationsQuery = useQuery({
     queryKey: ["conversations"],
     queryFn: messagingApi.listConversations,
+    enabled: status === "authed",
+  });
+
+  // Fetch job count for active jobs stat
+  const jobsQuery = useQuery({
+    queryKey: ["jobs-count"],
+    queryFn: () => jobsApi.listJobs({ limit: 1 }),
+    enabled: status === "authed",
+  });
+
+  // Profile existence check — new users without a profile go to onboarding
+  const profileQuery = useQuery({
+    queryKey: ["profile-exists", user?.role],
+    queryFn: async () => {
+      if (!user || user.role === "ops") return { exists: true };
+      if (user.role === "provider") {
+        return providersApi.getOwnProfile()
+          .then(() => ({ exists: true }))
+          .catch((e: { status?: number }) => {
+            if (e?.status === 404) return { exists: false };
+            throw e;
+          });
+      }
+      // employer
+      return employersApi.getProfile()
+        .then(() => ({ exists: true }))
+        .catch((e: { status?: number }) => {
+          if (e?.status === 404) return { exists: false };
+          throw e;
+        });
+    },
+    enabled: status === "authed" && !!user,
+    retry: false,
   });
 
   // Unauthenticated — redirect to login. Do not show workspace content.
@@ -31,6 +64,13 @@ function DashboardPage() {
       void navigate({ to: "/auth/login", replace: true });
     }
   }, [status, navigate]);
+
+  // No profile yet — redirect to onboarding
+  useEffect(() => {
+    if (profileQuery.isSuccess && profileQuery.data?.exists === false) {
+      void navigate({ to: "/onboarding", replace: true });
+    }
+  }, [profileQuery.isSuccess, profileQuery.data, navigate]);
 
   // Clerk resolving or PMP identity being established — wait silently.
   if (status === "loading" || status === "syncing") {
@@ -119,7 +159,11 @@ function DashboardPage() {
             value:
               providersQuery.data?.filter((p) => p.verification === "verified").length ?? "—",
           },
-          { icon: Clock, label: "Active jobs", value: "—" },
+          {
+            icon: Briefcase,
+            label: "Available jobs",
+            value: jobsQuery.data?.total ?? "—",
+          },
         ].map((s) => (
           <GlassCard key={s.label} className="p-5">
             <div className="flex items-center justify-between">
