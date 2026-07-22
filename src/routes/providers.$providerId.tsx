@@ -1,10 +1,11 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, MapPin, MessageSquare, Star, ArrowLeft } from "lucide-react";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { BadgeCheck, Loader2, MapPin, MessageSquare, Star, ArrowLeft } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard, GlassPanel } from "@/components/glass/glass";
-import { providersApi } from "@/api";
+import { messagingApi, providersApi } from "@/api";
 import { DataStateBoundary } from "@/components/common/data-state";
+import { useAuth } from "@/features/auth/auth-context";
 
 export const Route = createFileRoute("/providers/$providerId")({
   head: () => ({ meta: [{ title: "Provider profile — PMP" }] }),
@@ -13,9 +14,26 @@ export const Route = createFileRoute("/providers/$providerId")({
 
 function ProviderProfilePage() {
   const { providerId } = useParams({ from: "/providers/$providerId" });
+  const navigate = useNavigate();
+  const { status, user } = useAuth();
+
   const q = useQuery({
     queryKey: ["provider", providerId],
     queryFn: () => providersApi.get(providerId),
+  });
+
+  // Create or retrieve the conversation with this provider, then navigate to it.
+  const messageMutation = useMutation({
+    mutationFn: async () => {
+      // q.data.userId is the provider's PMP user ID (from UserBase).
+      const providerUserId = (q.data as any)?.userId as string | undefined;
+      if (!providerUserId) throw new Error("Provider user ID not found");
+      const conv = await messagingApi.createConversation(providerUserId);
+      return conv;
+    },
+    onSuccess: () => {
+      void navigate({ to: "/messages" });
+    },
   });
 
   return (
@@ -78,12 +96,28 @@ function ProviderProfilePage() {
                     ) : null}
                   </div>
                 </div>
-                <Link
-                  to="/messages"
-                  className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson md:col-auto"
-                >
-                  <MessageSquare className="h-4 w-4" /> Message
-                </Link>
+                {status === "authed" && user?.role !== "provider" && (
+                  <button
+                    onClick={() => messageMutation.mutate()}
+                    disabled={messageMutation.isPending}
+                    className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson md:col-auto disabled:opacity-60"
+                  >
+                    {messageMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <MessageSquare className="h-4 w-4" />
+                    )}
+                    Message
+                  </button>
+                )}
+                {(status === "anon" || user?.role === "provider") && (
+                  <Link
+                    to="/messages"
+                    className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson md:col-auto"
+                  >
+                    <MessageSquare className="h-4 w-4" /> Message
+                  </Link>
+                )}
               </div>
             </GlassPanel>
 

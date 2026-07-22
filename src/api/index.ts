@@ -13,3 +13,4 @@ export * as messagingApi from "./messaging";
 export * as usersApi from "./users";
 export * as subscriptionsApi from "./subscriptions";
 export * as referenceApi from "./reference";
+export * as jobsApi from "./jobs";

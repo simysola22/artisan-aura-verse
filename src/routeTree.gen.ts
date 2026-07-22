@@ -15,6 +15,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ForEmployersRouteImport } from './routes/for-employers'
 import { Route as ForProvidersRouteImport } from './routes/for-providers'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -22,6 +23,8 @@ import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as AuthLoginRouteImport } from './routes/auth.login'
 import { Route as AuthRecoverRouteImport } from './routes/auth.recover'
 import { Route as AuthRegisterRouteImport } from './routes/auth.register'
+import { Route as JobsJobIdRouteImport } from './routes/jobs.$jobId'
+import { Route as JobsCreateRouteImport } from './routes/jobs.create'
 import { Route as MessagesConversationIdRouteImport } from './routes/messages.$conversationId'
 import { Route as OpsIndexRouteImport } from './routes/ops.index'
 import { Route as OpsModerationRouteImport } from './routes/ops.moderation'
@@ -29,6 +32,7 @@ import { Route as OpsSupportRouteImport } from './routes/ops.support'
 import { Route as OpsUsersRouteImport } from './routes/ops.users'
 import { Route as OpsVerificationRouteImport } from './routes/ops.verification'
 import { Route as ProvidersProviderIdRouteImport } from './routes/providers.$providerId'
+import { Route as JobsJobIdApplyRouteImport } from './routes/jobs.$jobId.apply'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,6 +62,11 @@ const ForProvidersRoute = ForProvidersRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JobsRoute = JobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MessagesRoute = MessagesRouteImport.update({
@@ -95,6 +104,16 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   path: '/auth/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JobsJobIdRoute = JobsJobIdRouteImport.update({
+  id: '/$jobId',
+  path: '/$jobId',
+  getParentRoute: () => JobsRoute,
+} as any)
+const JobsCreateRoute = JobsCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => JobsRoute,
+} as any)
 const MessagesConversationIdRoute = MessagesConversationIdRouteImport.update({
   id: '/$conversationId',
   path: '/$conversationId',
@@ -130,6 +149,11 @@ const ProvidersProviderIdRoute = ProvidersProviderIdRouteImport.update({
   path: '/providers/$providerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JobsJobIdApplyRoute = JobsJobIdApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => JobsJobIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -145,6 +170,8 @@ export interface FileRoutesByFullPath {
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
   '/ops/support': typeof OpsSupportRoute
@@ -152,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/ops/verification': typeof OpsVerificationRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops/': typeof OpsIndexRoute
+  '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -160,6 +188,7 @@ export interface FileRoutesByTo {
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -167,6 +196,8 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
   '/ops/support': typeof OpsSupportRoute
@@ -174,6 +205,7 @@ export interface FileRoutesByTo {
   '/ops/verification': typeof OpsVerificationRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops': typeof OpsIndexRoute
+  '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -183,6 +215,7 @@ export interface FileRoutesById {
   '/for-employers': typeof ForEmployersRoute
   '/for-providers': typeof ForProvidersRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/jobs': typeof JobsRouteWithChildren
   '/messages': typeof MessagesRouteWithChildren
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -190,6 +223,8 @@ export interface FileRoutesById {
   '/auth/login': typeof AuthLoginRoute
   '/auth/recover': typeof AuthRecoverRoute
   '/auth/register': typeof AuthRegisterRoute
+  '/jobs/$jobId': typeof JobsJobIdRouteWithChildren
+  '/jobs/create': typeof JobsCreateRoute
   '/messages/$conversationId': typeof MessagesConversationIdRoute
   '/ops/moderation': typeof OpsModerationRoute
   '/ops/support': typeof OpsSupportRoute
@@ -197,6 +232,7 @@ export interface FileRoutesById {
   '/ops/verification': typeof OpsVerificationRoute
   '/providers/$providerId': typeof ProvidersProviderIdRoute
   '/ops/': typeof OpsIndexRoute
+  '/jobs/$jobId/apply': typeof JobsJobIdApplyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +243,7 @@ export interface FileRouteTypes {
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
+    | '/jobs'
     | '/messages'
     | '/search'
     | '/sitemap.xml'
@@ -214,6 +251,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/jobs/$jobId'
+    | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
     | '/ops/support'
@@ -221,6 +260,7 @@ export interface FileRouteTypes {
     | '/ops/verification'
     | '/providers/$providerId'
     | '/ops/'
+    | '/jobs/$jobId/apply'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -229,6 +269,7 @@ export interface FileRouteTypes {
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
+    | '/jobs'
     | '/messages'
     | '/search'
     | '/sitemap.xml'
@@ -236,6 +277,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/jobs/$jobId'
+    | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
     | '/ops/support'
@@ -243,6 +286,7 @@ export interface FileRouteTypes {
     | '/ops/verification'
     | '/providers/$providerId'
     | '/ops'
+    | '/jobs/$jobId/apply'
   id:
     | '__root__'
     | '/'
@@ -251,6 +295,7 @@ export interface FileRouteTypes {
     | '/for-employers'
     | '/for-providers'
     | '/how-it-works'
+    | '/jobs'
     | '/messages'
     | '/search'
     | '/sitemap.xml'
@@ -258,6 +303,8 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/recover'
     | '/auth/register'
+    | '/jobs/$jobId'
+    | '/jobs/create'
     | '/messages/$conversationId'
     | '/ops/moderation'
     | '/ops/support'
@@ -265,6 +312,7 @@ export interface FileRouteTypes {
     | '/ops/verification'
     | '/providers/$providerId'
     | '/ops/'
+    | '/jobs/$jobId/apply'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -274,6 +322,7 @@ export interface RootRouteChildren {
   ForEmployersRoute: typeof ForEmployersRoute
   ForProvidersRoute: typeof ForProvidersRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  JobsRoute: typeof JobsRouteWithChildren
   MessagesRoute: typeof MessagesRouteWithChildren
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -333,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jobs': {
+      id: '/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof JobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
@@ -381,6 +437,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/register'
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/jobs/$jobId': {
+      id: '/jobs/$jobId'
+      path: '/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof JobsJobIdRouteImport
+      parentRoute: typeof JobsRoute
+    }
+    '/jobs/create': {
+      id: '/jobs/create'
+      path: '/create'
+      fullPath: '/jobs/create'
+      preLoaderRoute: typeof JobsCreateRouteImport
+      parentRoute: typeof JobsRoute
     }
     '/messages/$conversationId': {
       id: '/messages/$conversationId'
@@ -431,8 +501,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProvidersProviderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jobs/$jobId/apply': {
+      id: '/jobs/$jobId/apply'
+      path: '/apply'
+      fullPath: '/jobs/$jobId/apply'
+      preLoaderRoute: typeof JobsJobIdApplyRouteImport
+      parentRoute: typeof JobsJobIdRoute
+    }
   }
 }
+
+interface JobsJobIdRouteChildren {
+  JobsJobIdApplyRoute: typeof JobsJobIdApplyRoute
+}
+
+const JobsJobIdRouteChildren: JobsJobIdRouteChildren = {
+  JobsJobIdApplyRoute: JobsJobIdApplyRoute,
+}
+
+const JobsJobIdRouteWithChildren = JobsJobIdRoute._addFileChildren(
+  JobsJobIdRouteChildren,
+)
+
+interface JobsRouteChildren {
+  JobsJobIdRoute: typeof JobsJobIdRouteWithChildren
+  JobsCreateRoute: typeof JobsCreateRoute
+}
+
+const JobsRouteChildren: JobsRouteChildren = {
+  JobsJobIdRoute: JobsJobIdRouteWithChildren,
+  JobsCreateRoute: JobsCreateRoute,
+}
+
+const JobsRouteWithChildren = JobsRoute._addFileChildren(JobsRouteChildren)
 
 interface MessagesRouteChildren {
   MessagesConversationIdRoute: typeof MessagesConversationIdRoute
@@ -453,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForEmployersRoute: ForEmployersRoute,
   ForProvidersRoute: ForProvidersRoute,
   HowItWorksRoute: HowItWorksRoute,
+  JobsRoute: JobsRouteWithChildren,
   MessagesRoute: MessagesRouteWithChildren,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

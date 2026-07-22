@@ -224,6 +224,84 @@ export function resubmitCase(
   });
 }
 
+// ─── Ops / Admin API functions ────────────────────────────────────────────────
+
+/**
+ * List all verification cases (ops/admin only).
+ * Real mode: GET /v1/verification/admin/cases?status=...
+ */
+export function listAll(status?: BackendCaseStatus): Promise<{ cases: VerificationCase[] }> {
+  if (USE_MOCK_API) return Promise.resolve({ cases: [] });
+  const qs = status ? `?status=${status}` : "";
+  return apiFetch<{ cases: VerificationCase[] }>(`/v1/verification/admin/cases${qs}`);
+}
+
+/**
+ * Get a single verification case with full reviewer context.
+ * Real mode: GET /v1/verification/admin/cases/:id
+ */
+export function getAdminCase(caseId: string): Promise<{ case: VerificationCase }> {
+  if (USE_MOCK_API) return Promise.reject(new Error("Mock: case not found"));
+  return apiFetch<{ case: VerificationCase }>(`/v1/verification/admin/cases/${caseId}`);
+}
+
+/**
+ * Claim a verification case for review.
+ * Real mode: POST /v1/verification/admin/cases/:id/claim
+ */
+export function claimCase(caseId: string): Promise<{ case: VerificationCase }> {
+  if (USE_MOCK_API) return Promise.reject(new Error("Mock: cannot claim case"));
+  return apiFetch<{ case: VerificationCase }>(
+    `/v1/verification/admin/cases/${caseId}/claim`,
+    { method: "POST" },
+  );
+}
+
+/**
+ * Approve a verification case.
+ * Real mode: POST /v1/verification/admin/cases/:id/approve
+ */
+export function approveCase(
+  caseId: string,
+  reason?: string,
+): Promise<{ case: VerificationCase }> {
+  if (USE_MOCK_API) return Promise.reject(new Error("Mock: cannot approve"));
+  return apiFetch<{ case: VerificationCase }>(
+    `/v1/verification/admin/cases/${caseId}/approve`,
+    { method: "POST", body: reason ? { reason } : {} },
+  );
+}
+
+/**
+ * Reject a verification case.
+ * Real mode: POST /v1/verification/admin/cases/:id/reject
+ */
+export function rejectCase(
+  caseId: string,
+  reason: string,
+): Promise<{ case: VerificationCase }> {
+  if (USE_MOCK_API) return Promise.reject(new Error("Mock: cannot reject"));
+  return apiFetch<{ case: VerificationCase }>(
+    `/v1/verification/admin/cases/${caseId}/reject`,
+    { method: "POST", body: { reason } },
+  );
+}
+
+/**
+ * Request more information from a provider.
+ * Real mode: POST /v1/verification/admin/cases/:id/request-info
+ */
+export function requestInfo(
+  caseId: string,
+  message: string,
+): Promise<{ case: VerificationCase }> {
+  if (USE_MOCK_API) return Promise.reject(new Error("Mock: cannot request info"));
+  return apiFetch<{ case: VerificationCase }>(
+    `/v1/verification/admin/cases/${caseId}/request-info`,
+    { method: "POST", body: { message } },
+  );
+}
+
 // ─── Legacy compatibility wrappers ────────────────────────────────────────────
 // These preserve the interface used by the existing verification UI page.
 

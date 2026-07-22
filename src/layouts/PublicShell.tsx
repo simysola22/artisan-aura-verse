@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutDashboard, Loader2, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
+import { Briefcase, Home, LayoutDashboard, Loader2, MessageSquare, Search, ShieldCheck, User } from "lucide-react";
 import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { GlassNav } from "@/components/glass/glass";
@@ -16,6 +16,7 @@ import {
 
 const primary = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/jobs", label: "Jobs", icon: Briefcase },
   { to: "/search", label: "Discover", icon: Search },
   { to: "/messages", label: "Messages", icon: MessageSquare },
   { to: "/verification", label: "Verification", icon: ShieldCheck },

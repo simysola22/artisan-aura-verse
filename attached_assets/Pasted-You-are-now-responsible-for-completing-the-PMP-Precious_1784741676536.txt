@@ -1,0 +1,639 @@
+You are now responsible for completing the PMP (Precious Market Place) application.
+
+The goal is to take the current repository from its present state to a fully functional MVP marketplace.
+
+IMPORTANT:
+Do not start over.
+Do not rewrite working architecture.
+Do not replace real functionality with mock/demo data.
+Do not claim something works because the code compiles.
+Inspect the existing codebase first and preserve existing conventions.
+
+The application is:
+
+PMP — Precious Market Place
+
+A marketplace connecting:
+- Employers / hirers who need work done
+- Providers / artisans / professionals who offer services
+
+Core marketplace journey:
+
+EMPLOYER:
+Register → create profile → create job → publish job → discover providers → message providers → receive applications → manage applications.
+
+PROVIDER:
+Register → create profile → complete verification → browse jobs → view job → apply → message employers → track applications.
+
+OPS:
+Review verification cases → review evidence → approve/reject/request information.
+Manage support and moderation where backend APIs already exist.
+
+TECH STACK:
+- React 19
+- TanStack Start
+- TanStack Router
+- TanStack Query
+- Tailwind CSS
+- Bun
+- Hono
+- Drizzle ORM
+- PostgreSQL
+- Clerk authentication
+- Vercel-compatible frontend build
+- External backend/database deployment compatible
+
+==================================================
+PHASE 0 — FULL REPOSITORY AUDIT
+==================================================
+
+Before making changes:
+
+1. Inspect git status.
+2. Inspect the current branch and recent commits.
+3. Inspect all existing frontend routes.
+4. Inspect all backend routes.
+5. Inspect all database schemas and migrations.
+6. Inspect all API clients.
+7. Inspect authentication flow.
+8. Inspect dashboard components.
+9. Inspect messaging.
+10. Inspect verification.
+11. Inspect provider and employer profiles.
+12. Inspect billing.
+13. Inspect ops pages.
+14. Inspect environment configuration.
+
+Create an internal checklist of:
+- What already works
+- What is partially implemented
+- What is missing
+- What is broken
+- What must be preserved
+
+Do not rewrite working code unnecessarily.
+
+==================================================
+PHASE 1 — AUTHENTICATION AND IDENTITY
+==================================================
+
+Verify the complete Clerk → PMP identity flow.
+
+Required:
+
+Provider:
+- Google sign-up
+- Email sign-up if supported
+- Sign-in
+- Sign-out
+- Session restoration
+- Correct provider account type
+
+Employer:
+- Google sign-up
+- Email sign-up if supported
+- Sign-in
+- Sign-out
+- Session restoration
+- Correct employer account type
+
+Flow:
+
+1. User selects account type.
+2. Clerk authentication begins.
+3. User completes registration.
+4. Clerk session becomes active.
+5. Frontend obtains Clerk token.
+6. Frontend calls GET /v1/auth/me.
+7. If PMP identity does not exist, call POST /v1/auth/sync.
+8. Backend verifies Clerk token.
+9. Backend creates PMP identity with correct account type.
+10. Frontend becomes authenticated.
+11. User is routed to correct dashboard/onboarding.
+
+Do not allow:
+- User to appear authenticated when PMP sync failed.
+- Provider to become employer accidentally.
+- Employer to become provider accidentally.
+- Google OAuth redirect to lose account type.
+- Missing account type to silently default to the wrong role.
+
+Use the strongest reliable account-type persistence mechanism available in the current Clerk setup.
+Use Clerk metadata where appropriate, with safe fallback handling.
+
+Add proper:
+- loading state
+- sync state
+- error state
+- retry state
+- sign-out state
+
+Test this manually.
+
+==================================================
+PHASE 2 — ONBOARDING AND PROFILE CREATION
+==================================================
+
+A new authenticated user must not land in a broken dashboard with no profile.
+
+Create a proper onboarding flow.
+
+Provider onboarding:
+- name
+- headline
+- about
+- skills
+- category
+- location
+- availability
+- hourly rate if supported
+- experience
+- portfolio/certification where appropriate
+
+Employer onboarding:
+- organization/name
+- description
+- location
+- relevant employer fields
+
+After onboarding:
+- profile is persisted to backend
+- refresh preserves the profile
+- dashboard loads real profile data
+
+If a user has a PMP identity but no profile:
+- route them to onboarding
+- do not show a broken profile-dependent dashboard
+
+==================================================
+PHASE 3 — JOB MARKETPLACE
+==================================================
+
+The audit confirmed the job marketplace is missing.
+
+Build it completely.
+
+DATABASE:
+
+Create migrations for:
+
+jobs:
+- id
+- employer identity/profile reference
+- title
+- description
+- category
+- skills
+- location
+- work type
+- budget/compensation
+- status
+- created_at
+- updated_at
+- published_at
+- deadline if appropriate
+
+job_applications:
+- id
+- job_id
+- provider identity/profile reference
+- cover message/proposal
+- proposed rate if appropriate
+- status
+- created_at
+- updated_at
+
+Requirements:
+- proper UUIDs
+- foreign keys
+- indexes
+- duplicate application prevention
+- migration integrated into existing migration system
+
+BACKEND:
+
+Implement secure job APIs.
+
+Employer:
+POST /v1/jobs
+GET /v1/jobs/my
+GET /v1/jobs/:id
+PATCH /v1/jobs/:id
+POST /v1/jobs/:id/publish
+POST /v1/jobs/:id/close
+GET /v1/jobs/:id/applications
+PATCH /v1/jobs/applications/:applicationId
+
+Public/provider:
+GET /v1/jobs
+GET /v1/jobs/:id
+
+Provider:
+POST /v1/jobs/:id/apply
+GET /v1/jobs/applications/mine
+
+Security:
+- only employers create jobs
+- only owners edit jobs
+- only providers apply
+- no duplicate applications
+- unpublished jobs not public
+- closed jobs not available for new applications
+- users cannot access unauthorized private data
+- all inputs validated with Zod
+- proper error handling
+- rate limiting
+- logging
+
+FRONTEND:
+
+Create:
+
+/jobs
+- real job listings
+- search
+- filtering
+- pagination/load more
+- loading state
+- error state
+- empty state
+
+/jobs/create
+- employer-only
+- complete job creation form
+- validation
+- save draft if supported
+- publish flow
+
+/jobs/$jobId
+- complete job details
+- employer information
+- skills
+- budget
+- location
+- status
+- apply button
+
+/jobs/$jobId/apply
+- provider-only
+- cover message
+- proposed rate where supported
+- submit application
+- duplicate application prevention
+
+Employer job management:
+- own jobs
+- draft
+- published
+- closed
+- edit
+- publish
+- close
+- applications
+
+Provider application management:
+- submitted jobs
+- application status
+
+Remove DEMO_JOBS from real production flows.
+
+If no jobs exist:
+show a real empty state, not fake jobs.
+
+==================================================
+PHASE 4 — DASHBOARD
+==================================================
+
+Replace demo data with real API data.
+
+Employer dashboard:
+- real jobs
+- job counts
+- applications
+- relevant activity
+
+Provider dashboard:
+- real available jobs
+- applications
+- profile completeness
+- verification status
+- relevant activity
+
+Remove misleading hardcoded statistics.
+
+Do not show fake:
+- average response time
+- fake jobs
+- fake talents
+- fake activity
+
+==================================================
+PHASE 5 — MESSAGING
+==================================================
+
+Fix the provider profile Message button.
+
+Correct behavior:
+
+Provider profile
+→ Message
+→ verify authentication
+→ create or find conversation with that provider
+→ navigate to exact conversation
+→ open thread
+
+Do not simply navigate to generic /messages.
+
+Fix:
+- participant DTO mismatch
+- participant IDs
+- participant names
+- participant roles
+- conversation rendering
+
+Integrate SSE realtime:
+- subscribe when conversation opens
+- receive incoming messages
+- update UI immediately
+- cleanup subscription on unmount
+- avoid duplicate messages
+
+Verify:
+Employer ↔ Provider messaging works.
+
+==================================================
+PHASE 6 — VERIFICATION
+==================================================
+
+Verification must be a real protected workflow.
+
+Anonymous user:
+- cannot access provider verification
+
+Employer:
+- cannot access provider verification
+
+Provider:
+- can create verification case
+- can add evidence
+- can remove evidence
+- can view saved evidence
+- can submit case
+- can resubmit/requested-information cases
+
+Fix evidence mapping so saved evidence appears after reload.
+
+If file storage is not yet configured:
+- support URL evidence correctly
+- do not pretend a file upload succeeded if it did not
+
+If practical, implement proper object storage upload architecture.
+
+==================================================
+PHASE 7 — PROFILE EDITING
+==================================================
+
+Build profile editing UI.
+
+Provider:
+- headline
+- about
+- skills
+- category
+- location
+- availability
+- hourly rate
+- experience
+- certifications
+- portfolio
+
+Employer:
+- organization name
+- description
+- location
+- relevant profile fields
+
+Use existing backend PATCH/POST/DELETE APIs.
+
+Changes must persist after refresh.
+
+Add delete functionality for:
+- certifications
+- portfolio items
+
+==================================================
+PHASE 8 — PUBLIC PROVIDER PROFILES
+==================================================
+
+Public provider profiles should be accessible without authentication when marked public.
+
+Anonymous users can:
+- view public profile
+- view public portfolio
+- view public information
+
+Authentication required for:
+- messaging
+- applying/interacting
+- private actions
+
+Do not expose private data.
+
+==================================================
+PHASE 9 — OPS VERIFICATION
+==================================================
+
+Use the actual verification case APIs.
+
+Ops should be able to:
+- view pending cases
+- open case details
+- see evidence
+- see provider information
+- claim case
+- approve
+- reject
+- request more information
+
+Preserve permission guards.
+
+Do not use a provider list as a substitute for verification cases.
+
+==================================================
+PHASE 10 — SUPPORT AND MODERATION
+==================================================
+
+If backend APIs already exist:
+
+Build functional frontend pages for:
+- support ticket queue
+- support ticket details
+- moderation reports
+- moderation actions
+
+Do not leave pages as empty shells if the backend functionality already exists.
+
+==================================================
+PHASE 11 — BILLING
+==================================================
+
+Audit the existing billing implementation.
+
+If billing is not ready for production:
+- do not expose broken checkout buttons
+
+If Paystack integration is configured:
+- activate valid plans
+- build pricing/subscription UI
+- initialize checkout
+- handle payment result
+- show current subscription
+- show entitlements
+
+If payment environment variables are missing:
+- clearly identify them as deployment requirements
+
+==================================================
+PHASE 12 — SECURITY AND PRODUCTION HARDENING
+==================================================
+
+Audit:
+
+Authentication:
+- Clerk token verification
+- session handling
+- sign-out
+- token expiry
+
+Authorization:
+- employer/provider separation
+- ownership checks
+- ops permissions
+- messaging participant checks
+- job ownership
+- application ownership
+
+Input:
+- Zod validation
+- malformed IDs
+- invalid payloads
+
+Infrastructure:
+- CORS
+- rate limiting
+- environment variables
+- secret exposure
+- database connection
+- migration safety
+
+Do not expose:
+- CLERK_SECRET_KEY
+- DATABASE_URL
+- Paystack secret
+- server secrets
+
+Ensure frontend only receives public VITE_ variables.
+
+==================================================
+PHASE 13 — ROUTE GUARDS
+==================================================
+
+Audit protected routes.
+
+Prevent:
+- protected content flash before redirect
+- anonymous access to protected pages
+- employer access to provider-only pages
+- provider access to employer-only actions
+
+Use the existing TanStack Router architecture correctly.
+
+==================================================
+PHASE 14 — QUALITY VERIFICATION
+==================================================
+
+Run:
+
+- frontend typecheck
+- backend typecheck
+- backend tests
+- frontend production build
+- lint
+- migration verification
+
+Then manually test:
+
+AUTH:
+- provider Google signup
+- employer Google signup
+- provider sign-in
+- employer sign-in
+- sign-out
+- session restore
+
+EMPLOYER:
+- onboarding
+- profile editing
+- create job
+- publish job
+- view own jobs
+- receive application
+- message provider
+
+PROVIDER:
+- onboarding
+- profile editing
+- browse jobs
+- view job
+- apply
+- view applications
+- verification
+- message employer
+
+MESSAGING:
+- create conversation
+- send message
+- receive realtime message
+- refresh and preserve messages
+
+OPS:
+- unauthorized access blocked
+- verification queue works
+- case actions work
+
+PUBLIC:
+- anonymous user can view public provider profile
+- private data remains protected
+
+==================================================
+IMPORTANT WORKFLOW RULE
+==================================================
+
+Work systematically.
+
+After each major phase:
+
+1. Run relevant tests.
+2. Run typecheck.
+3. Verify the application still starts.
+4. Check for regressions.
+5. Continue only after the previous phase is stable.
+
+Do not blindly modify hundreds of files at once.
+
+If a task is too large, split it into smaller implementation checkpoints.
+
+At the end, produce a final report containing:
+
+- all files changed
+- all migrations created
+- all routes created
+- all frontend pages created
+- all bugs fixed
+- all tests passed
+- build result
+- manual flows verified
+- environment variables required
+- remaining issues ranked P0/P1/P2/P3
+
+Do not call the app production-ready unless the core user journeys have actually been tested.

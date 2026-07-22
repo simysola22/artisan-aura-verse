@@ -16,6 +16,20 @@ import { USE_MOCK_API, API_BASE_URL, apiFetch, getAuthToken } from "./client";
 import { mockMessaging } from "./mock/adapter";
 import type { Conversation, Message } from "@/types";
 
+/**
+ * Get or create a 1:1 conversation with a recipient by their PMP user ID.
+ * Returns the conversation (existing or newly created).
+ */
+export function createConversation(
+  recipientId: string,
+): Promise<{ id: string; [key: string]: unknown }> {
+  if (USE_MOCK_API) return mockMessaging.listConversations().then(() => ({ id: "mock-conv" }));
+  return apiFetch<{ id: string; [key: string]: unknown }>("/v1/messaging/conversations", {
+    method: "POST",
+    body: { recipientId },
+  });
+}
+
 export function listConversations(): Promise<Conversation[]> {
   if (USE_MOCK_API) return mockMessaging.listConversations();
   return apiFetch<Conversation[]>("/v1/messaging/conversations");
