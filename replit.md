@@ -1,53 +1,43 @@
-# Precious Market Place (PMP)
+# PMP — Precious Market Place
 
-A premium marketplace connecting hirers with verified artisans and professionals. Built with TanStack Start (React SSR), Tailwind CSS v4, and a separate Hono/Bun backend.
+A premium marketplace connecting hirers with verified artisans and professionals. Built with TanStack Start (React 19) on the frontend and Hono/Bun on the backend.
 
 ## Stack
 
-- **Frontend:** React 19, TanStack Start (SSR), TanStack Router, TanStack Query, Tailwind CSS v4, Radix UI, shadcn/ui
-- **Backend:** Hono, Bun, Drizzle ORM (PostgreSQL), Clerk Auth
-- **Runtime/Package manager:** Bun
+- **Frontend**: TanStack Start, React 19, Vite, Tailwind CSS v4, Radix UI / Shadcn components
+- **Backend**: Hono, Bun, Drizzle ORM, PostgreSQL, Clerk (auth), Pino (logging)
+- **Runtime**: Bun
 
-## Running the app
+## Running on Replit
+
+Two workflows run in parallel:
+
+| Workflow | Command | Port |
+|---|---|---|
+| Start application | `bun run dev` | 5000 |
+| Start backend | `cd backend && bun run dev` | 3000 |
+
+The frontend has a **mock API mode** — it works without a live backend when `VITE_API_BASE_URL` is unset.
+
+## Environment variables / secrets
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | Backend | PostgreSQL connection string |
+| `CLERK_SECRET_KEY` | Backend | Clerk server-side key |
+| `VITE_CLERK_PUBLISHABLE_KEY` | Frontend | Clerk publishable key |
+| `VITE_API_BASE_URL` | Frontend | Backend URL (leave unset for mock mode) |
+| `SESSION_SECRET` | Backend | Session signing secret |
+
+Optional: Redis (`REDIS_URL`), S3 (`S3_*`), SMTP (`SMTP_*`) — only needed for those drivers.
+
+## Database
 
 ```bash
-bun run dev        # start the frontend dev server on port 5000
-```
-
-The frontend currently runs with mock data — no backend connection required for development.
-
-## Backend (not yet connected on Replit)
-
-The backend lives in `backend/` with its own `package.json`. To run it you need:
-
-- `DATABASE_URL` — PostgreSQL connection string
-- `CLERK_SECRET_KEY` — Clerk server-side auth key
-- `CORS_ORIGIN` — defaults to `http://localhost:5000`
-
-Run with:
-```bash
-cd backend && bun run dev   # starts Hono server
-```
-
-## Project structure
-
-```
-src/
-  api/          API client helpers
-  components/   Shared UI components (shadcn/ui based)
-  features/     Feature-scoped components and logic
-  hooks/        Custom React hooks
-  layouts/      Page layout components
-  lib/          Utilities (error capture, etc.)
-  routes/       TanStack Router file-based routes
-  styles.css    Global styles / Tailwind entry
-backend/
-  src/
-    db/         Drizzle schema and migrations
-    routes/     Hono API route handlers
-    config/     Environment config
+cd backend && bun run db:migrate   # run migrations
+cd backend && bun run db:generate  # generate migrations from schema changes
 ```
 
 ## User preferences
 
-- Keep the existing project structure and stack — do not restructure or migrate it.
+- Keep the project's existing structure and stack.
