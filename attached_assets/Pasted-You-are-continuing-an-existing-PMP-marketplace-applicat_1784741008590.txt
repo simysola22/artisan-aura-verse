@@ -1,0 +1,233 @@
+You are continuing an existing PMP marketplace application from another Replit environment.
+
+IMPORTANT:
+Do NOT start over.
+Do NOT rewrite the architecture.
+Do NOT remove existing working functionality.
+Do NOT use mock/demo data as a replacement for real functionality.
+First inspect the current repository state and continue from the code that already exists.
+
+PROJECT:
+PMP — Precious Market Place.
+
+TECH STACK:
+- Frontend: React 19 + TanStack Start + TanStack Router + TanStack Query
+- Styling: Tailwind CSS
+- Backend: Bun + Hono
+- Database: PostgreSQL + Drizzle ORM
+- Authentication: Clerk
+- Deployment target: Vercel frontend + external backend/database infrastructure
+
+The previous environment performed a large end-to-end functionality upgrade based on a full audit. The following work was started and may already exist in the repository:
+
+1. JOB MARKETPLACE SYSTEM
+A complete jobs marketplace was being implemented:
+- jobs database table
+- job applications table
+- database migration
+- backend jobs service
+- backend jobs routes
+- create job
+- edit job
+- publish job
+- list/search jobs
+- view job details
+- apply to jobs
+- employer job management
+- provider job discovery
+- application flow
+- frontend job routes and components
+- dashboard integration replacing demo job data
+
+2. MESSAGING
+The following fixes were being implemented:
+- Provider profile Message button should create or find a conversation with the actual provider
+- It should navigate directly to the correct conversation
+- Fix participant DTO mismatch between backend and frontend
+- Integrate real-time SSE messaging into the conversation view
+- Ensure incoming messages appear without manually refreshing
+
+3. VERIFICATION
+The following fixes were being implemented:
+- Verification route must require authentication
+- Only provider accounts can access provider verification
+- No hardcoded demo provider IDs
+- Verification evidence should be correctly mapped when loading existing cases
+- Evidence add/remove functionality should work
+- Existing verification backend should be preserved
+
+4. PROFILE MANAGEMENT
+The following was being implemented:
+- Provider profile editing UI
+- Employer profile editing UI
+- Profile update forms should call the existing backend PATCH endpoints
+- Certification and portfolio deletion UI where backend endpoints already exist
+
+5. OPS
+The following was being implemented:
+- Ops verification page should use actual verification case APIs rather than provider profile lists
+- Existing backend ops verification functionality should be connected to the frontend
+- Preserve the existing ops permission guards
+
+6. DASHBOARD
+The following was being implemented:
+- Remove hardcoded fake/demo marketplace data where possible
+- Connect dashboard sections to real APIs
+- Remove or replace misleading hardcoded statistics such as fake average response times
+- Add Jobs navigation where appropriate
+
+7. PUBLIC PROVIDER PROFILES
+The backend GET public provider profile endpoint should be accessible without authentication if the profile is public.
+Messaging and interaction actions should still require authentication.
+
+8. AUTHENTICATION AND ONBOARDING
+Preserve the existing Clerk authentication flow.
+Do not break:
+- Google sign-in
+- Google sign-up
+- email authentication
+- account type selection
+- employer/provider role assignment
+- PMP identity synchronization
+
+New users must not silently enter the dashboard without the correct PMP identity/profile being established.
+
+FIRST TASK — AUDIT THE CURRENT STATE:
+Before making changes:
+
+1. Check git status.
+2. Inspect recent commits and the current branch.
+3. Inspect the existing jobs-related files.
+4. Inspect database migrations.
+5. Inspect backend route registration.
+6. Inspect frontend routes.
+7. Inspect the current authentication flow.
+8. Inspect the current environment configuration.
+9. Check whether the backend is running.
+10. Check whether the frontend is running.
+11. Check whether the latest jobs migration has actually been applied to PostgreSQL.
+
+Then produce a concise report:
+
+- What of the above functionality already exists?
+- What is partially implemented?
+- What is missing?
+- What is currently broken?
+- What is the exact first blocker?
+
+DO NOT immediately rewrite code.
+
+SECOND TASK — VERIFY THE DATABASE:
+The previous environment was in the process of applying the new jobs migration.
+
+Check:
+- whether the jobs migration exists
+- whether the job applications migration exists
+- whether the migration is registered/automatically executed
+- whether the jobs and applications tables actually exist in the current database
+- whether the database connection is valid
+
+If the migration has not been applied, apply it using the project's existing migration system.
+Do not manually create tables outside the project's migration system unless absolutely necessary.
+
+THIRD TASK — VERIFY THE APPLICATION:
+Run the appropriate checks:
+
+- frontend typecheck
+- backend typecheck
+- backend tests
+- frontend production build
+- lint
+- backend startup
+- frontend startup
+
+Fix only actual errors caused by the current repository state.
+
+Do not create fake fixes that merely hide errors.
+
+FOURTH TASK — VERIFY THE CORE USER JOURNEYS MANUALLY:
+
+A. EMPLOYER:
+1. Sign up with Clerk
+2. Select employer account type
+3. Complete identity sync
+4. Create or complete employer profile
+5. Open Jobs
+6. Create a job
+7. Save/publish the job
+8. Confirm it appears in the marketplace
+9. View applications if the backend supports them
+
+B. PROVIDER:
+1. Sign up with Clerk
+2. Select provider account type
+3. Complete identity sync
+4. Complete provider profile
+5. Browse available jobs
+6. Open a job
+7. Apply to a job
+8. Confirm the application is saved
+
+C. MESSAGING:
+1. Employer opens a provider profile
+2. Clicks Message
+3. A conversation is created or existing conversation is reused
+4. User is taken to the correct conversation
+5. Send a message
+6. Confirm the other user can receive it
+7. Confirm SSE/realtime updates work
+
+D. VERIFICATION:
+1. Provider opens verification
+2. Employer cannot access provider verification
+3. Anonymous users are redirected appropriately
+4. Provider can create a verification case
+5. Provider can add evidence
+6. Provider can remove evidence
+7. Evidence remains after navigating away and returning
+8. Provider can submit the case
+
+E. PROFILE EDITING:
+1. Provider can edit their profile
+2. Employer can edit their profile
+3. Changes persist after refresh
+
+F. OPS:
+1. Unauthorized users cannot access ops pages
+2. Authorized ops users can see actual verification cases
+3. Verification actions work where backend support exists
+
+FIFTH TASK — IMPORTANT PRODUCTION RULES:
+
+- Never silently fall back to demo data when a real API should be used.
+- Never hardcode fake user IDs such as "p3" for real user flows.
+- Never allow a user to appear authenticated in the frontend while the backend identity sync has failed.
+- Never call authenticated backend APIs during SSR without a valid auth token.
+- Never expose Clerk secret keys to the frontend.
+- Never expose database credentials to Vite/client-side code.
+- Ensure all VITE_ variables are actually available during the frontend build.
+- Ensure backend CORS allows the actual frontend deployment origin.
+- Ensure Vercel production builds do not depend on Replit-only package firewall URLs.
+- Ensure lockfiles use public npm registry URLs.
+- Preserve existing migrations and do not delete production data.
+
+SIXTH TASK — FINAL REPORT:
+
+After auditing and fixing, provide:
+
+1. Exact files changed
+2. Exact bugs fixed
+3. Database migration status
+4. Frontend typecheck result
+5. Backend typecheck result
+6. Test result
+7. Production build result
+8. Whether frontend is running
+9. Whether backend is running
+10. Remaining issues ranked by severity:
+   - P0 = blocks core usage
+   - P1 = major functionality broken
+   - P2 = important but not blocking
+   - P3 = polish
+
+Do not claim the application is production-ready unless you have actually verified the core user journeys above.

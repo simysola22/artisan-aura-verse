@@ -490,10 +490,12 @@ describe("DELETE /v1/providers/profile/portfolio/:id", () => {
 });
 
 describe("GET /v1/providers/:profileId", () => {
-  it("returns 401 without auth", async () => {
+  it("returns 200 for a public profile without auth (public profiles are accessible anonymously)", async () => {
+    // Public provider profiles must be accessible without authentication (Requirement #7).
+    // Auth is only required for messaging/interaction actions, not for viewing.
     const app = makeApp(new Map(), new Map());
     const res = await app.request("/v1/providers/profile_1");
-    expect(res.status).toBe(401);
+    expect(res.status).toBe(200);
   });
 
   it("returns 200 for a public profile (requester is different user)", async () => {
