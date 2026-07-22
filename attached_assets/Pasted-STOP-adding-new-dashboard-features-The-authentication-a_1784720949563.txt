@@ -1,0 +1,87 @@
+STOP adding new dashboard features. The authentication and registration flow is still fundamentally broken.
+
+CURRENT BUG:
+When I click Sign Up, the app shows the sign-up flow but does not properly complete the Google account registration flow. Instead, it jumps directly into the workspace. The workspace then has additional issues.
+
+This must be debugged from the actual runtime behavior, not guessed.
+
+AUDIT THE COMPLETE AUTH FLOW:
+
+Landing page
+→ Sign Up as Employer or Provider
+→ Clerk Sign-Up UI
+→ Google OAuth / email registration
+→ Clerk account creation
+→ Clerk session creation
+→ frontend Clerk auth state
+→ PMP backend authentication
+→ PMP identity sync
+→ account type/role persistence
+→ onboarding
+→ correct workspace
+
+REQUIRED BEHAVIOR:
+
+1. Clicking "Sign Up as Provider" must start an actual Clerk registration flow.
+2. Clicking "Sign Up as Employer" must start an actual Clerk registration flow.
+3. Google OAuth must actually open/complete the Google registration flow when the user is not authenticated.
+4. Do not automatically redirect an unauthenticated user to /workspace.
+5. Do not treat an existing Clerk session as a new registration.
+6. If a user is already authenticated, the app must clearly handle that state rather than pretending they are signing up again.
+7. The selected account type (PROVIDER or EMPLOYER) must survive:
+   - Clerk OAuth redirects
+   - email verification redirects
+   - page refresh
+   - navigation
+8. After Clerk authentication succeeds, the app must explicitly:
+   - obtain the authenticated Clerk session
+   - sync/create the PMP identity
+   - persist the correct account type
+   - only then redirect to the correct onboarding/workspace
+9. If PMP identity synchronization fails, DO NOT silently redirect to the workspace.
+10. Display a clear error and log the exact failed step.
+
+AUTHENTICATION STATE REQUIREMENTS:
+
+Create a clear state machine for:
+- unauthenticated
+- Clerk loading
+- Clerk authenticated but PMP identity not synced
+- PMP identity syncing
+- fully authenticated PMP user
+- authentication error
+
+Do not use vague booleans that cause the app to treat every Clerk session as a fully registered PMP user.
+
+IMPORTANT DEBUGGING:
+- Inspect the actual SignUp button handlers.
+- Inspect all redirects after Clerk authentication.
+- Inspect ClerkProvider configuration.
+- Inspect the Google OAuth configuration and redirect URL.
+- Inspect the auth-context logic.
+- Inspect the PMP identity sync request.
+- Inspect the account-type persistence logic.
+- Inspect the route guards.
+- Inspect whether the user already has an existing Clerk session before starting signup.
+
+Use the browser console and network requests to verify the exact runtime sequence.
+
+Do not use mock authentication.
+Do not bypass Clerk.
+Do not automatically send users to the workspace just because Clerk reports an authenticated session.
+Do not add new marketplace features until this flow works.
+
+After fixing:
+TEST ALL OF THESE:
+1. Fresh browser/incognito → Sign Up as Provider → Google → account creation → provider onboarding/workspace.
+2. Fresh browser/incognito → Sign Up as Employer → Google → account creation → employer onboarding/workspace.
+3. Existing authenticated user → Sign Up button.
+4. Sign In → successful login → correct workspace.
+5. Refresh while authenticated.
+6. Sign Out → refresh → user remains signed out.
+7. Failed/aborted Google OAuth.
+8. PMP backend unavailable during sync.
+
+Run typecheck, tests, lint, and production build.
+
+Report the exact root cause and the exact authentication sequence after the fix.

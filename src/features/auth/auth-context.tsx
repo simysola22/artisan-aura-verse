@@ -1,20 +1,30 @@
 /**
  * PMP auth context — bridges Clerk identity to the PMP backend.
  *
- * Real mode (VITE_API_BASE_URL set, VITE_CLERK_PUBLISHABLE_KEY set):
- *   - Clerk owns session lifecycle (sign-in, sign-up, token refresh, sign-out).
- *   - This provider reacts to Clerk's isSignedIn state, fetches the PMP
- *     identity from GET /v1/auth/me, and falls back to POST /v1/auth/sync
- *     for newly registered users (reads accountType from sessionStorage).
- *   - The Clerk getToken() function is registered with the API client so
- *     every apiFetch() call automatically gets a fresh Bearer token.
+ * STATE MACHINE (real / Clerk mode):
  *
- * Mock mode (no VITE_API_BASE_URL or VITE_USE_MOCK_API=true):
- *   - Keeps the existing localStorage-backed mock auth flow so the app
- *     remains fully usable without a backend or Clerk key.
+ *   "loading"    — Clerk has not yet initialized. Render nothing auth-sensitive.
+ *   "anon"       — Clerk loaded; no active session. User is not signed in.
+ *   "syncing"    — Clerk session is active; PMP identity is being fetched or created.
+ *                  This is set immediately when isSignedIn flips to true so the UI
+ *                  can show a deterministic "setting up your account" state instead
+ *                  of racing between stale "anon" and eventual "authed".
+ *   "authed"     — Clerk session active AND PMP identity resolved. Full access.
+ *   "sync_error" — Clerk session active but PMP identity could not be fetched or
+ *                  created (backend unavailable, network error, server error).
+ *                  The user is NOT silently treated as anonymous. The UI must show
+ *                  a clear error and offer a retry button.
+ *   "suspended"  — Clerk session active but the PMP account is suspended (403).
+ *                  Do not attempt to provision. Surface to user.
  *
- * Consumer API (unchanged for all existing UI code):
- *   const { status, user, session, login, register, logout, recover } = useAuth();
+ * Mock mode (no CLERK_PUBLISHABLE_KEY):
+ *   Uses the localStorage-backed mock flow. Status is limited to
+ *   "loading" | "anon" | "authed" — mock mode has no backend and therefore
+ *   no sync_error or suspended states.
+ *
+ * Consumer API:
+ *   const { status, user, session, login, register, logout, recover,
+ *           pmpIdentity, syncError, retrySync } = useAuth();
  */
 
 import {
@@ -27,9 +37,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-// Clerk hooks — imported at module level but only called inside ClerkBackedAuthProvider,
-// which is only rendered in real mode. This satisfies React's rules of hooks because
-// hooks are always called from the same component on every render of that component.
 import {
   useAuth as useClerkAuth,
   useUser as useClerkUser,
@@ -46,12 +53,22 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Status = "loading" | "anon" | "authed";
+export type AuthStatus =
+  | "loading"    // Clerk not yet initialized
+  | "anon"       // Clerk loaded, no active session
+  | "syncing"    // Clerk signed in, PMP identity being established
+  | "authed"     // Clerk + PMP both resolved
+  | "sync_error" // Clerk signed in but PMP sync failed (show error + retry)
+  | "suspended"; // Clerk signed in but PMP account is suspended
 
 interface AuthContextValue {
-  status: Status;
+  status: AuthStatus;
   user: User | null;
   session: AuthSession | null;
+  /** Human-readable error when status === "sync_error". */
+  syncError: string | null;
+  /** Retry the PMP identity sync after a sync_error. */
+  retrySync: () => void;
   /** Mock mode only: sign in with email + password. */
   login: (email: string, password: string) => Promise<void>;
   /** Mock mode only: register with email, password, displayName, and role. */
@@ -65,7 +82,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   /** Mock mode only: request a password recovery email. */
   recover: (email: string) => Promise<void>;
-  /** Real mode: full PMP identity with roles and permissions. null in mock mode. */
+  /** Real mode: full PMP identity. null in mock mode or before sync completes. */
   pmpIdentity: PmpIdentityResponse | null;
 }
 
@@ -73,14 +90,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Map backend accountType → frontend UserRole for existing UI consumers. */
 function toUserRole(accountType: string): UserRole {
   if (accountType === "provider") return "provider";
   if (accountType === "employer") return "employer";
   return "ops";
 }
 
-/** Shape the backend PmpIdentityResponse into the existing frontend User type. */
 function toFrontendUser(identity: PmpIdentityResponse): User {
   const { user } = identity;
   const role = toUserRole(user.accountType);
@@ -122,7 +137,7 @@ function toFrontendUser(identity: PmpIdentityResponse): User {
   };
 }
 
-// ─── Mock-mode provider (localStorage-backed, no Clerk) ───────────────────────
+// ─── Mock-mode provider ───────────────────────────────────────────────────────
 
 const SESSION_KEY = "mp.session.token";
 const USER_KEY = "mp.session.user";
@@ -138,7 +153,7 @@ function readStoredUser(): User | null {
 }
 
 function MockAuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<Status>("loading");
+  const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<AuthSession | null>(null);
 
@@ -199,27 +214,47 @@ function MockAuthProvider({ children }: { children: ReactNode }) {
     await authApi.recover(email);
   }, []);
 
+  const retrySync = useCallback(() => {
+    // No-op in mock mode — there is no backend sync.
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, session, login, register, logout, recover, pmpIdentity: null }),
-    [status, user, session, login, register, logout, recover],
+    () => ({
+      status,
+      user,
+      session,
+      syncError: null,
+      retrySync,
+      login,
+      register,
+      logout,
+      recover,
+      pmpIdentity: null,
+    }),
+    [status, user, session, retrySync, login, register, logout, recover],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 // ─── Real (Clerk-backed) provider ─────────────────────────────────────────────
-// Only rendered when USE_MOCK_API is false. Clerk hooks are valid here because
-// this component is always mounted under <ClerkProvider> in real mode.
 
 function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
   const { getToken, isSignedIn, isLoaded, signOut } = useClerkAuth();
   const { user: clerkUser } = useClerkUser();
 
-  const [status, setStatus] = useState<Status>("loading");
+  const [status, setStatus] = useState<AuthStatus>("loading");
   const [pmpIdentity, setPmpIdentity] = useState<PmpIdentityResponse | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
-  // Register the Clerk token getter with the API client.
-  // Every apiFetch({ auth: true }) call will automatically include a fresh Bearer token.
+  // retryKey increments trigger a re-run of the identity-load effect.
+  const [retryKey, setRetryKey] = useState(0);
+
+  // Guard against concurrent loads (e.g. React Strict Mode double-invoke).
+  const loadingRef = useRef(false);
+
+  // Register the Clerk token getter so every apiFetch({ auth: true }) call
+  // automatically attaches a fresh Bearer token.
   useEffect(() => {
     setApiTokenGetter(() => getToken());
     return () => {
@@ -227,49 +262,59 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
     };
   }, [getToken]);
 
-  // Guard against concurrent identity loads (e.g. React Strict Mode double-invoke).
-  const loadingRef = useRef(false);
-
   useEffect(() => {
     if (!isLoaded) return;
 
     if (!isSignedIn) {
+      // Clerk loaded and no active session — user is genuinely signed out.
       setPmpIdentity(null);
       setUser(null);
+      setSyncError(null);
       setStatus("anon");
       loadingRef.current = false;
       return;
     }
 
+    // Clerk session is active. Guard against concurrent executions.
     if (loadingRef.current) return;
     loadingRef.current = true;
 
+    // Immediately signal that PMP identity resolution is in progress.
+    // This prevents the UI from flashing "anon" or rendering workspace
+    // content before we know whether PMP sync will succeed.
+    setStatus("syncing");
+    setSyncError(null);
+
     async function loadIdentity() {
       try {
-        // Try to load the existing PMP identity for this Clerk user.
+        // ── Step 1: try to fetch existing PMP identity ──
+        console.info("[PMP] Fetching identity via GET /v1/auth/me");
         const identity = await authApi.me();
+        console.info("[PMP] Identity loaded:", identity.user.id, identity.user.accountType);
         setPmpIdentity(identity);
         setUser(toFrontendUser(identity));
+        setSyncError(null);
         setStatus("authed");
+        return;
       } catch (meErr) {
         const meStatus = (meErr as { status?: number }).status;
+        console.info("[PMP] GET /v1/auth/me failed with status:", meStatus);
 
-        // 403 = account suspended. Do not attempt to provision — surface as anon.
+        // ── Suspended account — do not provision ──
         if (meStatus === 403) {
           console.warn("[PMP] Account suspended — contact support.");
-          setStatus("anon");
+          setStatus("suspended");
           return;
         }
 
-        // All other failures (401 = no PMP identity yet, 404 = backend not reachable
-        // via the dev proxy, network error, 5xx, etc.): attempt sync.
+        // ── Step 2: attempt to create/recover PMP identity via sync ──
+        // sync() is idempotent: returns the existing record if the user
+        // already has one, or creates a new one using the pending
+        // registration data written to localStorage before the Clerk flow.
         //
-        // sync() is idempotent — if the user already has a PMP account the
-        // endpoint returns it unchanged, so calling sync when we should have
-        // called me() is always safe.
-        //
-        // Pending registration data is stored in localStorage (not sessionStorage)
-        // so it survives Clerk's email-verification round-trip through accounts.clerk.com.
+        // localStorage is used (not sessionStorage) because Clerk's OAuth
+        // and email-verification flows do full-page redirects through
+        // accounts.clerk.com, which wipes sessionStorage.
         const accountType =
           (localStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as "employer" | "provider") ??
           "employer";
@@ -281,6 +326,8 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
             | "professional"
             | null) ?? undefined;
 
+        console.info("[PMP] Syncing identity via POST /v1/auth/sync with accountType:", accountType);
+
         try {
           const syncInput: {
             accountType: "employer" | "provider";
@@ -291,20 +338,31 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
           if (providerKind) syncInput.providerKind = providerKind;
 
           const identity = await authApi.sync(syncInput);
+          console.info("[PMP] Identity synced:", identity.user.id, identity.user.accountType);
 
-          // Clean up pending keys after successful sync.
+          // Clean up pending keys after a successful sync.
           localStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
           localStorage.removeItem(PENDING_DISPLAY_NAME_KEY);
           localStorage.removeItem(PENDING_PROVIDER_KIND_KEY);
 
           setPmpIdentity(identity);
           setUser(toFrontendUser(identity));
+          setSyncError(null);
           setStatus("authed");
-        } catch {
-          // Sync also failed — backend is unreachable or there is a server error.
-          // Clerk session is valid but PMP identity cannot be established.
-          console.error("[PMP] Failed to load or provision identity. Backend may be unavailable.");
-          setStatus("anon");
+        } catch (syncErr) {
+          // ── Sync failed — backend is unreachable or returned an error ──
+          // Do NOT silently fall back to "anon". The Clerk session is valid;
+          // the failure is a backend/network problem that the user should see.
+          const errMsg =
+            syncErr instanceof Error
+              ? syncErr.message
+              : "Unexpected error contacting the server";
+          console.error("[PMP] Identity sync failed:", syncErr);
+          setSyncError(
+            `Could not set up your PMP account. ${errMsg}. ` +
+              "Check that the backend is running, then try again.",
+          );
+          setStatus("sync_error");
         }
       } finally {
         loadingRef.current = false;
@@ -312,16 +370,22 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
     }
 
     void loadIdentity();
-  }, [isLoaded, isSignedIn, clerkUser]);
+  }, [isLoaded, isSignedIn, clerkUser, retryKey]);
+
+  const retrySync = useCallback(() => {
+    loadingRef.current = false; // allow the effect to re-enter
+    setRetryKey((k) => k + 1);
+  }, []);
 
   const logout = useCallback(async () => {
     await signOut();
     setPmpIdentity(null);
     setUser(null);
+    setSyncError(null);
     setStatus("anon");
+    loadingRef.current = false;
   }, [signOut]);
 
-  // These are no-ops in real mode — Clerk components handle sign-in/up.
   const login = useCallback(async (_e: string, _p: string) => {
     throw new Error("Use Clerk SignIn component for authentication.");
   }, []);
@@ -333,18 +397,26 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, session: null, login, register, logout, recover, pmpIdentity }),
-    [status, user, pmpIdentity, login, register, logout, recover],
+    () => ({
+      status,
+      user,
+      session: null,
+      syncError,
+      retrySync,
+      login,
+      register,
+      logout,
+      recover,
+      pmpIdentity,
+    }),
+    [status, user, syncError, retrySync, pmpIdentity, login, register, logout, recover],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// ─── Public provider — selects real vs mock automatically ─────────────────────
+// ─── Public provider ──────────────────────────────────────────────────────────
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Use ClerkBackedAuthProvider whenever a publishable key is present — this mirrors
-  // the ClerkProvider mounting condition in RootComponent exactly.
-  // Fall back to mock only when no key is configured (no ClerkProvider in the tree).
   if (!CLERK_PUBLISHABLE_KEY) {
     return <MockAuthProvider>{children}</MockAuthProvider>;
   }
@@ -358,4 +430,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
   return ctx;
 }
-
