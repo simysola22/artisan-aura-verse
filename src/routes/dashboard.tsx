@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BadgeCheck, Clock, Loader2, MessageSquare, ShieldCheck } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
@@ -16,25 +17,71 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardPage() {
-  const { status, user } = useAuth();
+  const { status, user, syncError, retrySync } = useAuth();
+  const navigate = useNavigate();
   const providersQuery = useQuery({ queryKey: ["providers"], queryFn: providersApi.list });
   const conversationsQuery = useQuery({
     queryKey: ["conversations"],
     queryFn: messagingApi.listConversations,
   });
 
-  // Do not render workspace content while Clerk is still resolving the session.
-  if (status === "loading") {
+  // Unauthenticated — redirect to login. Do not show workspace content.
+  useEffect(() => {
+    if (status === "anon") {
+      void navigate({ to: "/auth/login", replace: true });
+    }
+  }, [status, navigate]);
+
+  // Clerk resolving or PMP identity being established — wait silently.
+  if (status === "loading" || status === "syncing") {
     return (
       <PublicShell>
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your workspace…</p>
+          <p className="text-sm text-muted-foreground">
+            {status === "syncing" ? "Setting up your account…" : "Loading your workspace…"}
+          </p>
         </div>
       </PublicShell>
     );
   }
 
+  // PMP backend sync failed — show error with retry rather than silently falling through.
+  if (status === "sync_error") {
+    return (
+      <PublicShell>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-base font-semibold text-destructive">Could not set up your account</p>
+          <p className="max-w-md text-sm text-muted-foreground">{syncError}</p>
+          <button
+            onClick={retrySync}
+            className="rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson transition-opacity hover:opacity-95"
+          >
+            Try again
+          </button>
+        </div>
+      </PublicShell>
+    );
+  }
+
+  // Account suspended.
+  if (status === "suspended") {
+    return (
+      <PublicShell>
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-4 text-center">
+          <p className="text-base font-semibold">Account suspended</p>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Your account has been suspended. Please contact support for assistance.
+          </p>
+        </div>
+      </PublicShell>
+    );
+  }
+
+  // Redirect in-flight — render nothing to avoid a flash.
+  if (status === "anon") return null;
+
+  // status === "authed" from here — user is guaranteed non-null.
   const firstName = user?.displayName?.split(" ")[0] ?? "there";
 
   return (

@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard } from "@/components/glass/glass";
 import { useAuth } from "@/features/auth/auth-context";
@@ -9,7 +11,27 @@ export const Route = createFileRoute("/account")({
 });
 
 function AccountPage() {
-  const { user, logout } = useAuth();
+  const { user, status, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (status === "anon") {
+      void navigate({ to: "/auth/login", replace: true });
+    }
+  }, [status, navigate]);
+
+  if (status === "loading" || status === "syncing") {
+    return (
+      <PublicShell>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </PublicShell>
+    );
+  }
+
+  if (status === "anon") return null;
+
   return (
     <PublicShell>
       <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Account</h1>

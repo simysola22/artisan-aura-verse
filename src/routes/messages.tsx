@@ -1,13 +1,13 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Loader2, MessageSquare, Send } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard } from "@/components/glass/glass";
 import { messagingApi } from "@/api";
 import { DataStateBoundary, EmptyState } from "@/components/common/data-state";
 import { useAuth } from "@/features/auth/auth-context";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Send } from "lucide-react";
 
 export const Route = createFileRoute("/messages")({
   head: () => ({ meta: [{ title: "Messages — PMP" }] }),
@@ -15,6 +15,27 @@ export const Route = createFileRoute("/messages")({
 });
 
 function MessagesIndex() {
+  const { status } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (status === "anon") {
+      void navigate({ to: "/auth/login", replace: true });
+    }
+  }, [status, navigate]);
+
+  if (status === "loading" || status === "syncing") {
+    return (
+      <PublicShell>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        </div>
+      </PublicShell>
+    );
+  }
+
+  if (status === "anon") return null;
+
   return <MessagesLayout />;
 }
 
