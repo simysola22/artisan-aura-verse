@@ -186,6 +186,7 @@ export async function loadParticipants(
       userId: conversationParticipants.userId,
       displayName: users.displayName,
       avatarUrl: users.avatarUrl,
+      accountType: users.accountType,
       lastReadAt: conversationParticipants.lastReadAt,
     })
     .from(conversationParticipants)

@@ -1,0 +1,988 @@
+You are the lead engineer responsible for taking PMP from its current partially functional state to a genuinely functional, production-ready marketplace MVP.
+
+PMP is a marketplace connecting EMPLOYERS/HIRERS with PROVIDERS/ARTISANS/PROFESSIONALS.
+
+The existing stack is:
+
+FRONTEND:
+- TanStack Start
+- React 19
+- TanStack Router
+- TanStack Query
+- Vite
+- Tailwind CSS v4
+- Clerk authentication
+
+BACKEND:
+- Bun
+- Hono
+- Drizzle ORM
+- PostgreSQL
+- Zod validation
+- Pino logging
+
+INFRASTRUCTURE:
+- PostgreSQL hosted on Railway
+- Backend currently running on Replit
+- Frontend currently running on Replit
+- Clerk used for authentication
+- The database is external and DATABASE_URL is configured through environment secrets
+
+IMPORTANT RULES:
+
+1. DO NOT rewrite the entire application.
+2. DO NOT replace the existing architecture unnecessarily.
+3. DO NOT introduce demo data, fake data, mock jobs, fake providers, or hardcoded user IDs.
+4. DO NOT use hardcoded IDs such as "p3" or any demo account as a fallback.
+5. Reuse existing API clients, services, schemas, middleware, components, design system, and architectural conventions wherever possible.
+6. Before changing a feature, inspect the existing implementation and understand how the frontend, backend, database, authentication, and authorization currently work together.
+7. Keep frontend and backend API contracts synchronized.
+8. Every user-owned resource must be protected against IDOR and unauthorized access.
+9. Every database change must use proper Drizzle migrations.
+10. Do not mark a feature as complete just because the UI renders. Verify that the full flow works from frontend to backend to database and back.
+11. Do not silently swallow errors.
+12. Do not leave broken placeholder buttons that appear functional.
+13. If a feature cannot be fully implemented because an external service or secret is missing, implement the correct architecture and clearly report the required environment variable or external configuration.
+14. Preserve the current visual design language of PMP. Do not redesign the entire application unless necessary.
+15. Work in logical phases, but complete the entire implementation described below in this task.
+16. After every major phase, run validation before continuing.
+17. Do not stop after only reporting problems. Fix the problems.
+
+==================================================
+PHASE 0 — FULL REPOSITORY AUDIT
+==================================================
+
+Before modifying code, inspect the entire repository.
+
+Audit:
+
+- frontend routes
+- frontend API clients
+- auth context
+- Clerk integration
+- TanStack Router configuration
+- TanStack Query usage
+- backend routes
+- backend middleware
+- database schema
+- migrations
+- services
+- authorization checks
+- existing tests
+- environment variable handling
+- dashboard flows
+- profile flows
+- messaging flows
+- verification flows
+- ops flows
+- billing flows
+- search flows
+
+Create an internal map of:
+
+Frontend route
+→ API client
+→ Backend route
+→ Service
+→ Database table
+
+Identify any existing API contract mismatches before implementing new features.
+
+Do not create duplicate APIs where equivalent backend functionality already exists.
+
+==================================================
+PHASE 1 — AUTHENTICATION, ONBOARDING, AND USER FOUNDATION
+==================================================
+
+Fix the authentication and onboarding flow completely.
+
+The intended flow is:
+
+New user
+↓
+Clerk registration/login
+↓
+PMP auth sync
+↓
+Determine account type
+↓
+Provider or Employer onboarding
+↓
+Create corresponding profile
+↓
+Dashboard
+
+A user must never silently reach the dashboard with a PMP users row but no corresponding provider/employer profile unless the application intentionally supports an incomplete onboarding state.
+
+Implement a proper onboarding flow.
+
+For PROVIDERS, collect the minimum useful profile data such as:
+
+- display name
+- headline
+- about/bio
+- location
+- skills
+- availability
+- hourly rate if supported by the existing schema
+
+For EMPLOYERS, collect:
+
+- organization/business name
+- description
+- location
+
+Use the existing profile creation endpoints if they already exist.
+
+Do not duplicate profile creation logic.
+
+The account type must be reliably preserved through registration flows, including:
+
+- email registration
+- email verification
+- OAuth
+- redirect-based flows
+- refreshes
+
+Do not rely exclusively on localStorage for account type.
+
+Use Clerk metadata or another reliable mechanism where appropriate, with localStorage only as a fallback if necessary.
+
+Handle:
+
+- registration failure
+- missing account type
+- interrupted onboarding
+- already-created profile
+- refresh during onboarding
+- user returning later
+
+The onboarding flow must be recoverable.
+
+==================================================
+PHASE 2 — PROTECTED ROUTES AND AUTHORIZATION
+==================================================
+
+Fix protected routes.
+
+At minimum, verify and correctly protect:
+
+- dashboard
+- account
+- messages
+- verification
+- employer-only pages
+- provider-only pages
+- ops pages
+
+Anonymous users must be redirected to the login flow before accessing protected functionality.
+
+Do not use hardcoded demo users or IDs.
+
+For verification specifically:
+
+- Anonymous users must not access provider verification.
+- Employers must not access provider verification.
+- Only the authenticated provider associated with the verification case can access or mutate their own verification data.
+- Remove any fallback such as "p3".
+- Never use demo accounts as fallback data.
+
+Where TanStack Router supports appropriate route-level guards, use them to avoid flashing protected content before redirecting.
+
+However, do not break SSR or Clerk hydration by introducing guards that execute before authentication state is available.
+
+Choose the correct guard strategy for the existing TanStack Start architecture.
+
+==================================================
+PHASE 3 — PROFILE MANAGEMENT
+==================================================
+
+Build a complete profile management experience.
+
+PROVIDERS must be able to edit:
+
+- headline
+- about
+- skills
+- hourly rate
+- availability
+- location
+- experience
+- certifications
+- portfolio items
+
+EMPLOYERS must be able to edit:
+
+- organization name
+- description
+- location
+
+Use the existing backend PATCH/POST/DELETE endpoints where available.
+
+If backend endpoints already exist, do not create duplicate endpoints.
+
+Add proper loading states, error states, success states, and validation.
+
+Users must be able to:
+
+- create a profile
+- edit a profile
+- save changes
+- refresh the page
+- see the changes persist
+
+Providers must be able to remove certifications and portfolio items if corresponding backend delete endpoints already exist.
+
+Do not show fake data.
+
+==================================================
+PHASE 4 — PUBLIC PROVIDER PROFILES
+==================================================
+
+Public provider profiles should be accessible to anonymous users when the profile is marked public.
+
+The public profile flow should be:
+
+Anonymous visitor
+↓
+Search/shared provider profile link
+↓
+View public provider profile
+
+Authentication should only be required for actions such as:
+
+- messaging
+- hiring
+- applying
+- saving/bookmarking if implemented
+
+Fix the backend route and frontend behavior if public profile access currently incorrectly requires authentication.
+
+Ensure private profile data is never exposed.
+
+Only public profile fields should be returned to anonymous visitors.
+
+==================================================
+PHASE 5 — MESSAGING
+==================================================
+
+Make messaging fully functional.
+
+The intended flow is:
+
+Employer views provider profile
+↓
+Clicks Message
+↓
+Frontend calls POST /v1/messaging/conversations
+↓
+Backend finds or creates the conversation
+↓
+Frontend navigates directly to that conversation
+↓
+User can send messages
+↓
+Incoming messages appear in real time
+
+Fix the current Message button so it actually targets the selected provider.
+
+Do not simply navigate to /messages without creating or selecting the correct conversation.
+
+Fix any frontend/backend DTO mismatch involving:
+
+- participant.id
+- participant.userId
+- participant.role
+- participant display information
+
+Choose one consistent API contract and update both sides accordingly.
+
+Ensure the conversation list renders correct participant names and roles.
+
+Integrate the existing SSE subscription into the active conversation view.
+
+When the conversation page opens:
+
+- subscribe to the conversation stream
+- receive incoming messages
+- update the UI immediately
+- update React Query cache or appropriate local state
+- clean up the subscription when the component unmounts or conversation changes
+
+Handle:
+
+- connection errors
+- reconnection where appropriate
+- duplicate messages
+- component cleanup
+- unauthorized access
+
+Ensure conversation ownership and participant authorization remain enforced server-side.
+
+Do not trust conversation IDs supplied by the client without authorization checks.
+
+==================================================
+PHASE 6 — VERIFICATION SYSTEM
+==================================================
+
+Make verification genuinely functional.
+
+The intended flow is:
+
+Provider
+↓
+Starts verification
+↓
+Creates draft case
+↓
+Completes Identity
+↓
+Completes Experience
+↓
+Completes Certifications
+↓
+Completes Portfolio
+↓
+Reviews submission
+↓
+Adds evidence
+↓
+Submits case
+↓
+Ops reviews case
+↓
+Approved / rejected / information requested
+
+The verification frontend must actually call the existing backend evidence APIs.
+
+The evidence flow must support:
+
+- adding evidence
+- displaying existing evidence
+- removing evidence
+- preserving evidence after refresh
+- submitting the case with evidence attached
+
+Fix any mapper that currently returns an empty evidence array.
+
+Correctly map backend evidence fields to frontend fields.
+
+For example, ensure fields such as:
+
+- fileUrl
+- evidenceType
+- label
+- metadata
+
+are correctly represented in the frontend.
+
+For the MVP, URL-based evidence may be supported immediately.
+
+If actual binary file upload is implemented, use proper object storage architecture.
+
+Do not pretend that a file upload succeeded if no file was actually uploaded.
+
+If file storage is not available yet, clearly distinguish between:
+
+- URL evidence
+- actual uploaded files
+
+Do not show a drag-and-drop uploader that does nothing.
+
+If the UI says upload, it must actually upload.
+
+==================================================
+PHASE 7 — BUILD THE COMPLETE JOB MARKETPLACE
+==================================================
+
+This is the most important missing system in PMP.
+
+PMP must support the complete job marketplace journey.
+
+The intended flow is:
+
+EMPLOYER:
+
+Employer
+↓
+Create job
+↓
+Save draft or publish
+↓
+Job appears in job discovery
+↓
+Providers view job
+↓
+Providers apply
+↓
+Employer sees applications
+↓
+Employer reviews applicants
+↓
+Employer shortlists/rejects/accepts
+↓
+Employer can message applicants
+↓
+Job can eventually be marked filled/completed
+
+PROVIDER:
+
+Provider
+↓
+Browse available jobs
+↓
+Search/filter jobs
+↓
+Open job details
+↓
+Apply
+↓
+Track application status
+
+Create a proper database schema using Drizzle migrations.
+
+At minimum, create a jobs table with appropriate fields such as:
+
+- id
+- employer user/profile reference
+- title
+- description
+- category
+- skills
+- location
+- budget or compensation fields if supported
+- status
+- createdAt
+- updatedAt
+- publishedAt
+- deadline if supported
+
+Create a job_applications table with fields such as:
+
+- id
+- jobId
+- provider user/profile reference
+- cover letter/proposal
+- proposed rate or bid if supported
+- status
+- createdAt
+- updatedAt
+
+Use proper foreign keys and indexes.
+
+Avoid unnecessary duplication.
+
+Suggested job lifecycle:
+
+- draft
+- published
+- paused
+- filled
+- closed
+- cancelled
+
+Suggested application lifecycle:
+
+- submitted
+- under_review
+- shortlisted
+- accepted
+- rejected
+- withdrawn
+
+The backend must implement secure routes for:
+
+EMPLOYER:
+
+- create job
+- update job
+- publish job
+- pause job
+- close job
+- list own jobs
+- view applications
+- update application status
+
+PROVIDER:
+
+- browse published jobs
+- search jobs
+- filter jobs
+- view job details
+- apply to job
+- view own applications
+- withdraw application if appropriate
+
+Authorization rules:
+
+- Only the owning employer can edit their job.
+- Only the owning employer can view/manage applications for their job.
+- Providers can only modify their own applications.
+- A provider cannot apply to the same job multiple times unless explicitly allowed.
+- Providers cannot apply to unpublished or closed jobs.
+- Users cannot manipulate another user's job or application by changing an ID in the URL.
+- Suspended users must be prevented from prohibited actions if the existing platform supports suspension.
+
+Add proper Zod validation for all job and application inputs.
+
+Add pagination to job discovery and application lists.
+
+Add useful indexes for common queries.
+
+==================================================
+PHASE 8 — JOB FRONTEND
+==================================================
+
+Create the required frontend routes using the existing design system.
+
+At minimum:
+
+/jobs
+
+/jobs/$jobId
+
+/jobs/create
+
+/jobs/$jobId/apply
+
+/jobs/manage
+
+/jobs/$jobId/applications
+
+The exact routing structure may be adapted to the existing TanStack Router conventions.
+
+The JOB DISCOVERY page must support:
+
+- job cards
+- search
+- filtering
+- pagination or load more
+- empty states
+- loading states
+- error states
+
+The JOB DETAIL page must show:
+
+- title
+- description
+- employer information
+- location
+- skills
+- compensation if available
+- status
+- created date
+- application status for the current provider
+
+The EMPLOYER JOB CREATION FORM must:
+
+- validate input
+- support saving a draft
+- support publishing
+- show clear errors
+- prevent invalid submissions
+
+The PROVIDER APPLICATION FORM must:
+
+- allow a cover letter/proposal
+- support relevant bid/rate fields if the schema supports them
+- prevent duplicate applications
+- show success/error states
+
+The EMPLOYER APPLICATION MANAGEMENT PAGE must:
+
+- show applicants
+- show provider profile summaries
+- show proposals
+- allow status changes
+- allow shortlisting
+- allow rejection
+- allow acceptance where appropriate
+
+Do not use DEMO_JOBS or DEMO_TALENTS.
+
+All job data must come from the backend.
+
+==================================================
+PHASE 9 — DASHBOARD
+==================================================
+
+Remove fake marketplace data.
+
+Remove imports and usage of:
+
+- DEMO_JOBS
+- DEMO_TALENTS
+- other fake marketplace data
+
+Employer dashboard should show real:
+
+- active jobs
+- draft jobs
+- application counts
+- recent applications
+- relevant marketplace statistics
+
+Provider dashboard should show real:
+
+- recommended jobs
+- active applications
+- application statuses
+- profile completion
+- verification status
+
+If a feature is not yet supported by the backend, show an honest empty state instead of fake numbers.
+
+Remove or fix hardcoded statistics such as:
+
+"Average response: 2h 14m"
+
+Do not display misleading metrics.
+
+Either calculate them from real data or remove them.
+
+==================================================
+PHASE 10 — OPS VERIFICATION
+==================================================
+
+Fix the operations verification dashboard.
+
+The ops verification page must use the actual verification case API.
+
+It should display actual verification cases rather than merely listing provider profiles.
+
+Ops users should be able to:
+
+- view pending cases
+- claim cases if supported
+- view evidence
+- view case details
+- approve
+- reject
+- request more information
+
+Respect existing permission checks.
+
+Do not bypass backend authorization.
+
+==================================================
+PHASE 11 — OPS SUPPORT AND MODERATION
+==================================================
+
+If backend support and moderation APIs already exist, build functional frontend interfaces.
+
+Support should include:
+
+- ticket list
+- ticket detail
+- status
+- priority
+- responses/actions supported by the backend
+
+Moderation should include:
+
+- report queue
+- reported content
+- report details
+- moderation actions supported by the backend
+
+Do not leave routes that appear to be functional but only render empty placeholders if the backend already supports the functionality.
+
+==================================================
+PHASE 12 — BILLING
+==================================================
+
+Inspect the existing billing backend and frontend API client.
+
+If the backend is already implemented:
+
+- activate valid subscription plans
+- create a pricing/subscription page
+- show available plans
+- allow the user to initiate checkout
+- redirect to the payment provider
+- show subscription status
+- show billing information
+
+Use the existing Paystack integration.
+
+Do not hardcode secret keys.
+
+If PAYSTACK_SECRET_KEY is missing, do not fake successful payments.
+
+Clearly report the required environment configuration.
+
+Ensure webhook handling is secure and idempotent.
+
+==================================================
+PHASE 13 — SEARCH
+==================================================
+
+Improve search using existing backend capabilities.
+
+Expose useful filters such as:
+
+- skills
+- availability
+- minimum experience
+- location
+- profile completeness where appropriate
+
+Replace hardcoded labels such as:
+
+"Near London"
+
+with a proper location input or location filter.
+
+Ensure pagination is actually usable in the frontend.
+
+Do not expose private provider data.
+
+==================================================
+PHASE 14 — SECURITY AND PRODUCTION HARDENING
+==================================================
+
+Review all user-owned routes for IDOR vulnerabilities.
+
+Verify:
+
+- authentication
+- authorization
+- ownership
+- role restrictions
+- input validation
+- SQL query safety
+- CORS
+- rate limiting
+- error handling
+- secret exposure
+
+Improve the rate limiter if the current architecture supports Redis.
+
+If Redis is configured, use a distributed rate limiter where appropriate.
+
+If Redis is not configured, ensure the in-memory implementation is clearly understood as single-instance protection.
+
+Do not expose backend secrets to the frontend.
+
+Do not return unnecessary private data from public endpoints.
+
+Ensure errors do not leak sensitive database or infrastructure information.
+
+==================================================
+PHASE 15 — OBSERVABILITY AND ERROR HANDLING
+==================================================
+
+Preserve structured Pino logging.
+
+Ensure important failures are logged with useful context without exposing secrets.
+
+Review frontend error boundaries.
+
+Review backend error handling.
+
+Do not silently convert every failure into a generic "Internal Server Error" if a useful safe message can be returned.
+
+Ensure:
+
+- database errors are logged
+- authentication errors are handled
+- authorization errors are distinct
+- validation errors are clear
+- not-found errors are handled correctly
+
+If an external error tracking service is already configured, integrate it properly.
+
+If not, do not invent fake configuration.
+
+==================================================
+PHASE 16 — TESTING
+==================================================
+
+Add or update tests for all major functionality.
+
+At minimum, test:
+
+AUTH:
+- registration sync
+- account type handling
+- onboarding
+- profile creation
+
+AUTHORIZATION:
+- anonymous protected route access
+- wrong-role access
+- ownership violations
+- IDOR attempts
+
+PROFILES:
+- create
+- update
+- persistence
+- public profile access
+
+MESSAGING:
+- create conversation
+- duplicate conversation behavior
+- participant authorization
+- send message
+- incoming message subscription where testable
+
+VERIFICATION:
+- create case
+- add evidence
+- remove evidence
+- evidence persistence
+- submit case
+- unauthorized case access
+
+JOBS:
+- create job
+- update job
+- publish job
+- browse jobs
+- view job
+- apply
+- duplicate application prevention
+- application status changes
+- ownership enforcement
+
+BILLING:
+- plan retrieval
+- checkout initialization where testable
+- webhook idempotency if applicable
+
+Run all existing tests and ensure new failures are not ignored.
+
+==================================================
+PHASE 17 — VALIDATION
+==================================================
+
+After implementation, run:
+
+- frontend typecheck
+- backend typecheck
+- frontend lint
+- backend lint
+- all unit tests
+- integration tests if present
+- production build
+
+Fix all errors caused by your changes.
+
+Do not claim success if the build is failing.
+
+Verify the application manually through the major journeys:
+
+JOURNEY 1 — PROVIDER:
+
+Register
+↓
+Select Provider
+↓
+Complete onboarding
+↓
+Profile is created
+↓
+Edit profile
+↓
+Save
+↓
+Refresh
+↓
+Changes remain
+↓
+Start verification
+↓
+Add evidence
+↓
+Evidence persists
+↓
+Submit verification
+↓
+Case appears in ops queue
+
+JOURNEY 2 — EMPLOYER:
+
+Register
+↓
+Select Employer
+↓
+Complete onboarding
+↓
+Employer profile is created
+↓
+Search providers
+↓
+Open public provider profile
+↓
+Click Message
+↓
+Conversation opens with correct provider
+↓
+Send message
+
+JOURNEY 3 — MARKETPLACE:
+
+Employer
+↓
+Create job
+↓
+Publish job
+↓
+Provider discovers job
+↓
+Provider views job
+↓
+Provider applies
+↓
+Employer sees application
+↓
+Employer reviews application
+↓
+Employer changes application status
+
+JOURNEY 4 — AUTHORIZATION:
+
+Anonymous visitor
+↓
+Cannot access protected provider dashboard
+↓
+Cannot access verification
+↓
+Can view public provider profile if public
+↓
+Cannot send messages without authentication
+
+==================================================
+FINAL REPORT
+==================================================
+
+At the end, provide a complete report containing:
+
+1. Summary of all implemented features.
+2. Every file created.
+3. Every file modified.
+4. Every database migration created.
+5. Every new backend route.
+6. Every new frontend route.
+7. Every API contract changed.
+8. Environment variables required.
+9. Tests run and results.
+10. Typecheck results.
+11. Lint results.
+12. Production build results.
+13. Any remaining known issues.
+14. Any features that could not be completed due to missing external services or credentials.
+15. A clear list of manual verification steps performed.
+
+IMPORTANT:
+
+Do not merely produce an audit report.
+
+Actually implement the functionality.
+
+Do not stop at the first error.
+
+When a problem is discovered, investigate the root cause, fix it properly, test the fix, and continue.
+
+The final result should be a real working PMP marketplace, not a collection of mock screens or disconnected API endpoints.

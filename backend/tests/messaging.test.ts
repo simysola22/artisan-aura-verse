@@ -145,8 +145,8 @@ const noMessagingIdentity: ResolvedIdentity = {
 const sampleConversation = {
   id: "conv_1",
   participants: [
-    { userId: "pmp_employer_1", displayName: "Alice Employer", avatarUrl: null },
-    { userId: "pmp_provider_1", displayName: "Bob Provider", avatarUrl: null },
+    { id: "pmp_employer_1", displayName: "Alice Employer", avatarUrl: null, role: "employer" as const },
+    { id: "pmp_provider_1", displayName: "Bob Provider", avatarUrl: null, role: "provider" as const },
   ],
   lastMessage: null,
   unreadCount: 0,

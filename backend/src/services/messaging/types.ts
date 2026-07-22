@@ -11,9 +11,10 @@
 // ─── DTOs (returned to clients) ───────────────────────────────────────────────
 
 export interface ParticipantDto {
-  userId: string;
+  id: string;
   displayName: string | null;
   avatarUrl: string | null;
+  role: "employer" | "provider";
 }
 
 export interface MessageDto {
@@ -55,6 +56,7 @@ export interface ParticipantRow {
   userId: string;
   displayName: string | null;
   avatarUrl: string | null;
+  accountType: string;
   lastReadAt: Date | null;
 }
 
@@ -135,8 +137,9 @@ export function toMessageDto(row: MessageRow): MessageDto {
 
 export function toParticipantDto(row: ParticipantRow): ParticipantDto {
   return {
-    userId: row.userId,
+    id: row.userId,
     displayName: row.displayName,
     avatarUrl: row.avatarUrl,
+    role: row.accountType === "employer" ? "employer" : "provider",
   };
 }

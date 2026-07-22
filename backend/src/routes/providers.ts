@@ -21,7 +21,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import type { ClerkAuthAdapter } from "../lib/clerk.js";
-import { requireClerkAuth } from "../middleware/auth.js";
+import { requireClerkAuth, optionalClerkAuth } from "../middleware/auth.js";
 import type { UserResolver } from "../middleware/auth.js";
 import type { Db } from "../db/client.js";
 import {
@@ -266,19 +266,19 @@ export function createProviderRouter(
   /**
    * GET /v1/providers/:profileId
    *
-   * Returns a public provider profile. Only visible when is_public = true,
-   * or when the requester is the profile owner.
-   * Auth: Bearer required.
+   * Returns a public provider profile. No auth required.
+   * Only returns profiles where is_public = true (public access).
+   * Authenticated owners can also see their own private profiles.
    */
-  router.get("/v1/providers/:profileId", auth, async (c) => {
-    const { pmpUserId } = c.get("auth");
+  router.get("/v1/providers/:profileId", optionalClerkAuth(clerkAdapter, resolveUser), async (c) => {
+    const authCtx = c.get("auth");
     const profileId = c.req.param("profileId");
 
     const profile = await getProviderProfileById(db, profileId);
     if (!profile) throw new NotFoundError("Provider profile");
 
     // Owners can always see their own profile; others only see public profiles
-    if (!profile.isPublic && profile.userId !== pmpUserId) {
+    if (!profile.isPublic && profile.userId !== authCtx?.pmpUserId) {
       throw new NotFoundError("Provider profile");
     }
 

@@ -312,19 +312,36 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
         // already has one, or creates a new one using the pending
         // registration data written to localStorage before the Clerk flow.
         //
+        // Resolution order for accountType:
+        //   1. clerkUser.unsafeMetadata.accountType (set before Clerk signup)
+        //   2. localStorage fallback (for backwards compat)
+        //   3. default to "employer"
+        //
         // localStorage is used (not sessionStorage) because Clerk's OAuth
         // and email-verification flows do full-page redirects through
         // accounts.clerk.com, which wipes sessionStorage.
-        const accountType =
-          (localStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as "employer" | "provider") ??
-          "employer";
+        const metaAccountType = clerkUser?.unsafeMetadata?.accountType as
+          | "employer"
+          | "provider"
+          | undefined;
+        const localAccountType = localStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as
+          | "employer"
+          | "provider"
+          | null;
+        const accountType = metaAccountType ?? localAccountType ?? "employer";
+
+        const metaProviderKind = clerkUser?.unsafeMetadata?.providerKind as
+          | "artisan"
+          | "professional"
+          | undefined;
+        const localProviderKind = localStorage.getItem(PENDING_PROVIDER_KIND_KEY) as
+          | "artisan"
+          | "professional"
+          | null;
+        const providerKind = metaProviderKind ?? localProviderKind ?? undefined;
+
         const pendingDisplayName = localStorage.getItem(PENDING_DISPLAY_NAME_KEY);
         const displayName = pendingDisplayName ?? clerkUser?.fullName ?? undefined;
-        const providerKind =
-          (localStorage.getItem(PENDING_PROVIDER_KIND_KEY) as
-            | "artisan"
-            | "professional"
-            | null) ?? undefined;
 
         console.info("[PMP] Syncing identity via POST /v1/auth/sync with accountType:", accountType);
 
