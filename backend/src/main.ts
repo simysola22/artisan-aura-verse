@@ -11,6 +11,11 @@
  *   4. Close other external connections (cache, storage, email).
  *   5. Exit with code 0.
  */
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import postgres from "postgres";
+import { fileURLToPath } from "url";
+import { join, dirname } from "path";
 import { getConfig } from "./config/index.js";
 import { createApp } from "./app.js";
 import { closeDb } from "./db/client.js";
@@ -25,6 +30,28 @@ try {
   // Use console here because pino may not have been initialized yet
   console.error("STARTUP FAILURE — invalid configuration:\n", (err as Error).message);
   process.exit(1);
+}
+
+// ── Run pending migrations before accepting requests ──────────────────────
+
+if (config.DATABASE_URL) {
+  const migrationsFolder = join(
+    dirname(fileURLToPath(import.meta.url)),
+    "../migrations",
+  );
+  logger.info({ migrationsFolder }, "Running database migrations");
+  const migSql = postgres(config.DATABASE_URL, { max: 1 });
+  try {
+    await migrate(drizzle(migSql), { migrationsFolder });
+    logger.info("Database migrations complete");
+  } catch (err) {
+    logger.error({ err }, "Database migration failed — startup aborted");
+    await migSql.end();
+    process.exit(1);
+  }
+  await migSql.end();
+} else {
+  logger.warn("DATABASE_URL not set — skipping migrations");
 }
 
 // ── App ───────────────────────────────────────────────────────────────────

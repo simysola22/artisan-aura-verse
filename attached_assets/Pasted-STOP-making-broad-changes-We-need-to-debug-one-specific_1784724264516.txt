@@ -1,0 +1,82 @@
+STOP making broad changes. We need to debug one specific production-blocking issue.
+
+The current authentication flow is:
+
+1. User signs up/signs in successfully through Clerk.
+2. Clerk redirects back to the PMP app.
+3. The app calls the PMP backend to create/sync the user's PMP identity.
+4. The app displays:
+   "Could not set up your account"
+   "Could not set up your PMP account. Internal Server Error. Check that the backend is running, then try again."
+
+The Clerk authentication itself is working successfully. The failure is occurring after Clerk authentication, during the PMP identity synchronization/setup.
+
+I need you to debug this exact issue end-to-end.
+
+DO NOT guess.
+DO NOT redesign the UI.
+DO NOT change the authentication architecture.
+DO NOT make unrelated changes.
+
+First, inspect and trace the complete flow:
+
+- Clerk sign-in/sign-up completion
+- Clerk session/token availability
+- Frontend auth state transitions
+- The exact API request used to sync/create the PMP identity
+- The exact backend route handling that request
+- Clerk token verification on the backend
+- DATABASE_URL configuration and database connection
+- The identity creation/sync service
+- Database schema and migrations
+- CORS configuration
+- Backend deployment/runtime configuration
+- All environment variables required by the backend
+
+Then reproduce the failure locally if possible and inspect the actual backend error/stack trace.
+
+Specifically verify:
+
+1. What exact URL is the frontend calling for identity sync?
+2. Is the request reaching the backend?
+3. What HTTP status and response body does the backend return?
+4. Is the Clerk Bearer token actually being sent?
+5. Does the backend's CLERK_SECRET_KEY match the Clerk application?
+6. Is DATABASE_URL present and valid in the environment where the backend runs?
+7. Can the backend connect to PostgreSQL?
+8. Does the database have the required tables/migrations?
+9. Is the identity sync attempting to insert a duplicate or invalid record?
+10. Is there an exact exception being swallowed and converted into a generic 500?
+
+Add temporary, safe diagnostic logging if necessary so we can identify the exact failure. Never log secrets, tokens, passwords, or sensitive personal data.
+
+After finding the root cause:
+
+- Fix ONLY the root cause.
+- Preserve the existing Clerk authentication architecture.
+- Ensure a newly authenticated Clerk user can successfully create/sync their PMP identity.
+- Ensure an existing user can sign in without creating a duplicate identity.
+- Ensure the frontend properly transitions from:
+  loading → syncing → authenticated
+  or
+  loading → syncing → sync_error
+
+Then run:
+
+- frontend typecheck
+- backend typecheck
+- backend tests
+- lint
+- production build
+
+Finally, report:
+
+A. Exact root cause
+B. Exact files changed
+C. Exact fix
+D. Exact environment variables required
+E. Exact backend URL the frontend must use
+F. Whether the backend must be running separately
+G. Test/build results
+
+Do not stop at "the backend is probably down." Find the exact reason for the 500.
