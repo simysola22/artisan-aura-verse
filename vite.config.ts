@@ -42,6 +42,13 @@ export default defineConfig({
       "import.meta.env.VITE_API_BASE_URL": JSON.stringify(
         process.env.VITE_API_BASE_URL || process.env.API_BASE_URL || "",
       ),
+      // VITE_APP_URL: absolute origin of the deployed app.
+      // Leave unset in development — appUrl() falls back to window.location.origin
+      // so it automatically works on localhost, Replit preview, and Vercel previews.
+      // In production deployments set this to https://artisan-aura-verse.vercel.app
+      "import.meta.env.VITE_APP_URL": JSON.stringify(
+        process.env.VITE_APP_URL || process.env.APP_URL || "",
+      ),
     },
   },
 });

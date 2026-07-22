@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { AuthShell } from "@/layouts/AuthShell";
 import { useAuth } from "@/features/auth/auth-context";
 import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/auth/login")({
   head: () => ({ meta: [{ title: "Sign in — PMP" }] }),
@@ -56,7 +57,7 @@ function ClerkLoginPage() {
     >
       <div className="flex justify-center">
         <SignIn
-          forceRedirectUrl="/dashboard"
+          forceRedirectUrl={appUrl("/dashboard")}
           routing="hash"
           appearance={{
             elements: {

@@ -7,6 +7,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { storePendingRegistration } from "@/features/auth/pending-registration";
 import { cn } from "@/lib/utils";
 import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
+import { appUrl } from "@/lib/app-url";
 
 export const Route = createFileRoute("/auth/register")({
   head: () => ({ meta: [{ title: "Create your account — PMP" }] }),
@@ -115,9 +116,12 @@ function ClerkRegisterPage() {
               then runs on /dashboard: it calls /v1/auth/sync using the
               accountType stored in localStorage above, creating the PMP
               identity with the correct role before the user sees anything.
+
+              Must be an absolute URL — Clerk redirects from accounts.dev
+              back to our origin, so a relative path cannot resolve.
             */}
             <SignUp
-              forceRedirectUrl="/dashboard"
+              forceRedirectUrl={appUrl("/dashboard")}
               routing="hash"
               appearance={{
                 elements: {

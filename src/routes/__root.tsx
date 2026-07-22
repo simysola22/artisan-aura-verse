@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider } from "@/features/theme/theme-context";
 import { AuthProvider } from "@/features/auth/auth-context";
 import { CLERK_PUBLISHABLE_KEY } from "@/api/client";
+import { appUrl } from "@/lib/app-url";
 
 function NotFoundComponent() {
   return (
@@ -142,7 +143,20 @@ function RootComponent() {
   // Auth mode (Clerk vs mock) is controlled by CLERK_PUBLISHABLE_KEY alone,
   // independently of whether the PMP backend API is connected.
   if (CLERK_PUBLISHABLE_KEY) {
-    return <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>{inner}</ClerkProvider>;
+    // signInFallbackRedirectUrl / signUpFallbackRedirectUrl are used when no
+    // component-level forceRedirectUrl is present (e.g. Clerk's own account
+    // portal, magic-link emails, or direct navigation to accounts.dev).
+    // The component-level forceRedirectUrl still takes precedence for the
+    // SignIn / SignUp embeds.  Both must be absolute URLs.
+    return (
+      <ClerkProvider
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        signInFallbackRedirectUrl={appUrl("/dashboard")}
+        signUpFallbackRedirectUrl={appUrl("/dashboard")}
+      >
+        {inner}
+      </ClerkProvider>
+    );
   }
 
   return inner;
