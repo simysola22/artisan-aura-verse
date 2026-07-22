@@ -1,0 +1,322 @@
+Continue the audit. Do NOT make any code changes yet.
+
+I want a complete, brutally honest end-to-end functionality audit of the entire PMP application.
+
+PMP is a marketplace connecting:
+
+1. HIRERS / EMPLOYERS
+   - People or businesses looking for professionals/artisans to do work.
+   - They should be able to discover providers, view profiles, create/post jobs, receive applications or proposals, communicate, and eventually hire.
+
+2. PROVIDERS / ARTISANS / PROFESSIONALS
+   - People offering services.
+   - They should be able to create a professional profile, list their skills/services, provide experience and portfolio evidence, complete verification, discover jobs, apply/respond to opportunities, communicate with hirers, and manage their professional presence.
+
+AUDIT EVERY USER JOURNEY, NOT JUST THE CODE.
+
+For each feature, determine:
+
+- Does the feature actually work end-to-end?
+- Can a real user complete the entire journey?
+- Does the frontend correctly call the backend?
+- Does the backend correctly process the request?
+- Does the database correctly store and retrieve the data?
+- Does authentication work correctly?
+- Does authorization/role protection work correctly?
+- Does the feature work after a page refresh?
+- Does it work after signing out and signing back in?
+- Does it work with a brand-new account?
+- Does it work for both Employer/Hirer and Provider/Artisan accounts?
+- What happens if the API fails?
+- What happens if the database is empty?
+- What happens if the user has incomplete data?
+- Are there mock/demo placeholders pretending to be real functionality?
+- Are there frontend/backend DTO or type mismatches?
+- Are there SSR/authentication problems?
+- Are there missing routes or API endpoints?
+- Are there buttons that do nothing?
+- Are there forms that do not persist data?
+- Are there pages that only visually exist but are not connected to real backend functionality?
+
+AUDIT THESE AREAS IN DETAIL:
+
+A. AUTHENTICATION & ACCOUNT LIFECYCLE
+- Sign up
+- Sign in
+- Google/social authentication
+- Email verification
+- Redirects after authentication
+- New account provisioning
+- Employer account creation
+- Provider account creation
+- Clerk session state
+- Backend identity synchronization
+- Page refresh after login
+- Sign out
+- Sign back in
+- Switching between authenticated and unauthenticated states
+- Suspended users
+- Failed backend synchronization
+- Loading states
+- Auth state race conditions
+- Users accidentally entering the workspace without a valid PMP identity
+
+B. NAVIGATION & ROUTING
+Audit every route in the application.
+
+For every route:
+- Who is allowed to access it?
+- Does it require authentication?
+- Does it require a specific role?
+- What happens when an unauthenticated user visits it?
+- What happens when a user visits it directly via URL?
+- What happens after refresh?
+- Does the page load without crashing?
+- Are there dead links?
+- Are there pages that exist in navigation but are not actually implemented?
+
+C. EMPLOYER / HIRER JOURNEY
+Test the complete journey:
+
+Landing page
+→ Sign up
+→ Account provisioning
+→ Employer workspace
+→ Discover providers
+→ View provider profile
+→ Search/filter providers
+→ Create a job
+→ Save job
+→ Publish job
+→ View applications/proposals
+→ Communicate with providers
+→ Hire/select a provider
+→ Manage active work
+→ Complete/close work
+
+Identify every missing, broken, mocked, or incomplete step.
+
+D. PROVIDER / ARTISAN JOURNEY
+Test the complete journey:
+
+Landing page
+→ Sign up
+→ Account provisioning
+→ Provider workspace
+→ Create professional profile
+→ Add skills
+→ Add experience
+→ Add certifications
+→ Add portfolio
+→ Upload/add evidence
+→ Submit verification
+→ Receive verification status
+→ Discover available jobs
+→ View job details
+→ Apply/respond to job
+→ Communicate with hirer
+→ Manage profile visibility
+→ Receive work
+
+Identify every missing, broken, mocked, or incomplete step.
+
+E. PROFILE SYSTEM
+Audit:
+- Employer profiles
+- Provider profiles
+- Public profiles
+- Profile editing
+- Profile persistence
+- Profile visibility
+- Profile completeness
+- Avatar/profile image handling
+- Skills
+- Experience
+- Certifications
+- Portfolio
+- Verification badges/status
+- Public profile sharing
+
+F. DISCOVERY
+Audit:
+- Provider discovery
+- Job discovery
+- Search
+- Filtering
+- Sorting
+- Empty states
+- Pagination
+- Loading states
+- Whether results are real database data or mock data
+- Whether clicking a result leads to a functional detail page
+
+G. JOBS / MARKETPLACE
+Audit the entire job lifecycle:
+- Draft creation
+- Editing
+- Publishing
+- Visibility
+- Search/discovery
+- Applying
+- Application status
+- Employer reviewing applicants
+- Accepting/rejecting applicants
+- Closing jobs
+
+Find any missing backend endpoints, database tables, frontend screens, or broken integrations.
+
+H. MESSAGING
+Audit:
+- Conversation creation
+- Sending messages
+- Receiving messages
+- Message persistence
+- Realtime updates
+- SSE/WebSocket behavior
+- Refresh behavior
+- Empty states
+- Unread messages
+- Authorization
+- Whether users can message people they should not be able to message
+
+I. VERIFICATION
+Audit:
+- Starting verification
+- Identity information
+- Experience
+- Certifications
+- Portfolio
+- Evidence
+- File uploads
+- URLs
+- Draft saving
+- Updating drafts
+- Submitting
+- Status changes
+- Admin review
+- Info requests
+- Resubmission
+- Approval/rejection
+- Provider verification badge
+
+Test whether users can actually update their verification data after creating a draft.
+
+J. DATABASE & BACKEND
+Audit every frontend API client against the backend routes.
+
+Create a table with:
+
+Frontend function
+→ HTTP method
+→ Frontend path
+→ Backend route
+→ Request body
+→ Backend expected body
+→ Response shape
+→ Frontend expected response shape
+→ Match or mismatch
+
+Find:
+- Missing endpoints
+- Wrong paths
+- Wrong HTTP methods
+- Wrong field names
+- Wrong response shapes
+- Missing validation
+- Missing authorization
+- Database errors
+- 404s
+- 500s
+- Unhandled exceptions
+
+K. AUTHORIZATION & SECURITY
+Audit:
+- Can an employer access provider-only features?
+- Can a provider access employer-only features?
+- Can users access another user's private data?
+- Can users modify records belonging to another user?
+- Are ownership checks present?
+- Are admin/ops routes protected?
+- Are API endpoints protected even if the frontend route is protected?
+- Is input validated with Zod?
+- Is rate limiting present where needed?
+- Are secrets exposed to the frontend?
+- Are database errors leaking sensitive information?
+
+L. PRODUCTION READINESS
+Audit:
+- Environment variables
+- Replit development environment
+- Vercel deployment
+- Backend deployment
+- Railway PostgreSQL connectivity
+- CORS
+- Clerk configuration
+- Build process
+- Database migrations
+- Logging
+- Error tracking
+- Rate limiting
+- Caching
+- File storage
+- Email
+- Payments
+- Backups
+- Disaster recovery
+
+M. UI/UX FUNCTIONALITY
+Audit every button, form, link, dropdown, tab, modal, and navigation item.
+
+For each one, determine:
+- Does it work?
+- Does it trigger the correct action?
+- Does it persist data?
+- Does it show loading feedback?
+- Does it show success feedback?
+- Does it show useful errors?
+- Does it work on refresh?
+- Does it work on mobile-sized screens?
+
+IMPORTANT:
+Do not just tell me that the UI looks good.
+
+I want you to identify functionality that is visually present but not actually connected to a working backend.
+
+FINAL OUTPUT:
+
+Produce a prioritized report using these categories:
+
+🔴 P0 — BLOCKERS
+The app cannot be used or core user journeys fail.
+
+🟠 P1 — CRITICAL
+Major functionality is broken or incomplete.
+
+🟡 P2 — IMPORTANT
+Functionality exists but has significant bugs, missing persistence, weak UX, or incomplete flows.
+
+🔵 P3 — POLISH
+Non-blocking improvements.
+
+For every issue include:
+
+1. Issue title
+2. Severity
+3. Exact affected files/routes
+4. Exact user journey affected
+5. Root cause
+6. What is currently happening
+7. What should happen
+8. Recommended fix
+9. Whether the fix is frontend, backend, database, infrastructure, or multiple layers
+10. Dependencies/blockers
+
+DO NOT FIX ANYTHING YET.
+
+At the end, create a section called:
+
+"RECOMMENDED BUILD ORDER"
+
+Give me the exact order in which we should fix the application so that we stop repeatedly fixing one issue and discovering another issue afterward.
+
+The goal is to make the core PMP user journeys genuinely functional from sign-up to completing work, not merely make the application look finished.
