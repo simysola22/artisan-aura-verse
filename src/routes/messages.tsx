@@ -76,11 +76,12 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
                       )}
                     >
                       <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg gradient-primary text-sm font-semibold text-primary-foreground">
-                        {other.displayName
+                        {(other.displayName ?? "")
                           .split(" ")
                           .map((n) => n[0])
+                          .filter(Boolean)
                           .slice(0, 2)
-                          .join("")}
+                          .join("") || "?"}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">

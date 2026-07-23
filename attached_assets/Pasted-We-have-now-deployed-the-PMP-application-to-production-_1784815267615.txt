@@ -1,0 +1,64 @@
+We have now deployed the PMP application to production.
+
+Production architecture:
+- Frontend: Vercel
+- Backend: Render
+- Database: Railway PostgreSQL
+- Authentication: Clerk
+
+Production frontend:
+https://artisan-aura-verse.vercel.app
+
+Production backend:
+https://artisan-aura-verse.onrender.com
+
+Important:
+The dashboard and most other features work correctly in production. The backend /health and /ready endpoints return 200, and /ready confirms the Railway database is connected.
+
+However, two routes fail in production:
+
+1. /discover
+2. /messages
+
+They work correctly in the Replit environment.
+
+When opening either route in the production Vercel deployment, the app displays:
+
+"This page didn't load
+Something went wrong on our end. Try refreshing or head back home."
+
+Do NOT make random architectural changes.
+
+Perform a focused production debugging investigation:
+
+1. Trace every API request made by the Discover page and Messages page.
+2. Verify that every request uses the shared API client and ultimately resolves to:
+   https://artisan-aura-verse.onrender.com
+3. Search for:
+   - hardcoded localhost URLs
+   - hardcoded Replit URLs
+   - relative API URLs
+   - incorrect VITE_API_BASE_URL usage
+   - direct fetch() calls bypassing the shared API client
+4. Verify that authenticated requests send:
+   Authorization: Bearer <fresh Clerk token>
+5. Check whether the failing queries execute during SSR before authentication is available.
+   If so, gate them appropriately so they only run when authStatus === "authed", just as the verification flow was fixed.
+6. Compare the exact API endpoints called by Discover and Messages in the Replit environment versus production.
+7. Check the Render backend logs while loading /discover and /messages.
+8. Check the browser Network response status for every failing request:
+   - 401
+   - 403
+   - 404
+   - 500
+   - CORS/network failure
+9. Do not change database configuration, Clerk configuration, or unrelated working features.
+10. Fix the actual root cause with the smallest targeted code/configuration change.
+
+After fixing:
+- run frontend typecheck
+- run production build
+- verify Discover in production
+- verify Messages in production
+- verify authenticated API calls
+- report the exact root cause and exact files changed.

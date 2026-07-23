@@ -10,11 +10,12 @@ const availabilityLabel: Record<NonNullable<Provider["availability"]>, string> =
 };
 
 export function ProviderCard({ provider }: { provider: Provider }) {
-  const initials = provider.displayName
+  const initials = (provider.displayName ?? "")
     .split(" ")
     .map((n) => n[0])
+    .filter(Boolean)
     .slice(0, 2)
-    .join("");
+    .join("") || "?";
 
   return (
     <Link
@@ -42,7 +43,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
           <span className="rounded-full bg-accent px-2 py-0.5 text-[11px] font-medium text-accent-foreground capitalize">
             {provider.kind}
           </span>
-          {provider.skills.slice(0, 3).map((s) => (
+          {(provider.skills ?? []).slice(0, 3).map((s) => (
             <span
               key={s.id}
               className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
