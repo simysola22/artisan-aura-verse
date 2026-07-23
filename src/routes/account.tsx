@@ -71,7 +71,10 @@ function ProviderProfileEditor() {
 
   const update = useMutation({
     mutationFn: (input: UpdateProviderProfileInput) => providersApi.updateProfile(input),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update cache directly from the response so the UI reflects the saved
+      // state immediately, then also invalidate to ensure freshness.
+      qc.setQueryData(["own-provider-profile"], data.profile);
       qc.invalidateQueries({ queryKey: ["own-provider-profile"] });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -278,7 +281,20 @@ function ProviderProfileEditor() {
           </div>
         </div>
         <button
-          onClick={() => update.mutate(form)}
+          onClick={() => {
+            // Convert empty strings to null so the backend z.string().min(1)
+            // validator accepts the payload (it allows null | undefined but not "").
+            const payload: UpdateProviderProfileInput = {
+              ...form,
+              headline: form.headline === "" ? null : form.headline,
+              about: form.about === "" ? null : form.about,
+              location: form.location === "" ? null : form.location,
+              serviceArea: form.serviceArea === "" ? null : form.serviceArea,
+              // currency must be 3 chars; omit if cleared rather than send ""
+              currency: form.currency === "" ? undefined : form.currency,
+            };
+            update.mutate(payload);
+          }}
           disabled={update.isPending}
           className="mt-4 inline-flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson disabled:opacity-60"
         >
@@ -471,7 +487,8 @@ function EmployerProfileEditor() {
 
   const update = useMutation({
     mutationFn: (input: UpdateEmployerProfileInput) => employersApi.updateProfile(input),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      qc.setQueryData(["own-employer-profile"], data.profile);
       qc.invalidateQueries({ queryKey: ["own-employer-profile"] });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
@@ -592,7 +609,20 @@ function EmployerProfileEditor() {
         </Field>
       </div>
       <button
-        onClick={() => update.mutate(form)}
+        onClick={() => {
+          // Convert empty strings to null so the backend z.string().min(1)
+          // validator accepts the payload (it allows null | undefined but not "").
+          const payload: UpdateEmployerProfileInput = {
+            ...form,
+            displayName: form.displayName === "" ? null : form.displayName,
+            organizationName: form.organizationName === "" ? null : form.organizationName,
+            industry: form.industry === "" ? null : form.industry,
+            description: form.description === "" ? null : form.description,
+            location: form.location === "" ? null : form.location,
+            websiteUrl: form.websiteUrl === "" ? null : form.websiteUrl,
+          };
+          update.mutate(payload);
+        }}
         disabled={update.isPending}
         className="mt-4 inline-flex items-center gap-2 rounded-lg gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-crimson disabled:opacity-60"
       >

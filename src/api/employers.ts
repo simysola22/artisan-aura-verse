@@ -42,7 +42,17 @@ export interface CreateEmployerProfileInput {
   isPublic?: boolean;
 }
 
-export type UpdateEmployerProfileInput = CreateEmployerProfileInput;
+export interface UpdateEmployerProfileInput {
+  employerType?: "individual" | "organization";
+  displayName?: string | null;
+  organizationName?: string | null;
+  industry?: string | null;
+  description?: string | null;
+  location?: string | null;
+  websiteUrl?: string | null;
+  logoUrl?: string | null;
+  isPublic?: boolean;
+}
 
 // ─── Mock stubs (used when USE_MOCK_API is true) ──────────────────────────────
 

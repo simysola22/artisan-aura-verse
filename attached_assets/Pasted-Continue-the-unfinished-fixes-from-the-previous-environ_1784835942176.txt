@@ -1,0 +1,48 @@
+Continue the unfinished fixes from the previous environment.
+
+The previous agent completed the investigation and identified these confirmed root causes:
+
+BUG 1 — ACCOUNT TYPE:
+The selected Artisan/Provider vs Employer role was stored only in localStorage. The Clerk SignUp flow did not persist accountType in Clerk unsafeMetadata. If localStorage was lost during OAuth, email verification, redirect, or another browser/device flow, auth-context.tsx fell back to employer.
+
+The previous agent started editing auth.register.tsx to fix this but ran out of credits before completing the full implementation.
+
+BUG 2 — PROFILE PERSISTENCE:
+Profile forms convert nullable database fields to empty strings (""). The backend update schemas require z.string().min(1), so saving a profile with any blank field returns 400 Bad Request. The UI then shows a generic "Failed to save" message.
+
+The previous agent also identified that successful mutations only invalidate the cache rather than immediately updating it from the response.
+
+Continue from the current code state. Do not redo the investigation unless necessary.
+
+First inspect the current git diff and determine exactly what the previous agent already changed.
+
+Then complete the fixes:
+
+1. Account type:
+   - Persist the selected account type through the Clerk signup flow using Clerk metadata/unsafeMetadata as appropriate for the existing architecture.
+   - Ensure the auth sync flow reads the persisted account type.
+   - Ensure Artisan/Provider remains provider and Employer remains employer.
+   - Do not use employer as a silent fallback when the account type is missing without investigating why it is missing.
+
+2. Profile persistence:
+   - Fix the form/backend contract so valid profile updates can actually be saved.
+   - Do not blindly send empty strings for nullable fields if the backend schema rejects them.
+   - Preserve existing values where appropriate.
+   - Ensure the backend PATCH handler actually updates the database.
+   - Ensure the frontend updates or invalidates the correct TanStack Query cache after success.
+
+3. Run:
+   - frontend typecheck
+   - backend typecheck
+   - relevant backend tests
+   - production build
+
+4. Report:
+   - exact files already changed by the previous agent
+   - exact files you changed
+   - exact root cause of each bug
+   - exact API endpoints involved
+   - whether the database update was verified
+   - whether the Artisan and Employer signup paths were both tested
+
+Do not modify secrets, DATABASE_URL, Clerk keys, Render configuration, Railway configuration, or unrelated working features.
