@@ -123,6 +123,21 @@ function ClerkRegisterPage() {
             <SignUp
               forceRedirectUrl={appUrl("/dashboard")}
               routing="hash"
+              /*
+               * Store the selected role in Clerk's user unsafeMetadata so it
+               * survives every Clerk redirect path — including email-verification
+               * links opened on a different device or browser, and Google OAuth
+               * round-trips through accounts.clerk.com.
+               *
+               * Without this, auth-context falls back to localStorage (which is
+               * wiped when the user opens a verification link on a different
+               * device) and then to the hardcoded "employer" default.
+               *
+               * auth-context already reads clerkUser.unsafeMetadata.accountType
+               * first (before the localStorage fallback), so this one prop is
+               * all that's needed to prevent the wrong role being assigned.
+               */
+              unsafeMetadata={{ accountType: role }}
               appearance={{
                 elements: {
                   card: "shadow-none bg-transparent p-0",

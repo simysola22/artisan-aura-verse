@@ -1,0 +1,119 @@
+We have two serious production bugs in the PMP application. Investigate and fix the actual root causes. Do not make speculative changes or rewrite unrelated working features.
+
+Production architecture:
+- Frontend: Vercel
+- Backend: Render
+- Database: Railway PostgreSQL
+- Authentication: Clerk
+
+Production frontend:
+https://artisan-aura-verse.vercel.app
+
+Production backend:
+https://artisan-aura-verse.onrender.com
+
+BUG 1 — ARTISAN/PROVIDER SIGN-UP IS BEING TREATED AS EMPLOYER SIGN-UP
+
+When a user clicks the option to sign up as an Artisan/Provider, the app eventually behaves as if they selected Employer.
+
+Expected behavior:
+- "Sign up as an Artisan/Provider" must create an account with accountType/provider role.
+- "Sign up as an Employer" must create an account with employer role.
+- The selected account type must survive the complete Clerk sign-up flow, including redirects, Google OAuth, email verification, and returning to the app.
+- The backend PMP identity must be provisioned with the correct account type.
+
+Audit the complete flow:
+
+1. Find the exact buttons/links for:
+   - Sign up as Artisan/Provider
+   - Sign up as Employer
+
+2. Trace the account type from the click event through:
+   - route navigation
+   - localStorage/sessionStorage/state
+   - Clerk SignUp component
+   - Google OAuth flow
+   - email verification flow
+   - redirect back to the application
+   - AuthProvider
+   - POST /v1/auth/sync
+   - backend identity provisioning
+   - database user/role creation
+
+3. Confirm the exact payload sent to:
+   POST /v1/auth/sync
+
+4. Confirm whether account type is being lost, overwritten, defaulted to employer, or incorrectly mapped.
+
+5. Test both flows independently:
+   - Artisan/Provider signup
+   - Employer signup
+
+6. Fix the root cause so the selected account type cannot silently fall back to employer.
+
+BUG 2 — PROFILE/DETAILS UPDATES DO NOT ACTUALLY PERSIST
+
+When a user edits and saves their details, the UI appears to save, but after refreshing or reopening the profile, the old details are still present.
+
+Trace the complete update flow:
+
+1. Identify the exact profile/details form.
+2. Identify the save button handler.
+3. Identify the exact API request sent when saving.
+4. Record:
+   - HTTP method
+   - full URL
+   - request payload
+   - response status
+   - response body
+
+5. Verify the frontend is calling the correct production backend:
+   https://artisan-aura-verse.onrender.com
+
+6. Verify the backend route actually receives the request.
+7. Verify authentication is included:
+   Authorization: Bearer <fresh Clerk token>
+
+8. Verify the backend PATCH/PUT handler:
+   - validates the payload
+   - updates the correct database row
+   - uses the authenticated PMP identity
+   - commits the database update
+   - returns the updated record
+
+9. Verify the frontend invalidates/refetches the relevant TanStack Query cache after a successful update.
+
+10. Test persistence properly:
+   - edit a detail
+   - click Save
+   - inspect the API response
+   - refresh the page
+   - sign out and sign back in if appropriate
+   - confirm the updated value still exists
+
+IMPORTANT:
+Do not simply update local React state and call that a successful save.
+The database must contain the updated value.
+
+Do not change:
+- DATABASE_URL
+- Clerk keys
+- Render infrastructure
+- Railway database configuration
+- unrelated working features
+
+After fixing:
+- run frontend typecheck
+- run backend typecheck
+- run relevant backend tests
+- run production build
+- verify the complete Artisan/Provider signup flow
+- verify the complete Employer signup flow
+- verify profile details persist after a full page refresh
+
+Report:
+1. Exact root cause of the account-type bug
+2. Exact root cause of the persistence bug
+3. Exact files changed
+4. Exact API endpoints involved
+5. Evidence that the database was actually updated
