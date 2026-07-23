@@ -1,0 +1,56 @@
+The previous fix did not resolve the issue. Discover and Messages still fail in the production Vercel deployment.
+
+Do NOT make another speculative fix.
+
+We need to identify the exact runtime failure now.
+
+For the production deployment, perform this investigation:
+
+1. Open the actual production routes:
+   - /search (the route behind the Discover navigation item)
+   - /messages
+
+2. Capture the exact browser console error and stack trace when each page fails.
+
+3. Inspect the browser Network tab and record EVERY request made immediately before the failure:
+   - full request URL
+   - HTTP status
+   - response body
+   - whether the request was made during SSR or in the browser
+
+4. Add temporary, clearly marked diagnostic logging if necessary around:
+   - the page loader
+   - TanStack Query functions
+   - the shared API client
+   - the exact API request that fails
+
+5. Verify the actual production bundle is running the latest code. Confirm the deployed commit SHA/version. Do not assume Vercel deployed the fix.
+
+6. For each failing route, determine which of these is actually happening:
+   - JavaScript TypeError
+   - API 401
+   - API 403
+   - API 404
+   - API 500
+   - CORS failure
+   - failed SSR request
+   - TanStack Query error
+   - route loader error
+   - component rendering error
+
+7. Check the Vercel deployment/runtime logs for the exact exception. The generic "This page didn't load" screen is not enough evidence.
+
+8. Check Render logs at the exact time the production page is opened and determine whether the request from the failing page even reaches the backend.
+
+9. Compare the failing production route with the working Replit route, but do not assume the cause is null data.
+
+10. Only after identifying the exact error, apply the smallest targeted fix.
+
+After the fix:
+- run typecheck
+- run production build
+- deploy
+- verify the exact production routes
+- report the exact error message, the root cause, and every file changed.
+
+Important: The previous hypothesis about nullable displayName/skills was not sufficient because the production issue persists. Treat that hypothesis as unconfirmed and continue from the actual production error.

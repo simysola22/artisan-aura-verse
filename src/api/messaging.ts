@@ -32,7 +32,10 @@ export function createConversation(
 
 export function listConversations(): Promise<Conversation[]> {
   if (USE_MOCK_API) return mockMessaging.listConversations();
-  return apiFetch<Conversation[]>("/v1/messaging/conversations");
+  // Backend returns { items: Conversation[], page, pageSize, total } — unwrap items.
+  return apiFetch<{ items: Conversation[]; page: number; pageSize: number; total: number }>(
+    "/v1/messaging/conversations",
+  ).then((r) => r.items);
 }
 
 export function listMessages(conversationId: string): Promise<Message[]> {
