@@ -1,0 +1,474 @@
+You are taking over the existing production application:
+
+PRECIOUS MARKET PLACE (PMP)
+
+This is an existing production application. You must preserve all existing functionality and architecture.
+
+IMPORTANT: This is a continuation from a previous development environment. Do not assume that previous changes are absent. First inspect the current repository state.
+
+CURRENT PRODUCTION ARCHITECTURE
+
+Frontend:
+- React
+- TanStack Start
+- Vercel deployment
+
+Backend:
+- Bun
+- Hono
+- Drizzle ORM
+
+Database:
+- Railway PostgreSQL
+
+Authentication:
+- Clerk
+
+Current production backend:
+https://artisan-aura-verse.onrender.com
+
+Current production frontend:
+https://artisan-aura-verse.vercel.app
+
+The application already has:
+- Clerk authentication
+- PMP identity synchronization
+- Database-backed RBAC
+- Roles and permissions
+- Owner/system admin/team roles
+- Verification team functionality
+- Support/moderation functionality
+- Subscription and billing system
+- Subscription-gated messaging
+- Operational audit logging
+- Operations routes
+- Request ID middleware
+- Clerk session ID extraction
+- Audit context support
+- Existing production deployments
+
+==================================================
+PHASE 1 FOUNDATION ALREADY COMPLETED
+==================================================
+
+The previous environment completed the staff-control security foundation.
+
+Existing migration:
+backend/migrations/0009_staff_control_foundation.sql
+
+It added the following permissions:
+
+- audit.read
+- staff.read
+- staff.roles.manage
+- system.health.read
+- system.logs.read
+- system.maintenance.manage
+
+It added the following roles:
+
+- role_system_engineer
+- role_maintenance
+
+It added audit context fields to ops_audit_log:
+
+- actor_clerk_user_id
+- actor_roles
+- required_permission
+- clerk_session_id
+- request_id
+- ip_address
+- user_agent
+- success
+- error_code
+
+The existing architecture already includes:
+
+- AuditContext
+- appendOpsAudit
+- request ID middleware
+- Clerk session ID extraction
+- database-backed roles
+- database-backed permissions
+- identity resolution
+- permission checks
+- operations routes
+
+The previous environment also fixed:
+
+1. A sessionId scoping bug in:
+   backend/src/middleware/auth.ts
+
+2. Audit context forwarding for these routes in:
+   backend/src/routes/ops.ts
+
+   - POST /v1/ops/users/:id/suspend
+   - POST /v1/ops/users/:id/reactivate
+   - DELETE /v1/ops/users/:id
+   - POST /v1/ops/users/:id/roles
+   - DELETE /v1/ops/users/:id/roles/:roleId
+
+3. Owner role assignment support for:
+   - role_system_engineer
+   - role_maintenance
+
+4. The migration journal was corrected so:
+   0008_job_marketplace
+   appears before:
+   0009_staff_control_foundation
+
+The previous environment reported:
+
+- Backend tests: 507/507 passing
+- Backend typecheck: clean
+- Frontend typecheck: clean
+- Production build: successful
+
+==================================================
+CURRENT TASK
+==================================================
+
+Before implementing any Admin dashboard, special access system, staff control UI, maintenance controls, or new credentials, perform a focused audit-context completeness audit.
+
+Do not make random architectural changes.
+
+Do not redesign the application.
+
+Do not create credentials.
+
+Do not create shared permanent keys.
+
+Do not create hardcoded passwords.
+
+Do not create authentication bypasses.
+
+Do not create hidden backdoors.
+
+Do not alter Clerk authentication.
+
+Do not alter subscription logic.
+
+Do not alter the existing messaging subscription gate.
+
+Do not alter the database schema unless absolutely necessary and explicitly justified.
+
+==================================================
+OBJECTIVE
+==================================================
+
+Find every sensitive operational action that creates an audit log entry but does not currently pass the full audit context.
+
+The previous audit identified a likely remaining gap:
+
+Support and moderation routes may call audit-writing service functions without passing:
+
+- actor Clerk user ID
+- actor roles
+- required permission
+- Clerk session ID
+- request ID
+- IP address
+- user agent
+
+The following service operations were specifically identified as requiring investigation:
+
+Support:
+
+- createTicket
+- addMessage
+- assignTicket
+- closeTicket
+
+Moderation:
+
+- submitReport
+- markReportReviewing
+- takeModerationAction
+
+Do not assume these are the only affected actions. Search the entire backend for every operational mutation that writes to ops_audit_log.
+
+==================================================
+PHASE 1 — READ-ONLY INVESTIGATION FIRST
+==================================================
+
+Before modifying anything, inspect:
+
+1. backend/src/routes/ops.ts
+
+2. backend/src/services/ops/
+
+3. backend/src/services/audit.ts
+
+4. backend/src/db/schema/ops.ts
+
+5. backend/src/middleware/auth.ts
+
+6. request ID middleware
+
+7. all support-related routes and services
+
+8. all moderation-related routes and services
+
+9. every call to appendOpsAudit
+
+10. every call to a service function that internally writes an operational audit event
+
+11. all relevant tests
+
+Search for:
+
+- appendOpsAudit
+- AuditContext
+- auditContext
+- createTicket
+- addMessage
+- assignTicket
+- closeTicket
+- submitReport
+- markReportReviewing
+- takeModerationAction
+- suspendUser
+- reactivateUser
+- deleteUser
+- assignRole
+- removeRole
+
+Build a complete map of:
+
+ROUTE
+→ AUTHENTICATION
+→ REQUIRED PERMISSION
+→ SERVICE FUNCTION
+→ DATABASE MUTATION
+→ AUDIT WRITE
+→ WHETHER FULL AUDIT CONTEXT IS PRESENT
+
+==================================================
+PHASE 2 — DO NOT MODIFY CODE YET
+==================================================
+
+First report the findings.
+
+For every sensitive action, classify it as:
+
+✅ FULLY AUDITED
+
+⚠️ AUDIT EXISTS BUT CONTEXT IS INCOMPLETE
+
+❌ NO AUDIT EVENT
+
+🔴 CRITICAL ATTRIBUTION GAP
+
+For every incomplete audit action, provide:
+
+- Exact route
+- HTTP method
+- Exact file path
+- Exact function name
+- Required permission
+- Database table affected
+- Existing audit event/action name
+- Which audit fields are currently missing
+- Whether the service already accepts AuditContext
+- The smallest compatible fix
+
+==================================================
+PHASE 3 — ONLY AFTER THE AUDIT
+==================================================
+
+If the investigation confirms that support or moderation routes already accept AuditContext but fail to pass it from the route layer, apply the smallest possible fix.
+
+The fix must:
+
+- Reuse the existing buildAuditContext pattern
+- Reuse the existing AuditContext interface
+- Reuse the existing request ID middleware
+- Reuse the existing Clerk session ID already attached to AuthContext
+- Reuse the existing role and permission information
+- Preserve existing audit action names
+- Preserve existing business logic
+- Preserve existing API response shapes
+- Preserve existing authorization decisions
+- Preserve existing database schema
+- Preserve existing subscription logic
+- Preserve existing messaging behavior
+
+Do not refactor unrelated code.
+
+Do not introduce a new audit system.
+
+Do not create duplicate audit tables.
+
+Do not create a new authentication system.
+
+==================================================
+AUDIT CONTEXT REQUIREMENTS
+==================================================
+
+For every sensitive operational mutation, the audit context should include the available values:
+
+- actorClerkUserId
+- actorRoles
+- requiredPermission
+- clerkSessionId
+- requestId
+- ipAddress
+- userAgent
+
+Successful actions should record:
+
+success: true
+
+Failed operational actions should preserve the existing error handling behavior and should not expose sensitive internal information to clients.
+
+If the existing audit architecture already supports failure audit records, use it consistently. Do not invent a new failure logging mechanism without first confirming the existing pattern.
+
+==================================================
+IMPORTANT SECURITY RULES
+==================================================
+
+Do NOT create:
+
+- permanent admin passwords
+- permanent department passwords
+- shared staff credentials
+- master keys
+- hidden superuser routes
+- emergency authentication bypasses
+- unauthenticated admin endpoints
+- hardcoded secrets
+- secret keys inside source code
+- automatic privileged account creation
+
+All future staff access must remain based on:
+
+Clerk identity
++
+database-backed PMP identity
++
+database-backed role assignment
++
+database-backed permissions
++
+audited actions
+
+==================================================
+SUBSCRIPTION AND MESSAGING REGRESSION CHECK
+==================================================
+
+Do not modify messaging or subscription logic.
+
+However, verify that the existing rule remains intact:
+
+- Users with an active subscription can create conversations and send messages.
+- Users with a trialing subscription can create conversations and send messages if the existing entitlement logic treats trialing as active.
+- Users without an active/trialing subscription cannot create conversations or send messages.
+- Recipients can still receive messages.
+- The backend remains the source of truth.
+- The frontend cannot bypass the subscription check.
+
+Confirm the existing enforcement points:
+
+POST /v1/messaging/conversations
+
+POST /v1/messaging/conversations/:id/messages
+
+Confirm the existing subscription error behavior remains unchanged:
+
+HTTP 403
+
+code:
+SUBSCRIPTION_REQUIRED
+
+Do not change this behavior during the audit-context work.
+
+==================================================
+TESTING REQUIREMENTS
+==================================================
+
+Before changing anything:
+
+- Run the existing backend tests if dependencies are available.
+- Run backend typecheck.
+- Run frontend typecheck.
+- Run the production build if possible.
+
+After any approved minimal fix:
+
+- Run all backend tests.
+- Run backend typecheck.
+- Run frontend typecheck.
+- Run production build.
+
+Do not claim production functionality is verified unless it was actually tested against the production environment.
+
+==================================================
+FINAL REPORT FORMAT
+==================================================
+
+Return the report using exactly these sections:
+
+1. AUDIT SCOPE
+
+2. BASELINE REPOSITORY STATE
+
+3. EXISTING AUDIT ARCHITECTURE
+
+4. COMPLETE OPERATIONAL MUTATION INVENTORY
+
+5. SUPPORT AUDIT-CONTEXT FINDINGS
+
+6. MODERATION AUDIT-CONTEXT FINDINGS
+
+7. USER/ROLE MANAGEMENT AUDIT-CONTEXT FINDINGS
+
+8. FULLY AUDITED ACTIONS
+
+9. PARTIALLY AUDITED ACTIONS
+
+10. CRITICAL ATTRIBUTION GAPS
+
+11. EXACT FILES THAT WOULD NEED CHANGES
+
+12. MINIMAL SAFE FIX PLAN
+
+13. SUBSCRIPTION-TO-MESSAGING REGRESSION CHECK
+
+14. TEST AND BUILD RESULTS
+
+15. SECURITY IMPACT
+
+16. RECOMMENDATION FOR NEXT PHASE
+
+For every finding, include:
+
+- Status label:
+  ✅ Confirmed working
+  ⚠️ Partially implemented
+  ❌ Missing
+  🔴 Critical risk
+  🔍 Not verified
+
+- Exact file path
+- Exact function/class/route
+- HTTP endpoint where applicable
+- Required permission where applicable
+- Database table where applicable
+- Existing audit action where applicable
+- Exact missing context fields where applicable
+
+IMPORTANT FINAL RULE:
+
+Do not begin building the Admin dashboard or special staff-control UI in this task.
+
+Do not implement special access keys in this task.
+
+Do not implement maintenance controls in this task.
+
+Do not implement staff onboarding in this task.
+
+Do not implement account takeover or emergency access mechanisms.
+
+The purpose of this task is to complete the audit-context audit and, only if clearly justified by the findings, make the smallest compatible audit-context forwarding fixes.
+
+Preserve everything that already works.
