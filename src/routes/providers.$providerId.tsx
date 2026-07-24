@@ -53,9 +53,10 @@ function ProviderProfilePage() {
             <GlassPanel className="p-6 md:p-8">
               <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 md:flex md:items-center">
                 <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl gradient-primary text-xl font-semibold text-primary-foreground md:h-20 md:w-20">
-                  {q.data.displayName
+                  {(q.data.displayName ?? "")
                     .split(" ")
                     .map((n) => n[0])
+                    .filter(Boolean)
                     .slice(0, 2)
                     .join("")}
                 </div>

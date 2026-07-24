@@ -1,0 +1,68 @@
+The production app is now working for the dashboard and Featured Providers data loads correctly.
+
+New production bug:
+
+When I click a provider card from Featured Providers, the app navigates to:
+
+/providers/c3563e7b-a0bb-4770-b9a3-d908e7b6032f
+
+But the page displays:
+
+"This page didn't load
+Something went wrong on our end. Try refreshing or head back home."
+
+The provider card itself loads correctly on the dashboard, so the provider data exists.
+
+Perform a focused investigation of the provider profile route only.
+
+1. Trace the exact route that handles:
+   /providers/:providerId
+
+2. Trace every API request made when the provider profile page loads.
+
+3. Verify every request uses the shared API client and resolves to:
+   https://artisan-aura-verse.onrender.com
+
+4. Check the exact response status and JSON shape for every API request:
+   - 401
+   - 403
+   - 404
+   - 500
+   - CORS/network error
+
+5. Compare the frontend's expected provider profile response shape with the actual backend response shape.
+
+6. Check for runtime crashes caused by nullable production data:
+   - displayName
+   - headline
+   - bio
+   - skills
+   - location
+   - availability
+   - rates
+   - portfolio
+   - social links
+   - any nested nullable fields
+
+7. Check whether the route makes authenticated requests before Clerk authentication is ready.
+   If authentication is required, ensure the request is gated appropriately with:
+   authStatus === "authed"
+
+8. Check whether the route is requesting a provider profile using the wrong ID format or wrong endpoint.
+
+9. Check the Render backend logs while loading this exact profile:
+   provider ID: c3563e7b-a0bb-4770-b9a3-d908e7b6032f
+
+10. Do not change database configuration, Clerk configuration, or unrelated working features.
+
+11. Do not make broad architectural changes.
+
+Fix only the actual root cause with the smallest targeted change.
+
+After fixing:
+- run frontend typecheck
+- run backend typecheck if backend code changed
+- run backend tests if backend code changed
+- run production build
+- verify the exact provider profile URL works
+- report the exact root cause and exact files changed.

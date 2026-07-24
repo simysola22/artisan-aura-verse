@@ -28,6 +28,7 @@ import {
   providerPortfolio,
   categories,
   skills,
+  users,
   type ProviderProfile,
   type AvailabilityStatus,
 } from "../db/schema/index.js";
@@ -72,6 +73,8 @@ export interface PortfolioItemDto {
 export interface ProviderProfileDto {
   id: string;
   userId: string;
+  /** Provider's display name, sourced from the users table. */
+  displayName: string;
   kind: string;
   headline: string | null;
   about: string | null;
@@ -89,6 +92,8 @@ export interface ProviderProfileDto {
   isPublic: boolean;
   completenessScore: number;
   verificationStatus: string;
+  /** Alias for verificationStatus — matches the frontend Provider.verification field. */
+  verification: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -242,14 +247,18 @@ async function recomputeAndSave(db: Db, profile: ProviderProfile): Promise<numbe
 }
 
 async function buildDto(db: Db, profile: ProviderProfile): Promise<ProviderProfileDto> {
-  const [primaryCategory, sub] = await Promise.all([
+  const [primaryCategory, sub, userRows] = await Promise.all([
     loadPrimaryCategory(db, profile.primaryCategoryId),
     loadSubResources(db, profile.id),
+    db.select({ displayName: users.displayName }).from(users).where(eq(users.id, profile.userId)).limit(1),
   ]);
+
+  const displayName = userRows[0]?.displayName ?? "";
 
   return {
     id: profile.id,
     userId: profile.userId,
+    displayName,
     kind: profile.kind,
     headline: profile.headline,
     about: profile.about,
@@ -267,6 +276,7 @@ async function buildDto(db: Db, profile: ProviderProfile): Promise<ProviderProfi
     isPublic: profile.isPublic,
     completenessScore: profile.completenessScore,
     verificationStatus: profile.verificationStatus,
+    verification: profile.verificationStatus,
     createdAt: profile.createdAt.toISOString(),
     updatedAt: profile.updatedAt.toISOString(),
   };

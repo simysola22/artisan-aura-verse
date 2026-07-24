@@ -115,14 +115,81 @@ export function list(): Promise<Provider[]> {
   return apiFetch<SearchResult>("/v1/search/providers", { auth: false }).then((r) => r.items);
 }
 
+/** Shape of the backend's GET /v1/providers/:profileId response profile object. */
+interface BackendPublicProfile {
+  id: string;
+  userId: string;
+  displayName: string;
+  kind: string;
+  headline: string | null;
+  about: string | null;
+  primaryCategory: { id: string; name: string; slug: string } | null;
+  skills: { id: string; name: string; category: string }[];
+  experience: { id: string; role: string; organization: string; startDate: string; endDate: string | null; description: string | null }[];
+  certifications: { id: string; name: string; issuer: string; issuedAt: string; expiresAt: string | null; evidenceUrl: string | null }[];
+  portfolio: { id: string; title: string; description: string | null; mediaUrl: string; mediaType: string; displayOrder: number; createdAt: string }[];
+  serviceArea: string | null;
+  availability: string | null;
+  hourlyRate: number | null;
+  currency: string | null;
+  verificationStatus: string;
+  verification: string;
+  createdAt: string;
+}
+
 /**
  * Get a public provider profile by ID.
- * In real mode wraps the backend profile response shape.
+ * Maps the backend ProviderProfileDto shape to the frontend Provider type.
  */
 export function get(id: string): Promise<Provider> {
   if (USE_MOCK_API) return mockProviders.get(id);
-  // Backend returns { profile } — we cast to Provider for UI compatibility.
-  return apiFetch<{ profile: Provider }>(`/v1/providers/${id}`).then((r) => r.profile);
+  return apiFetch<{ profile: BackendPublicProfile }>(`/v1/providers/${id}`).then((r) => {
+    const p = r.profile;
+    return {
+      // UserBase fields
+      id: p.id,
+      email: "",            // not exposed on public profile endpoint
+      role: "provider" as const,
+      displayName: p.displayName,
+      createdAt: p.createdAt,
+      // Provider-specific fields
+      userId: p.userId,
+      kind: p.kind as "artisan" | "professional",
+      headline: p.headline ?? "",
+      about: p.about ?? undefined,
+      category: p.primaryCategory?.name ?? "",
+      skills: p.skills,
+      experience: p.experience.map((e) => ({
+        id: e.id,
+        role: e.role,
+        organization: e.organization,
+        startDate: e.startDate,
+        endDate: e.endDate ?? undefined,
+        description: e.description ?? undefined,
+      })),
+      certifications: p.certifications.map((c) => ({
+        id: c.id,
+        name: c.name,
+        issuer: c.issuer,
+        issuedAt: c.issuedAt,
+        expiresAt: c.expiresAt ?? undefined,
+        evidenceUrl: c.evidenceUrl ?? undefined,
+      })),
+      portfolio: p.portfolio.map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description ?? undefined,
+        mediaUrl: item.mediaUrl,
+        mediaType: item.mediaType as "image" | "video" | "document",
+        createdAt: item.createdAt,
+      })),
+      verification: (p.verification ?? p.verificationStatus) as import("@/types").VerificationStatus,
+      serviceArea: p.serviceArea ?? undefined,
+      availability: p.availability as "available" | "limited" | "unavailable" | undefined,
+      hourlyRate: p.hourlyRate ?? undefined,
+      currency: p.currency ?? undefined,
+    };
+  });
 }
 
 // ─── Own profile management (authenticated) ───────────────────────────────────

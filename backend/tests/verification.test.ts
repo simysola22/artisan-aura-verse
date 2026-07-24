@@ -183,6 +183,7 @@ const reviewerIdentity: ResolvedIdentity = {
 const sampleProviderProfile = {
   id: "profile_1",
   userId: "pmp_provider_1",
+  displayName: "Bob Artisan",
   kind: "artisan",
   headline: "Senior Plumber",
   about: null,
@@ -200,6 +201,7 @@ const sampleProviderProfile = {
   isPublic: true,
   completenessScore: 40,
   verificationStatus: "unverified",
+  verification: "unverified",
   createdAt: now.toISOString(),
   updatedAt: now.toISOString(),
 };

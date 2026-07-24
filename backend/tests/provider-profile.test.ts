@@ -96,6 +96,7 @@ const employerIdentity: ResolvedIdentity = {
 const sampleProfile = {
   id: "profile_1",
   userId: "pmp_provider_1",
+  displayName: "Bob Artisan",
   kind: "artisan",
   headline: "Senior Plumber",
   about: "10 years of experience",
@@ -113,6 +114,7 @@ const sampleProfile = {
   isPublic: true,
   completenessScore: 75,
   verificationStatus: "unverified",
+  verification: "unverified",
   createdAt: now.toISOString(),
   updatedAt: now.toISOString(),
 };
