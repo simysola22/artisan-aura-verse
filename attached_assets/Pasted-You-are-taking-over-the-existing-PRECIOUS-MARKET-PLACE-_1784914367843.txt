@@ -1,0 +1,492 @@
+You are taking over the existing PRECIOUS MARKET PLACE (PMP) application from another Replit environment.
+
+This is an existing production application.
+
+IMPORTANT:
+The previous environment was implementing the approved Phase 1 Staff-Control Security Foundation but ran out of quota during the implementation and validation process.
+
+Your first responsibility is to inspect the current repository state and determine exactly what has already been changed.
+
+DO NOT assume the previous implementation is complete.
+
+DO NOT redo work blindly.
+
+DO NOT create duplicate migrations, duplicate roles, duplicate permissions, duplicate audit fields, or duplicate logic.
+
+==================================================
+CURRENT PRODUCTION ARCHITECTURE
+==================================================
+
+PMP currently uses:
+
+- Frontend: Vercel
+- Backend: Render
+- Database: Railway PostgreSQL
+- Authentication: Clerk
+- Backend: Hono + Bun
+- Database ORM: Drizzle
+- Frontend: React/TanStack architecture
+- Existing RBAC and permission system
+- Existing Clerk identity synchronization
+- Existing audit logging capabilities
+- Existing subscription and billing system
+- Existing subscription-gated messaging system
+
+The following existing functionality must be preserved:
+
+- Employer accounts
+- Artisan/Provider accounts
+- Clerk authentication
+- PMP identity synchronization
+- Existing roles
+- Existing permissions
+- Provider verification
+- Subscription system
+- Paystack integration
+- Subscription-gated messaging
+- SSE/realtime messaging
+- Existing database structure
+- Existing production deployment architecture
+
+Do not make unrelated architectural changes.
+
+==================================================
+PHASE 0 — INSPECT CURRENT STATE BEFORE CHANGING ANYTHING
+==================================================
+
+First inspect:
+
+1. git status
+2. git diff
+3. recent git history
+4. migration files
+5. migration metadata
+6. backend/src/db
+7. backend/src/services/identity
+8. backend/src/services/audit
+9. backend/src/routes/ops
+10. backend/src/middleware
+11. existing role definitions
+12. existing permission definitions
+13. existing audit schema
+14. existing audit write call sites
+15. existing Clerk token verification
+16. existing session ID handling
+17. existing tests
+
+Search specifically for the Phase 1 changes that may already have been partially implemented:
+
+- system_engineer role
+- maintenance role
+- staff permissions
+- audit context
+- session ID
+- request ID
+- actor role
+- permission snapshot
+- result/status fields
+- audit filters
+- additive migration
+- audit context wiring
+
+Determine exactly:
+
+A. What was already completed.
+B. What was partially completed.
+C. What is missing.
+D. What is incorrect.
+E. Whether any migration is already applied.
+F. Whether any migration is pending.
+G. Whether the database schema and migration metadata are consistent.
+
+DO NOT make changes until this inspection is complete.
+
+==================================================
+PHASE 1 APPROVED SCOPE
+==================================================
+
+The approved Phase 1 objective is to create the secure foundation for future staff control.
+
+The future system may eventually include:
+
+- ADMIN
+- SUPER_ADMIN
+- CUSTOMER_SUPPORT
+- VERIFICATION_TEAM
+- SYSTEM_ENGINEER
+- MAINTENANCE
+
+However, Phase 1 must NOT build the entire Admin dashboard.
+
+Phase 1 must NOT create:
+
+- permanent shared credentials
+- permanent department keys
+- hidden authentication bypasses
+- hardcoded passwords
+- master backdoor keys
+- automatic Super Admin accounts
+- default Admin accounts
+- secret emergency credentials
+
+All staff access must ultimately use individual authenticated identities.
+
+Reuse Clerk and the existing PMP identity/RBAC architecture.
+
+==================================================
+IMPORTANT EXISTING ROLE CONSTRAINT
+==================================================
+
+The previous implementation intentionally preserved the existing role names and public account types.
+
+Do not rename existing roles.
+
+Do not replace existing roles.
+
+Do not create duplicate equivalents.
+
+The previous implementation identified that:
+
+- owner
+- system_admin
+- existing team roles
+
+already exist in the current architecture.
+
+Only add genuinely missing roles if the audit and current code confirm they are absent.
+
+The previous implementation specifically identified:
+
+- system_engineer
+- maintenance
+
+as potentially missing roles.
+
+Before creating either one, verify that they do not already exist.
+
+==================================================
+AUDIT CONTEXT
+==================================================
+
+The existing audit system must be extended additively and backward-compatibly.
+
+The objective is to allow the system to answer:
+
+WHO performed the action?
+WHAT action was performed?
+WHEN did it happen?
+WHAT was affected?
+WHAT role did the actor have?
+WHAT permissions were relevant?
+WHICH session performed the action?
+WHICH request caused the action?
+WAS the action successful or rejected?
+
+Potential audit context fields include:
+
+- actor PMP user ID
+- actor Clerk user ID
+- actor role
+- session ID
+- request ID
+- permission context or permission snapshot
+- result/status
+- target type
+- target ID
+- action
+- timestamp
+- metadata
+
+However:
+
+DO NOT add fields merely because they sound useful.
+
+First inspect the existing schema and conventions.
+
+Add only fields that are necessary, compatible, and supported by the current architecture.
+
+Existing audit writes must continue working.
+
+Existing code that creates audit events must not break because new fields are added.
+
+New fields should be optional or have safe defaults where appropriate.
+
+==================================================
+SESSION ID
+==================================================
+
+The previous investigation found that the existing Clerk token adapter exposes the Clerk session ID during token verification but the session ID is currently dropped before request handling.
+
+If this is still true:
+
+1. Preserve the existing authentication behavior.
+2. Pass the session ID through the existing request/auth context safely.
+3. Make it available to audit logging.
+4. Do not change how authentication decisions are made.
+5. Do not expose session IDs unnecessarily to the frontend.
+
+The objective is audit attribution, not a new authentication system.
+
+==================================================
+REQUEST ID
+==================================================
+
+If the existing application already has request IDs, reuse them.
+
+If it does not, determine whether a safe request ID can be introduced without changing API behavior.
+
+A request ID should help connect:
+
+- incoming request
+- logs
+- audit event
+
+Do not create a complicated tracing system in Phase 1.
+
+==================================================
+ROLES AND PERMISSIONS
+==================================================
+
+Inspect the current role and permission system first.
+
+Do not create a second RBAC system.
+
+Add only genuinely missing staff roles and permissions.
+
+Potential staff roles:
+
+- system_engineer
+- maintenance
+
+Potential permission categories may include:
+
+USER MANAGEMENT:
+- users.view
+- users.search
+- users.suspend
+- users.reactivate
+- users.logout
+
+VERIFICATION:
+- verification.view
+- verification.review
+- verification.approve
+- verification.reject
+- verification.request_information
+
+CUSTOMER SUPPORT:
+- support.view
+- support.respond
+- support.manage
+
+SYSTEM:
+- system.health.view
+- system.logs.view
+- system.maintenance.manage
+
+PLATFORM:
+- platform.settings.view
+- platform.settings.update
+
+BILLING:
+- billing.view
+- billing.subscription.view
+- billing.payment.view
+
+STAFF:
+- staff.view
+- staff.create
+- staff.update
+- staff.suspend
+- staff.revoke_access
+- staff.assign_roles
+
+AUDIT:
+- audit.view
+
+Do not add every permission automatically.
+
+Only add permissions that:
+
+1. Fit the existing RBAC conventions.
+2. Are actually needed for the current staff-control foundation.
+3. Do not duplicate existing permissions.
+4. Can be tested properly.
+
+==================================================
+ADMIN AND SUPER ADMIN
+==================================================
+
+Do not provision any Admin or Super Admin account.
+
+Do not create credentials.
+
+Do not create keys.
+
+Do not create a backdoor.
+
+Do not implement an unrestricted bypass.
+
+The future Admin system must be based on:
+
+- individual identities
+- roles
+- permissions
+- audit logs
+- revocable access
+- session control
+
+The future Super Admin system must be designed separately and must not be automatically created in this phase.
+
+==================================================
+MIGRATION SAFETY
+==================================================
+
+This is extremely important.
+
+Before creating or modifying a migration:
+
+1. Inspect every existing migration.
+2. Inspect migration naming conventions.
+3. Inspect migration metadata.
+4. Determine whether the previous environment already created a Phase 1 migration.
+5. Determine whether it has already been applied.
+6. Check whether the actual database schema matches the migration state.
+
+Do not:
+
+- create duplicate migrations
+- manually alter migration metadata
+- mark migrations as applied without applying them
+- make the migration system believe a migration ran when it did not
+- run destructive migrations
+- reset the database
+
+If a migration already exists and is unapplied, use the existing migration only if it is correct.
+
+If the migration is partially incorrect, explain the problem before modifying it.
+
+==================================================
+TESTING REQUIREMENTS
+==================================================
+
+After determining the current state, complete only the missing safe implementation.
+
+Run:
+
+1. Backend typecheck.
+2. Frontend typecheck.
+3. Backend tests.
+4. Relevant audit tests.
+5. Relevant identity/RBAC tests.
+6. Production frontend build.
+
+If the database migration is genuinely pending and the existing project workflow allows migrations to be safely applied, explain exactly what will happen before running it.
+
+Do not alter production data.
+
+Do not run migrations against production unless explicitly authorized.
+
+==================================================
+REGRESSION TESTING
+==================================================
+
+Confirm that existing functionality remains intact.
+
+At minimum, verify:
+
+AUTHENTICATION:
+- unauthenticated users remain blocked from protected endpoints
+- normal Clerk authentication still works
+- identity synchronization still works
+
+RBAC:
+- existing employer permissions remain unchanged
+- existing provider permissions remain unchanged
+- existing verification permissions remain unchanged
+- existing staff roles remain unchanged
+
+BILLING:
+- subscription status logic remains unchanged
+- payment logic remains unchanged
+
+MESSAGING:
+- subscription gating remains unchanged
+- unsubscribed users cannot initiate/send if that is the existing business rule
+- subscribed users can message according to existing rules
+- recipients can still receive messages according to existing rules
+
+AUDIT:
+- existing audit events still write successfully
+- new context fields do not break old audit writes
+- actor attribution remains correct
+
+==================================================
+FINAL REPORT
+==================================================
+
+At the end, provide a detailed report with these sections:
+
+1. CURRENT REPOSITORY STATE
+2. WHAT THE PREVIOUS ENVIRONMENT COMPLETED
+3. WHAT WAS PARTIALLY COMPLETED
+4. WHAT WAS MISSING
+5. WHAT WAS CHANGED IN THIS ENVIRONMENT
+6. EXACT FILES CHANGED
+7. EXACT DATABASE CHANGES
+8. EXACT MIGRATIONS CREATED OR USED
+9. EXACT ROLES ADDED
+10. EXACT PERMISSIONS ADDED
+11. EXACT AUDIT FIELDS ADDED
+12. EXACT API OR MIDDLEWARE CHANGES
+13. TEST RESULTS
+14. REGRESSION RESULTS
+15. SECURITY RISKS REMAINING
+16. WHAT MUST NOT YET BE IMPLEMENTED
+17. RECOMMENDED NEXT PHASE
+
+For every change, provide:
+
+- exact file path
+- function/class/module
+- database table if relevant
+- API route if relevant
+- reason for change
+- compatibility impact
+
+Use these labels where appropriate:
+
+✅ CONFIRMED WORKING
+⚠️ PARTIALLY IMPLEMENTED
+❌ MISSING
+🔴 CRITICAL RISK
+🔍 NOT VERIFIED
+
+==================================================
+ABSOLUTE SAFETY RULE
+==================================================
+
+Do not start by editing files.
+
+Start by inspecting the repository and current implementation state.
+
+The previous environment may have already made some changes.
+
+Your job is to safely continue from the current state, not to restart the project.
+
+Do not duplicate previous work.
+
+Do not break existing functionality.
+
+Do not touch subscription or messaging business rules.
+
+Do not create credentials or access keys.
+
+Do not create authentication bypasses.
+
+Do not implement the Admin dashboard yet.
+
+First inspect.
+Then report the current state.
+Then complete only the missing, approved Phase 1 foundation.
+Then run all validation checks.
