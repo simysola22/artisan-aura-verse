@@ -1,0 +1,638 @@
+You are taking over an existing production application called PMP (Precious Market Place).
+
+IMPORTANT: This is an existing application with many working features. Do NOT randomly rewrite, replace, refactor, or redesign existing architecture. Your first responsibility is to understand what already exists and extend it safely.
+
+CURRENT PRODUCTION ARCHITECTURE:
+- Frontend: Vercel
+- Backend: Render
+- Database: Railway PostgreSQL
+- Authentication: Clerk
+- Frontend: React + TanStack Start/Router + TanStack Query
+- Backend: Bun + Hono
+- Database: PostgreSQL + Drizzle ORM
+- Validation: Zod
+- Existing RBAC/permissions system
+- Existing operations/admin routes
+- Existing audit logging
+- Existing subscription/billing system
+- Existing messaging system
+- Existing Clerk authentication and identity synchronization
+
+CURRENT IMPORTANT RULE:
+Messaging is subscription-gated. A user must have an active subscription to create a conversation or send a message. The backend is the source of truth. Do not remove or weaken this rule.
+
+==================================================
+MISSION
+==================================================
+
+We want to safely evolve the existing internal operations system into a secure staff administration and system-control platform.
+
+The system should eventually support:
+
+1. Super Admin
+2. Admin
+3. System Engineer
+4. Maintenance Staff
+5. Customer Support Staff
+6. Verification Team
+7. Moderation Team
+
+The system must support:
+
+- Staff access control
+- Fine-grained permissions
+- Staff lifecycle management
+- Session visibility and revocation
+- Emergency access credential rotation
+- Detailed audit logging
+- Admin visibility into staff activity
+- Security event monitoring
+- System health monitoring
+- Maintenance controls
+- User management
+- Role and permission management
+- Emergency response controls
+
+However, do NOT begin by implementing everything blindly.
+
+==================================================
+PHASE 0 — FULL AUDIT FIRST
+==================================================
+
+Before changing any code, perform a complete audit of the existing codebase.
+
+Do not make implementation changes during this audit phase.
+
+Inspect and document:
+
+A. AUTHENTICATION
+- Clerk integration
+- Clerk token verification
+- Auth middleware
+- Auth context
+- Identity synchronization
+- User creation
+- Existing account type logic
+- Existing role assignment
+- Existing session handling
+
+B. RBAC AND PERMISSIONS
+Find and document:
+
+- All existing roles
+- All existing permissions
+- Role-permission relationships
+- Permission middleware
+- How permissions are checked
+- Existing owner role
+- Existing system_admin role
+- Existing verification_team role
+- Existing support_team role
+- Existing moderation_team role
+- Whether a system engineer role exists
+- Whether maintenance staff role exists
+
+Do not assume the role names. Read the actual database schema, migrations, seed data, backend services, and frontend implementation.
+
+C. OPERATIONS SYSTEM
+Audit all existing operations/admin functionality.
+
+Find all existing routes and pages related to:
+
+- /ops
+- users
+- support
+- moderation
+- verification
+- admin
+- system management
+
+Document what each existing role can currently do.
+
+D. AUDIT LOGGING
+Inspect the current audit log implementation.
+
+Document:
+
+- What actions are currently logged
+- Which actors are recorded
+- Whether the actor's role is recorded
+- Whether Clerk user ID is recorded
+- Whether Clerk session ID is recorded
+- Whether IP address is recorded
+- Whether user agent/device information is recorded
+- Whether target user/entity is recorded
+- Whether successful actions are recorded
+- Whether failed actions are recorded
+- Whether unauthorized attempts are recorded
+- Whether staff activity can be filtered by actor
+- Whether logs are immutable
+- Whether logs can be deleted or modified
+
+E. SESSION MANAGEMENT
+Audit whether the current system can:
+
+- List active user sessions
+- List active staff sessions
+- Identify the session used for an action
+- Revoke one session
+- Revoke all sessions for a user
+- Log out a staff member everywhere
+- Immediately block a suspended staff member
+- Detect suspicious session activity
+
+Do not invent functionality that does not already exist. Clearly state what exists and what is missing.
+
+F. BILLING AND MESSAGING
+Verify the complete subscription-gated messaging flow.
+
+Trace:
+
+User subscription
+→ entitlement calculation
+→ active subscription validation
+→ permission check
+→ create conversation
+→ send message
+
+Confirm:
+
+- A subscribed user can create a conversation.
+- A subscribed user can send messages.
+- An unsubscribed user cannot create a conversation.
+- An unsubscribed user cannot send a message.
+- The backend enforces this independently of the frontend.
+- Subscription expiration is correctly handled using the actual billing period.
+- No frontend-only check is being relied upon for security.
+
+Test the real API flow where possible.
+
+If you discover that the current entitlement logic only checks subscription status but fails to check the current billing period expiration, report it clearly and propose the smallest targeted fix.
+
+Do not modify unrelated billing logic.
+
+G. SECURITY
+Audit:
+
+- Hardcoded secrets
+- Permanent staff credentials
+- Permanent admin keys
+- Shared credentials
+- Plaintext secret storage
+- Environment variables
+- Secret handling
+- Emergency access mechanisms
+- Rate limiting
+- Privilege escalation risks
+- IDOR risks
+- Missing authorization checks
+- Audit-log tampering risks
+
+==================================================
+PHASE 1 — PRODUCE AN AUDIT REPORT
+==================================================
+
+After the audit, produce a detailed report with these exact sections:
+
+1. CURRENT ARCHITECTURE
+2. CURRENT AUTHENTICATION FLOW
+3. CURRENT RBAC/PERMISSION SYSTEM
+4. EXISTING STAFF/OPERATIONS ROLES
+5. EXISTING ADMIN CAPABILITIES
+6. EXISTING AUDIT LOGGING
+7. EXISTING SESSION MANAGEMENT
+8. EXISTING SECURITY CONTROLS
+9. EXISTING SUBSCRIPTION AND MESSAGING FLOW
+10. CONFIRMED BUGS
+11. MISSING CAPABILITIES
+12. RISKS
+13. RECOMMENDED IMPLEMENTATION PLAN
+14. FILES THAT WOULD NEED TO CHANGE
+
+Do not modify code before presenting this audit.
+
+==================================================
+PHASE 2 — DESIGN THE STAFF CONTROL SYSTEM
+==================================================
+
+Only after the audit is complete, design the system around the existing architecture.
+
+Do not create a separate parallel authorization system if the current RBAC system can be safely extended.
+
+The preferred hierarchy is conceptually:
+
+SUPER ADMIN
+    ↓
+ADMIN
+    ↓
+SYSTEM ENGINEER
+MAINTENANCE STAFF
+CUSTOMER SUPPORT
+VERIFICATION TEAM
+MODERATION TEAM
+
+However, permissions must be explicit.
+
+Do NOT rely only on role hierarchy.
+
+Example permission categories:
+
+USER MANAGEMENT:
+- users.read
+- users.manage
+- users.suspend
+- users.reactivate
+- users.delete
+- users.sessions.revoke
+
+STAFF MANAGEMENT:
+- staff.read
+- staff.invite
+- staff.activate
+- staff.suspend
+- staff.disable
+- staff.remove
+- staff.roles.manage
+- staff.permissions.manage
+
+VERIFICATION:
+- verification.read
+- verification.review
+- verification.request_info
+- verification.approve
+- verification.reject
+
+SUPPORT:
+- support.read
+- support.respond
+- support.manage
+
+MODERATION:
+- moderation.read
+- moderation.review
+- moderation.action
+
+SYSTEM:
+- system.health.read
+- system.logs.read
+- system.diagnostics
+- system.cache.manage
+- system.maintenance.manage
+
+AUDIT:
+- audit.read
+- audit.export
+- audit.security.read
+
+BILLING:
+- billing.read
+- billing.manage
+
+EMERGENCY:
+- emergency_access.manage
+- credentials.rotate
+- system.override
+
+Do not automatically add permissions without first checking the existing permission naming conventions.
+
+Reuse existing permission names where they already exist.
+
+==================================================
+PHASE 3 — STAFF LIFECYCLE
+==================================================
+
+The staff system should support lifecycle states such as:
+
+- invited
+- active
+- suspended
+- disabled
+- removed
+
+A staff member must have:
+
+- A real individual Clerk identity
+- An internal PMP identity
+- One or more explicit staff roles
+- Explicit permissions
+- A recorded lifecycle state
+
+Avoid shared employee accounts wherever possible.
+
+If an employee leaves:
+
+1. Admin suspends or disables the staff account.
+2. Existing sessions are revoked if possible.
+3. Future backend requests are blocked.
+4. The action is recorded in the audit log.
+5. The staff member cannot regain access without explicit reactivation.
+
+==================================================
+PHASE 4 — STAFF ACTIVITY AUDITING
+==================================================
+
+Every non-Super-Admin staff member's meaningful activity must be visible to authorized Admin/Super Admin users.
+
+Examples:
+
+- Login
+- Logout where detectable
+- Failed login where detectable
+- User lookup
+- User suspension
+- User reactivation
+- User deletion
+- Verification review
+- Verification approval
+- Verification rejection
+- Support action
+- Moderation action
+- Role assignment
+- Permission change
+- Session revocation
+- Maintenance action
+- System configuration change
+- Billing administration action
+- Failed authorization attempt
+- Emergency access attempt
+
+Each audit event should include, where available:
+
+- event ID
+- timestamp
+- actor PMP identity ID
+- actor Clerk user ID
+- actor role at the time of action
+- actor permission context
+- Clerk session ID if available
+- action
+- target entity type
+- target entity ID
+- request ID/correlation ID
+- IP address if safely available
+- user agent/device information if safely available
+- success/failure
+- error code if failed
+- reason/metadata where appropriate
+
+IMPORTANT:
+
+The audit log must be append-only from the application perspective.
+
+Normal staff must not be able to:
+
+- Delete audit logs
+- Modify audit logs
+- Hide their own actions
+- Change historical actor identity
+- Rewrite historical events
+
+The Admin should be able to search and filter audit logs.
+
+Filters should include:
+
+- actor
+- staff role
+- action
+- target
+- success/failure
+- date range
+- IP where available
+- session where available
+
+==================================================
+PHASE 5 — ADMIN CONTROL CENTER
+==================================================
+
+Extend the existing operations system instead of replacing it.
+
+The Admin Control Center should eventually provide:
+
+USERS:
+- Search users
+- View accounts
+- View account type
+- View verification status
+- View subscription status
+- Suspend users
+- Reactivate users
+- Remove users where supported
+- Revoke sessions
+- View account activity
+
+STAFF:
+- Search staff
+- Invite staff
+- Assign roles
+- Remove roles
+- Manage staff status
+- Suspend staff
+- Disable staff
+- Reactivate staff
+- Revoke all staff sessions
+- View staff activity
+
+PERMISSIONS:
+- View permissions
+- Assign permissions where supported
+- Remove permissions
+- Show why a user has a permission
+- Prevent accidental privilege escalation
+
+SESSIONS:
+- View active sessions where supported
+- View session metadata where available
+- Revoke individual sessions
+- Revoke all sessions for a user
+- Revoke all sessions for a staff member
+
+AUDIT:
+- View audit events
+- Search
+- Filter
+- Inspect event details
+- View security events
+
+SYSTEM:
+- Health status
+- Database status
+- Backend status
+- Queue status if applicable
+- Cache status if applicable
+- Error summaries
+- Maintenance controls where safe
+
+==================================================
+PHASE 6 — SPECIAL ACCESS CREDENTIALS
+==================================================
+
+Do NOT create permanent shared admin passwords or permanent raw keys.
+
+If emergency credentials are needed, they must be:
+
+- Rotatable
+- Revocable
+- Expirable
+- Individually identifiable
+- Audited on every use
+- Stored securely
+- Never stored in plaintext in the database
+
+Prefer storing only a secure hash of a credential.
+
+The raw credential should be shown only at creation/rotation time if the architecture requires it.
+
+Possible emergency credential categories:
+
+- SUPER_ADMIN_EMERGENCY
+- ADMIN_EMERGENCY
+- SYSTEM_ENGINEER_EMERGENCY
+- MAINTENANCE_EMERGENCY
+
+However, do not implement these as a second hidden authentication system that bypasses Clerk unless the security architecture has been carefully designed and reviewed.
+
+Normal staff access should use individual authenticated identities.
+
+Emergency access should be:
+
+1. Explicitly activated.
+2. Short-lived where possible.
+3. Logged.
+4. Revocable.
+5. Rotatable.
+6. Restricted to the minimum necessary privilege.
+
+If an emergency credential is compromised:
+
+Admin/Super Admin must be able to rotate/revoke it without a database migration or code deployment.
+
+==================================================
+PHASE 7 — ADMIN POWER
+==================================================
+
+The Admin should have broad operational control through the app UI.
+
+The Admin should be able to perform the work of staff roles when necessary.
+
+For example, if a verification worker is unavailable, the Admin should be able to perform verification operations.
+
+If support staff are unavailable, the Admin should be able to perform support operations.
+
+If a maintenance worker is removed, the Admin should be able to perform permitted maintenance operations.
+
+However:
+
+- All Admin actions must be audited.
+- The actor must still be identified as Admin.
+- The system must not pretend the Admin was the original staff member.
+- The audit log must preserve the actual actor.
+
+The Super Admin should have the highest level of control, including:
+
+- Admin management
+- Staff management
+- Role management
+- Permission management
+- Emergency credential rotation
+- Security control
+- System override where explicitly designed
+
+Do not expose dangerous operations without appropriate confirmation and, where appropriate, re-authentication.
+
+==================================================
+PHASE 8 — IMPLEMENTATION RULES
+==================================================
+
+Before modifying any file:
+
+1. Read the existing implementation.
+2. Identify the exact integration point.
+3. Confirm the current behavior.
+4. Make the smallest targeted change.
+5. Do not rewrite unrelated files.
+6. Do not change database configuration.
+7. Do not change Clerk configuration unnecessarily.
+8. Do not change production environment variables unless explicitly required.
+9. Do not break existing APIs.
+10. Do not remove existing permissions.
+11. Do not remove existing audit events.
+12. Do not replace working architecture without proving the existing architecture is insufficient.
+
+Prefer:
+
+- Extending existing RBAC
+- Extending existing audit logging
+- Extending existing /ops routes
+- Extending existing identity services
+- Extending existing Clerk authentication
+- Adding database migrations only when necessary
+- Reusing existing service patterns
+
+==================================================
+PHASE 9 — VALIDATION
+==================================================
+
+After implementation, run:
+
+- Frontend typecheck
+- Backend typecheck
+- Backend tests
+- Frontend production build
+- Existing test suite
+- Relevant security tests
+- Permission tests
+- Staff lifecycle tests
+- Audit logging tests
+- Session revocation tests where supported
+- Subscription messaging tests
+
+Verify:
+
+1. Existing users can still log in.
+2. Existing employers still work.
+3. Existing artisans/providers still work.
+4. Existing staff roles still work.
+5. Existing verification flow still works.
+6. Existing support flow still works.
+7. Existing moderation flow still works.
+8. Subscribed users can message.
+9. Unsubscribed users cannot create conversations or send messages.
+10. Admins can perform authorized staff operations.
+11. Unauthorized users cannot access staff operations.
+12. Staff cannot access Admin-only functions.
+13. Staff activity is recorded.
+14. Staff activity is visible to authorized Admin/Super Admin users.
+15. Staff access can be suspended.
+16. Sessions can be revoked where supported.
+17. Emergency credentials can be rotated/revoked if implemented.
+18. Audit records cannot be modified by ordinary application users.
+
+==================================================
+FINAL OUTPUT REQUIRED
+==================================================
+
+After the audit and implementation, provide:
+
+1. Exact root cause of every issue discovered.
+2. Exact files changed.
+3. Exact database migrations added.
+4. Exact permissions added or changed.
+5. Exact roles added or changed.
+6. Exact audit events added.
+7. Exact session controls added.
+8. Exact emergency access controls added.
+9. Confirmation that existing features were preserved.
+10. Frontend typecheck result.
+11. Backend typecheck result.
+12. Backend test result.
+13. Frontend build result.
+14. Subscription messaging verification result.
+15. Security limitations that still remain.
+
+DO NOT CLAIM SOMETHING IS WORKING UNLESS YOU ACTUALLY TESTED IT.
+
+DO NOT SAY "everything is secure" without clearly stating what was actually tested.
+
+Start with PHASE 0 — THE AUDIT.
+
+Do not make code changes until the audit report is complete.
