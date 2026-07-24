@@ -1,0 +1,168 @@
+I want to change the PMP messaging business rule.
+
+CURRENT BUSINESS RULE:
+Only users with an active subscription should be able to initiate or send messages to other users.
+
+This is a deliberate product decision. Do not assume messaging should remain free.
+
+Please implement this carefully and minimally.
+
+REQUIREMENT:
+
+Before a user can send a message, the backend must verify that the authenticated user has an active subscription.
+
+The subscription check must happen on the BACKEND, not only in the frontend.
+
+The frontend may display a helpful locked/subscription UI, but frontend checks alone are not sufficient.
+
+EXPECTED FLOW:
+
+User clicks Send
+→ Clerk authentication is verified
+→ PMP identity is resolved
+→ user's subscription status is checked
+→ if subscription is active:
+    → permission check continues
+    → message is sent normally
+→ if subscription is inactive:
+    → message is rejected
+    → return a clear appropriate HTTP response
+    → do not insert the message into the database
+
+IMPORTANT:
+Do not silently fail.
+
+Use an appropriate response such as:
+
+403 Forbidden
+
+with a structured error response similar to:
+
+{
+  "error": {
+    "code": "SUBSCRIPTION_REQUIRED",
+    "message": "An active subscription is required to send messages."
+  }
+}
+
+Before making changes, investigate the existing billing/subscription architecture.
+
+Search for and understand:
+
+- subscription database schema
+- billing service
+- subscription status
+- entitlements
+- getEntitlements
+- hasActiveSubscription
+- Paystack integration
+- billing routes
+- billing middleware
+- existing subscription plans
+- existing user subscription fields
+- existing payment status logic
+
+Do not invent a second subscription system if one already exists.
+
+Use the existing subscription/billing architecture wherever possible.
+
+IMPORTANT PRODUCT RULE:
+
+For now, apply the subscription requirement to MESSAGE SENDING.
+
+Determine whether the intended behavior should be:
+
+A. Only the sender needs an active subscription to send a message
+
+or
+
+B. Both users need active subscriptions before a conversation can be created or messages can be sent.
+
+Use the existing product architecture to determine the cleanest implementation, but if the current architecture does not clearly establish this distinction, implement the simplest rule:
+
+A user must have an active subscription to send a message.
+
+Do not unnecessarily block users from receiving messages.
+
+The backend must be the source of truth.
+
+FRONTEND REQUIREMENTS:
+
+If the user is not subscribed and attempts to send a message:
+
+- do not clear the typed draft
+- show a clear message such as:
+  "You need an active subscription to send messages."
+- provide a clear path/button to the subscription or billing page if one already exists
+- do not show a generic "Something went wrong"
+- do not make the user retype their message
+
+The message composer should remain usable, but the send action should be blocked gracefully.
+
+OPTIONAL UX IMPROVEMENT:
+
+If subscription status is already available through the existing billing API, the frontend may disable the Send button before the request is made.
+
+However, this is only a UX optimization.
+
+The backend must still enforce the subscription requirement because users can bypass frontend checks.
+
+SECURITY REQUIREMENTS:
+
+Do not trust:
+- frontend state
+- localStorage
+- Clerk unsafeMetadata
+- client-provided subscription status
+
+The backend must determine the user's actual subscription status from the database/payment system.
+
+Do not allow the client to send something like:
+
+{
+  "isSubscribed": true
+}
+
+and trust it.
+
+VALIDATION:
+
+After implementing:
+
+1. Test an authenticated user with an active subscription:
+   - send message
+   - verify HTTP 2xx
+   - verify message is inserted into the database
+
+2. Test an authenticated user without an active subscription:
+   - attempt to send message
+   - verify HTTP 403
+   - verify error code is SUBSCRIPTION_REQUIRED
+   - verify no message is inserted into the database
+   - verify the draft remains intact
+
+3. Verify that existing messaging permissions still work correctly.
+
+4. Verify that the frontend displays a useful subscription-required message.
+
+5. Verify that existing working features are not broken.
+
+Run:
+
+- frontend typecheck
+- backend typecheck
+- backend tests
+- frontend production build
+
+FINAL REPORT MUST INCLUDE:
+
+1. Exact root cause/architecture of the existing subscription system
+2. Exact subscription status used to determine access
+3. Exact backend files changed
+4. Exact frontend files changed
+5. Exact endpoint/middleware where subscription enforcement happens
+6. Exact HTTP response returned to unsubscribed users
+7. Whether the database schema was changed
+8. Whether any secrets or environment variables were changed
+9. Test results
+10. Whether it is safe to push to GitHub and deploy

@@ -68,7 +68,7 @@ import {
   ConflictError,
 } from "../src/errors/index.js";
 
-// ─── Mock service module ───────────────────────────────────────────────────────
+// ─── Mock service modules ─────────────────────────────────────────────────────
 
 vi.mock("../src/services/messaging/index.js", () => ({
   getOrCreateConversation: vi.fn(),
@@ -83,6 +83,16 @@ vi.mock("../src/services/messaging/index.js", () => ({
   unblockUser: vi.fn(),
 }));
 
+// Mock billing so the subscription check passes by default.
+// Individual tests can override getEntitlements to simulate no subscription.
+vi.mock("../src/services/billing/index.js", () => ({
+  getEntitlements: vi.fn(),
+  getActivePlans: vi.fn(),
+  initializeCheckout: vi.fn(),
+  getMyBilling: vi.fn(),
+  processWebhookEvent: vi.fn(),
+}));
+
 import {
   getOrCreateConversation,
   listConversations,
@@ -95,6 +105,8 @@ import {
   blockUser,
   unblockUser,
 } from "../src/services/messaging/index.js";
+
+import { getEntitlements } from "../src/services/billing/index.js";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -225,6 +237,13 @@ function authHeader(identity: ResolvedIdentity): Record<string, string> {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Default: caller has an active subscription — individual tests override as needed.
+  vi.mocked(getEntitlements).mockResolvedValue({
+    hasActiveSubscription: true,
+    planId: "plan_1",
+    planName: "Standard",
+    accessUntil: null,
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -464,6 +483,26 @@ describe("POST /v1/messaging/conversations", () => {
     });
     expect(res.status).toBe(403);
   });
+
+  it("returns 403 SUBSCRIPTION_REQUIRED when caller has no active subscription", async () => {
+    vi.mocked(getEntitlements).mockResolvedValueOnce({
+      hasActiveSubscription: false,
+      planId: null,
+      planName: null,
+      accessUntil: null,
+    });
+    const app = makeApp(employerIdentity);
+    const res = await app.request("/v1/messaging/conversations", {
+      method: "POST",
+      headers: { ...authHeader(employerIdentity), "Content-Type": "application/json" },
+      body: JSON.stringify({ recipientId: "pmp_provider_1" }),
+    });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("SUBSCRIPTION_REQUIRED");
+    // The messaging service must NOT have been called.
+    expect(getOrCreateConversation).not.toHaveBeenCalled();
+  });
 });
 
 // ════════════════════════════════════════════════════════════════════════
@@ -621,6 +660,26 @@ describe("POST /v1/messaging/conversations/:id/messages", () => {
       body: JSON.stringify({ body: "intrude" }),
     });
     expect(res.status).toBe(403);
+  });
+
+  it("returns 403 SUBSCRIPTION_REQUIRED when caller has no active subscription", async () => {
+    vi.mocked(getEntitlements).mockResolvedValueOnce({
+      hasActiveSubscription: false,
+      planId: null,
+      planName: null,
+      accessUntil: null,
+    });
+    const app = makeApp(employerIdentity);
+    const res = await app.request("/v1/messaging/conversations/conv_1/messages", {
+      method: "POST",
+      headers: { ...authHeader(employerIdentity), "Content-Type": "application/json" },
+      body: JSON.stringify({ body: "Hello!" }),
+    });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("SUBSCRIPTION_REQUIRED");
+    // The messaging service must NOT have been called.
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 });
 

@@ -43,6 +43,8 @@ import {
   blockUser,
   unblockUser,
 } from "../services/messaging/index.js";
+import { getEntitlements } from "../services/billing/index.js";
+import { SubscriptionRequiredError } from "../errors/index.js";
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
@@ -106,6 +108,9 @@ export function createMessagingRouter(
   );
 
   // ── Get or create 1:1 conversation ──────────────────────────────────────
+  //
+  // Subscription check: initiating a conversation is a send action —
+  // the caller must have an active subscription.
 
   router.post(
     "/v1/messaging/conversations",
@@ -114,6 +119,12 @@ export function createMessagingRouter(
     zValidator("json", createConversationSchema),
     async (c) => {
       const { pmpUserId } = c.var.auth;
+
+      const entitlements = await getEntitlements(db, pmpUserId);
+      if (!entitlements.hasActiveSubscription) {
+        throw new SubscriptionRequiredError();
+      }
+
       const { recipientId } = c.req.valid("json");
 
       const conversation = await getOrCreateConversation(db, {
@@ -156,6 +167,9 @@ export function createMessagingRouter(
   );
 
   // ── Send message ─────────────────────────────────────────────────────────
+  //
+  // Subscription check: the sender must have an active subscription.
+  // Recipients are never blocked from receiving messages.
 
   router.post(
     "/v1/messaging/conversations/:id/messages",
@@ -164,6 +178,12 @@ export function createMessagingRouter(
     zValidator("json", sendMessageSchema),
     async (c) => {
       const { pmpUserId } = c.var.auth;
+
+      const entitlements = await getEntitlements(db, pmpUserId);
+      if (!entitlements.hasActiveSubscription) {
+        throw new SubscriptionRequiredError();
+      }
+
       const conversationId = c.req.param("id");
       const { body } = c.req.valid("json");
 

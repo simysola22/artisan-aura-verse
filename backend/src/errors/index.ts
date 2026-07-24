@@ -87,6 +87,13 @@ export class TooManyRequestsError extends AppError {
   }
 }
 
+export class SubscriptionRequiredError extends AppError {
+  constructor(message = "An active subscription is required to send messages.") {
+    super(403, "SUBSCRIPTION_REQUIRED", message);
+    this.name = "SubscriptionRequiredError";
+  }
+}
+
 // --- 500 family ----------------------------------------------------------
 
 export class InternalError extends AppError {

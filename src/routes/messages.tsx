@@ -5,6 +5,7 @@ import { Loader2, MessageSquare, Send } from "lucide-react";
 import { PublicShell } from "@/layouts/PublicShell";
 import { GlassCard } from "@/components/glass/glass";
 import { messagingApi } from "@/api";
+import { ApiError } from "@/api/client";
 import { DataStateBoundary, EmptyState } from "@/components/common/data-state";
 import { useAuth } from "@/features/auth/auth-context";
 import { cn } from "@/lib/utils";
@@ -120,12 +121,20 @@ export function MessagesLayout({ activeId }: { activeId?: string } = {}) {
   );
 }
 
+function isSubscriptionRequiredError(err: unknown): boolean {
+  if (!(err instanceof ApiError)) return false;
+  if (err.status !== 403) return false;
+  const details = err.details as { code?: string } | null | undefined;
+  return details?.code === "SUBSCRIPTION_REQUIRED";
+}
+
 export function ConversationView({ conversationId }: { conversationId: string }) {
   const { user } = useAuth();
   const currentUserId = user?.id ?? "me";
 
   const qc = useQueryClient();
   const [draft, setDraft] = useState("");
+  const [subscriptionError, setSubscriptionError] = useState(false);
   const messages = useQuery({
     queryKey: ["messages", conversationId],
     queryFn: () => messagingApi.listMessages(conversationId),
@@ -133,8 +142,15 @@ export function ConversationView({ conversationId }: { conversationId: string })
   const send = useMutation({
     mutationFn: (body: string) => messagingApi.sendMessage(conversationId, body),
     onSuccess: () => {
+      setDraft("");
+      setSubscriptionError(false);
       qc.invalidateQueries({ queryKey: ["messages", conversationId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+    onError: (err) => {
+      if (isSubscriptionRequiredError(err)) {
+        setSubscriptionError(true);
+      }
     },
   });
 
@@ -156,8 +172,9 @@ export function ConversationView({ conversationId }: { conversationId: string })
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!draft.trim()) return;
+    setSubscriptionError(false);
     send.mutate(draft.trim());
-    setDraft("");
+    // Draft is only cleared in onSuccess so users can retry after errors.
   }
 
   return (
@@ -189,6 +206,19 @@ export function ConversationView({ conversationId }: { conversationId: string })
           })}
         </DataStateBoundary>
       </div>
+
+      {subscriptionError && (
+        <div className="mx-3 mb-2 flex items-center justify-between gap-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive">
+          <span>You need an active subscription to send messages.</span>
+          <Link
+            to="/billing"
+            className="shrink-0 rounded-md bg-destructive/15 px-3 py-1 text-xs font-semibold hover:bg-destructive/25"
+          >
+            View plans
+          </Link>
+        </div>
+      )}
+
       <form onSubmit={onSubmit} className="border-t border-border/60 p-3">
         <label htmlFor="composer" className="sr-only">
           Message
