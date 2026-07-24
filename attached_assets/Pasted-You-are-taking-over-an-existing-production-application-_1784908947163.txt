@@ -1,0 +1,638 @@
+You are taking over an existing production application called PMP (Precious Market Place).
+
+This is an AUDIT-ONLY task.
+
+IMPORTANT:
+DO NOT modify any code.
+DO NOT create files.
+DO NOT change database configuration.
+DO NOT change environment variables or secrets.
+DO NOT change Clerk configuration.
+DO NOT change Paystack configuration.
+DO NOT change Railway configuration.
+DO NOT change Render configuration.
+DO NOT change Vercel configuration.
+DO NOT run migrations.
+DO NOT alter the database.
+DO NOT fix bugs yet.
+
+Your task is to perform a comprehensive production-readiness and functionality audit of the existing application and produce a detailed report.
+
+The purpose of this audit is to determine:
+
+1. How functional the application currently is.
+2. Which features are genuinely working end-to-end.
+3. Which features only appear to work in the frontend.
+4. Which features are broken.
+5. Which features have hidden integration problems.
+6. Whether the subscription-to-messaging flow works completely.
+7. Whether the current production architecture is behaving correctly.
+
+Do not make assumptions based on TypeScript types or frontend UI appearance.
+
+Trace actual runtime behavior, API requests, database operations, authentication, authorization, billing state, and error handling.
+
+==================================================
+PART 1 — APPLICATION ARCHITECTURE AUDIT
+==================================================
+
+First map the complete application architecture.
+
+Identify:
+
+Frontend:
+- framework
+- routing system
+- rendering model
+- SSR behavior
+- client-side state management
+- query/cache system
+- API client
+- authentication integration
+
+Backend:
+- runtime
+- framework
+- route structure
+- middleware
+- authentication flow
+- authorization flow
+- validation
+- error handling
+- rate limiting
+- caching
+- real-time messaging
+- background jobs if any
+
+Infrastructure:
+- frontend hosting
+- backend hosting
+- database hosting
+- authentication provider
+- payment provider
+- file storage
+- email provider
+- deployment structure
+
+Produce an architecture diagram in text showing:
+
+User
+→ Frontend
+→ Authentication
+→ API
+→ Backend
+→ Database
+→ External services
+
+==================================================
+PART 2 — ENVIRONMENT AND DEPLOYMENT AUDIT
+==================================================
+
+Determine the actual production architecture.
+
+Verify, without modifying anything:
+
+- frontend production URL
+- backend production URL
+- database provider
+- authentication provider
+- payment provider
+- current environment separation
+
+Search the codebase for:
+
+- localhost URLs
+- Replit URLs
+- Vercel URLs used incorrectly
+- Render URLs used incorrectly
+- hardcoded API URLs
+- relative API requests that may fail in production
+- incorrect VITE_API_BASE_URL usage
+- direct fetch() calls bypassing the shared API client
+- production secrets accidentally committed
+- development-only fallback behavior
+
+Do not reveal secret values.
+
+Only report:
+
+- whether the required secret exists
+- whether the application appears to read it
+- whether configuration appears consistent
+
+==================================================
+PART 3 — AUTHENTICATION AUDIT
+==================================================
+
+Trace the complete authentication flow.
+
+Test or inspect:
+
+1. New employer signup.
+2. New provider/artisan signup.
+3. Login.
+4. Logout.
+5. Clerk token acquisition.
+6. Token delivery to the backend.
+7. Backend token verification.
+8. PMP identity resolution.
+9. Account type resolution.
+10. Role resolution.
+11. Permission resolution.
+12. Returning-user behavior.
+13. Account-type mismatch behavior.
+14. Session expiration behavior.
+15. Unauthorized API behavior.
+
+Verify:
+
+- employer does not become provider accidentally
+- provider does not become employer accidentally
+- returning users retain the correct account type
+- Clerk metadata and PMP database identity remain consistent
+- unauthenticated requests return appropriate errors
+- authenticated requests receive the correct permissions
+
+Do not change anything.
+
+==================================================
+PART 4 — ROLE AND PERMISSION AUDIT
+==================================================
+
+Map the existing:
+
+- roles
+- permissions
+- role-permission relationships
+- permission middleware
+
+For every major feature, identify:
+
+- required permission
+- actual backend permission check
+- frontend permission check if any
+- whether frontend and backend agree
+
+Specifically audit:
+
+- messaging
+- verification
+- provider management
+- employer management
+- billing
+- user management
+- staff/admin functionality if present
+
+Determine whether any feature is protected only by the frontend.
+
+If so, report it as a security issue.
+
+==================================================
+PART 5 — BILLING AND SUBSCRIPTION AUDIT
+==================================================
+
+Trace the entire subscription lifecycle.
+
+Determine:
+
+1. How a user selects a plan.
+2. How payment begins.
+3. Which payment provider handles payment.
+4. How payment completion is detected.
+5. How the backend verifies payment.
+6. How subscription status is stored.
+7. How subscription status is updated.
+8. What counts as an active subscription.
+9. What happens if payment fails.
+10. What happens if payment is cancelled.
+11. What happens if a subscription expires.
+12. What happens if a subscription is revoked.
+13. Whether the frontend can incorrectly claim that a user is subscribed.
+14. Whether the backend is the actual source of truth.
+
+Do not assume that seeing a successful payment UI means the subscription is active.
+
+Verify the actual path:
+
+Payment
+→ backend confirmation
+→ database subscription state
+→ entitlement calculation
+→ messaging authorization
+
+==================================================
+PART 6 — CRITICAL SUBSCRIPTION → MESSAGING END-TO-END AUDIT
+==================================================
+
+This is the highest-priority part of the audit.
+
+Determine whether the following complete flow works:
+
+USER A
+→ creates account
+→ logs in
+→ has no active subscription
+→ attempts to message another user
+→ backend rejects the attempt correctly
+
+Then:
+
+USER A
+→ subscribes to a valid plan
+→ payment completes
+→ subscription is confirmed
+→ database reflects active subscription
+→ entitlement calculation reflects active subscription
+→ user reloads or refreshes the application
+→ user attempts to create a conversation
+→ conversation creation succeeds
+→ user sends a message
+→ message is saved to the database
+→ recipient can retrieve the message
+→ recipient receives the message through the normal message-fetching flow
+→ recipient receives real-time updates if SSE/WebSocket/realtime is used
+→ sender sees the sent message exactly once
+→ message history remains after refresh
+
+Trace every API request involved.
+
+For each request, record:
+
+- HTTP method
+- endpoint
+- authentication requirement
+- permission requirement
+- subscription requirement
+- request payload shape
+- response status
+- response shape
+- database operation
+- possible failure points
+
+Specifically verify these kinds of operations if they exist:
+
+- subscription creation
+- payment initialization
+- payment verification
+- entitlement lookup
+- conversation creation
+- message sending
+- conversation listing
+- message listing
+- unread counts
+- SSE/realtime connection
+- message event handling
+
+==================================================
+PART 7 — NEGATIVE MESSAGING TESTS
+==================================================
+
+Verify what happens before subscription.
+
+A user without an active subscription must not be able to bypass the subscription requirement by:
+
+- calling the API directly
+- modifying frontend JavaScript
+- manually creating a conversation request
+- manually sending a message request
+- refreshing the page
+- using another frontend route
+- using a stale frontend cache
+- replaying an old request
+
+The backend must be the enforcement point.
+
+Verify the exact error returned.
+
+For example:
+
+HTTP 403
+SUBSCRIPTION_REQUIRED
+
+If the actual application uses a different structure, report the actual structure.
+
+==================================================
+PART 8 — POSITIVE MESSAGING TESTS
+==================================================
+
+After subscription is active, verify:
+
+- conversation creation
+- message sending
+- message persistence
+- message retrieval
+- recipient visibility
+- sender visibility
+- real-time updates
+- duplicate prevention
+- refresh persistence
+- error handling
+- retry behavior
+
+Pay particular attention to:
+
+- SSE message ID mapping
+- messageId versus id mismatches
+- duplicate messages
+- stale query caches
+- authentication token timing
+- 401 errors during SSR
+- 403 subscription errors
+- 404 conversation errors
+- 500 backend errors
+- CORS failures
+- network failures
+
+The audit must distinguish:
+
+1. confirmed working
+2. confirmed broken
+3. unable to verify
+4. potentially broken
+5. requires real user interaction
+
+==================================================
+PART 9 — DATABASE AUDIT
+==================================================
+
+Inspect the existing schema without modifying it.
+
+Map the relationships between:
+
+- users
+- PMP identities
+- roles
+- permissions
+- provider profiles
+- employer profiles
+- subscriptions
+- payments
+- conversations
+- conversation participants
+- messages
+- verification cases
+- audit/logging tables if any
+
+Check:
+
+- foreign keys
+- nullable fields
+- unique constraints
+- indexes
+- transaction usage
+- cascade behavior
+- potential orphan records
+
+Do not modify the schema.
+
+==================================================
+PART 10 — FEATURE FUNCTIONALITY AUDIT
+==================================================
+
+Audit every major visible feature.
+
+For each feature, provide:
+
+Feature:
+Status:
+Frontend:
+Backend:
+Database:
+Authentication:
+Authorization:
+External services:
+End-to-end status:
+Known issues:
+
+Audit at minimum:
+
+- signup
+- login
+- logout
+- employer profile
+- provider/artisan profile
+- provider discovery
+- featured providers
+- search
+- verification
+- messaging
+- billing
+- subscription enforcement
+- notifications
+- account settings
+- profile updates
+- any existing staff/admin functionality
+
+==================================================
+PART 11 — PRODUCTION ERROR AUDIT
+==================================================
+
+Search for likely production failures:
+
+- undefined.split()
+- undefined.map()
+- undefined.replace()
+- null property access
+- incorrect DTO assumptions
+- frontend/backend response shape mismatches
+- missing null handling
+- SSR queries running before authentication
+- API requests sent to the wrong host
+- stale authentication state
+- incorrect cache invalidation
+- missing mutation error handlers
+- silent failures
+- duplicate real-time messages
+- database queries without indexes
+- N+1 queries
+
+Do not fix them.
+
+Report:
+
+File:
+Line or function:
+Problem:
+How it can fail:
+Severity:
+Recommended fix:
+
+==================================================
+PART 12 — SECURITY AUDIT
+==================================================
+
+Check for:
+
+- frontend-only authorization
+- hardcoded secrets
+- exposed keys
+- insecure access control
+- missing rate limiting
+- missing ownership checks
+- IDOR vulnerabilities
+- users accessing another user's private data
+- users modifying another user's profile
+- users sending messages without permission
+- users bypassing subscription requirements
+- unrestricted administrative endpoints
+- unsafe error leakage
+
+Do not exploit destructively.
+
+Only perform safe verification.
+
+==================================================
+PART 13 — PERFORMANCE AUDIT
+==================================================
+
+Estimate the current capacity based on the actual code.
+
+Inspect:
+
+- database connection pool
+- query complexity
+- indexes
+- N+1 queries
+- caching
+- rate limiting
+- SSE/realtime connections
+- memory usage
+- horizontal scaling limitations
+- external API dependency
+
+Do not invent exact capacity numbers.
+
+Give:
+
+- likely bottlenecks
+- current architectural limits
+- estimated safe operating range
+- what would need to change before scaling
+
+Clearly distinguish measured values from estimates.
+
+==================================================
+PART 14 — TEST AUDIT
+==================================================
+
+Run the existing tests.
+
+Do not modify tests.
+
+Report:
+
+- total tests
+- passing tests
+- failing tests
+- skipped tests
+- test coverage if available
+
+Run:
+
+- backend typecheck
+- frontend typecheck
+- backend tests
+- frontend production build
+- relevant integration tests
+
+If production credentials prevent a test, state exactly what could not be verified.
+
+Do not claim success without evidence.
+
+==================================================
+PART 15 — FINAL FUNCTIONALITY SCORECARD
+==================================================
+
+Produce a detailed scorecard.
+
+Use:
+
+✅ CONFIRMED WORKING
+⚠️ PARTIALLY VERIFIED
+❌ CONFIRMED BROKEN
+❓ UNABLE TO VERIFY
+
+Example:
+
+Authentication:
+Status:
+Evidence:
+
+Subscription:
+Status:
+Evidence:
+
+Subscription → Messaging:
+Status:
+Evidence:
+
+Provider discovery:
+Status:
+Evidence:
+
+Profile updates:
+Status:
+Evidence:
+
+Verification:
+Status:
+Evidence:
+
+Security:
+Status:
+Evidence:
+
+Production deployment:
+Status:
+Evidence:
+
+==================================================
+MOST IMPORTANT FINAL QUESTION
+==================================================
+
+Answer this explicitly:
+
+"After a user successfully subscribes, can that user definitely message another user without any issues?"
+
+Do not answer based only on code inspection.
+
+Break the answer into:
+
+1. Payment completion.
+2. Subscription database state.
+3. Entitlement calculation.
+4. Conversation creation.
+5. Message sending.
+6. Message persistence.
+7. Recipient retrieval.
+8. Real-time delivery.
+9. Refresh persistence.
+10. Error handling.
+
+For every step, say:
+
+- CONFIRMED WORKING
+- FAILED
+- NOT VERIFIED
+
+If any step is not verified, do not claim the complete flow works.
+
+==================================================
+IMPORTANT RULE
+==================================================
+
+This is an audit only.
+
+Do not fix anything during this task.
+
+Do not modify the codebase.
+
+Do not modify configuration.
+
+Do not modify secrets.
+
+Do not modify the database.
+
+At the end, provide a complete report of what was discovered.
+
+Only after I review the report will I give a separate instruction to fix specific issues.
