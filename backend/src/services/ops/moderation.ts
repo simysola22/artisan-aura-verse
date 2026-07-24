@@ -208,8 +208,8 @@ export async function takeModerationAction(
       reportId,
       actionId,
       actionType: params.actionType,
-      ...auditContext,
     },
+    ...auditContext,
   });
 
   return { report: updated, actionId };

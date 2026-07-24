@@ -197,12 +197,12 @@ function compact<T extends object>(obj: T): WithoutUndefined<T> {
  * so the object is compatible with `exactOptionalPropertyTypes`.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function buildAuditContext(c: any, clerkUserId: string, sessionId: string | undefined, roleNames: string[], requiredPermission: string): AuditContext {
+function buildAuditContext(c: any, clerkUserId: string, sessionId: string | undefined, roleNames: string[], requiredPermission?: string): AuditContext {
   const ctx: AuditContext = {
     actorClerkUserId: clerkUserId,
     actorRoles: roleNames,
-    requiredPermission,
   };
+  if (requiredPermission !== undefined) ctx.requiredPermission = requiredPermission;
   if (sessionId !== undefined) ctx.clerkSessionId = sessionId;
   const requestId = c.get("requestId") as string | undefined;
   if (requestId !== undefined) ctx.requestId = requestId;
@@ -351,9 +351,9 @@ export function createOpsRouter(
     auth,
     zValidator("json", createTicketSchema),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const body = c.req.valid("json");
-      const ticket = await createTicket(db, pmpUserId, compact(body));
+      const ticket = await createTicket(db, pmpUserId, compact(body), buildAuditContext(c, clerkUserId, sessionId, roleNames));
       return c.json({ ticket }, 201);
     },
   );
@@ -425,10 +425,10 @@ export function createOpsRouter(
     requirePermission("support.manage"),
     zValidator("json", assignTicketSchema),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const ticketId = c.req.param("id");
       const { assigneeId } = c.req.valid("json");
-      const ticket = await assignTicket(db, ticketId, assigneeId, pmpUserId);
+      const ticket = await assignTicket(db, ticketId, assigneeId, pmpUserId, buildAuditContext(c, clerkUserId, sessionId, roleNames, "support.manage"));
       return c.json({ ticket });
     },
   );
@@ -443,10 +443,10 @@ export function createOpsRouter(
     requirePermission("support.respond"),
     zValidator("json", closeTicketSchema),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const ticketId = c.req.param("id");
       const body = c.req.valid("json");
-      const ticket = await closeTicket(db, ticketId, pmpUserId, body.resolution ?? "resolved");
+      const ticket = await closeTicket(db, ticketId, pmpUserId, body.resolution ?? "resolved", buildAuditContext(c, clerkUserId, sessionId, roleNames, "support.respond"));
       return c.json({ ticket });
     },
   );
@@ -462,9 +462,9 @@ export function createOpsRouter(
     auth,
     zValidator("json", submitReportSchema),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const body = c.req.valid("json");
-      const report = await submitReport(db, pmpUserId, compact(body));
+      const report = await submitReport(db, pmpUserId, compact(body), buildAuditContext(c, clerkUserId, sessionId, roleNames));
       return c.json({ report }, 201);
     },
   );
@@ -509,9 +509,9 @@ export function createOpsRouter(
     auth,
     requirePermission("moderation.review"),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const reportId = c.req.param("id");
-      const report = await markReportReviewing(db, reportId, pmpUserId);
+      const report = await markReportReviewing(db, reportId, pmpUserId, buildAuditContext(c, clerkUserId, sessionId, roleNames, "moderation.review"));
       return c.json({ report });
     },
   );
@@ -526,10 +526,10 @@ export function createOpsRouter(
     requirePermission("moderation.action"),
     zValidator("json", moderationActionSchema),
     async (c) => {
-      const { pmpUserId } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames } = c.get("auth");
       const reportId = c.req.param("id");
       const body = c.req.valid("json");
-      const result = await takeModerationAction(db, reportId, pmpUserId, compact(body));
+      const result = await takeModerationAction(db, reportId, pmpUserId, compact(body), buildAuditContext(c, clerkUserId, sessionId, roleNames, "moderation.action"));
       return c.json(result);
     },
   );
