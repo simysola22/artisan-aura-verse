@@ -1,0 +1,602 @@
+You are taking over an existing production application called PRECIOUS MARKET PLACE (PMP).
+
+IMPORTANT:
+This is an existing application with many working features. Do NOT make random architectural changes. Do NOT rewrite existing systems unnecessarily. Do NOT change unrelated working features.
+
+Your first task is READ-ONLY investigation and audit only. Do not modify code yet.
+
+The goal is to thoroughly audit the existing application before implementing a secure internal staff/admin control system.
+
+CURRENT PRODUCTION ARCHITECTURE:
+- Frontend: Vercel
+- Backend: Render
+- Database: Railway PostgreSQL
+- Authentication: Clerk
+- Payments: Paystack
+- Backend: Hono/Bun
+- ORM: Drizzle
+- Frontend: React/TanStack Start
+- Database: PostgreSQL
+
+The application already has existing functionality including:
+- User registration and authentication
+- Employer accounts
+- Artisan/provider accounts
+- Provider profiles
+- Employer profiles
+- Search/discover providers
+- Messaging
+- Subscription billing
+- Paystack integration
+- Verification workflows
+- Support/customer service functionality
+- Moderation/reporting functionality
+- Roles and permissions
+- Backend API authentication
+- Database-backed user identity
+- Operations/audit-related functionality
+
+DO NOT assume that older audit reports are still accurate. The application has changed significantly since previous audits. Inspect the CURRENT codebase and current database schema.
+
+==================================================
+PART 1 — COMPLETE CURRENT SYSTEM AUDIT
+==================================================
+
+Before changing anything, audit the current codebase and produce a detailed report.
+
+Inspect:
+
+1. Frontend architecture
+2. Backend architecture
+3. Database schema and migrations
+4. Clerk authentication flow
+5. User identity synchronization
+6. Roles
+7. Permissions
+8. Role-permission relationships
+9. Existing admin/operations functionality
+10. Existing audit log functionality
+11. Existing support functionality
+12. Existing verification functionality
+13. Existing moderation functionality
+14. Existing billing/subscription functionality
+15. Existing messaging functionality
+16. Existing session/authentication behavior
+17. Existing environment variables and secrets usage
+18. Existing production deployment assumptions
+
+For every relevant system, explain:
+
+- What currently exists
+- Where it exists
+- Which files implement it
+- Which database tables are involved
+- Which API routes are involved
+- Which permissions protect it
+- What is currently working
+- What is incomplete
+- What is unsafe
+- What is missing
+
+Do not modify code during this audit.
+
+==================================================
+PART 2 — AUDIT THE EXISTING ROLE/PERMISSION SYSTEM
+==================================================
+
+Determine exactly what roles currently exist in the database and codebase.
+
+Do not invent roles before checking what already exists.
+
+Find:
+
+- All existing roles
+- All existing permissions
+- All role-permission mappings
+- All user-role mappings
+- Whether permissions are checked server-side
+- Whether frontend permission checks exist
+- Whether backend permission checks are authoritative
+- Whether any routes accidentally trust frontend-only role information
+
+Then compare the existing system against the internal staff structure I want:
+
+1. SUPER ADMIN
+2. ADMIN
+3. SYSTEM ENGINEER
+4. CUSTOMER SERVICE / SUPPORT
+5. VERIFICATION TEAM
+6. MAINTENANCE STAFF
+7. Any other existing internal staff roles already present
+
+For each role, explain:
+
+- Existing equivalent role, if any
+- Existing permissions
+- Missing permissions
+- Dangerous permissions
+- Whether the role should be created, renamed, or reused
+- Whether changing it could break existing users
+
+Do NOT change existing roles or permissions during this audit.
+
+==================================================
+PART 3 — AUDIT THE EXISTING AUDIT LOGGING SYSTEM
+==================================================
+
+I want the system to record what internal staff members do while they are logged in.
+
+First determine what already exists.
+
+Inspect:
+
+- ops_audit_log
+- verification audit logs
+- moderation action logs
+- support activity logs
+- billing/payment logs
+- authentication logs
+- any other activity/audit tables
+
+Determine:
+
+1. What actions are currently recorded?
+2. Which staff member performed the action?
+3. Is the Clerk user ID recorded?
+4. Is the PMP user ID recorded?
+5. Is the role recorded at the time of the action?
+6. Is the timestamp recorded?
+7. Is the IP address recorded?
+8. Is the user agent recorded?
+9. Is the session/device recorded?
+10. Is the target resource recorded?
+11. Is the action result recorded?
+12. Are failed actions recorded?
+13. Can audit records be modified or deleted?
+14. Can a staff member delete or hide their own history?
+15. Can an admin search and filter the logs?
+16. Can the system show everything a specific staff member did?
+
+The audit must specifically determine whether the current system can answer questions such as:
+
+"Show me everything this staff member did today."
+
+"Show me every user this staff member suspended."
+
+"Show me every verification decision made by the verification team."
+
+"Show me every permission change made in the last 30 days."
+
+"Show me every failed attempt to access an admin function."
+
+"Show me all actions performed by this staff account before it was disabled."
+
+If the current system cannot support these queries, explain exactly what is missing.
+
+Do not change the schema yet.
+
+==================================================
+PART 4 — AUDIT STAFF ACCESS AND CREDENTIAL SECURITY
+==================================================
+
+I want internal staff access to be revocable.
+
+I do NOT want permanent access keys that remain valid forever.
+
+Audit the current authentication architecture and determine:
+
+1. How a staff member currently authenticates
+2. Whether staff use Clerk accounts
+3. Whether access depends on roles and permissions
+4. Whether there are special access keys
+5. Whether any keys are stored in plaintext
+6. Whether keys are stored in environment variables
+7. Whether keys can be rotated
+8. Whether keys can be revoked
+9. Whether keys can expire
+10. Whether keys are hashed
+11. Whether key usage is logged
+12. Whether leaked keys can be invalidated immediately
+13. Whether a staff member can be removed immediately
+14. Whether all sessions for a user can be revoked
+15. Whether the system can log a user out everywhere
+16. Whether the system can disable a staff member without deleting their history
+
+Do not create keys or modify authentication during this audit.
+
+==================================================
+PART 5 — DESIGN REQUIREMENTS FOR SPECIAL ACCESS
+==================================================
+
+After completing the audit, propose a secure design for the following internal roles:
+
+SUPER ADMIN:
+- Highest level of control
+- Can manage admins
+- Can manage staff
+- Can assign/revoke roles
+- Can assign/revoke permissions
+- Can view all audit logs
+- Can manage users
+- Can suspend users
+- Can revoke sessions
+- Can manage verification
+- Can manage support
+- Can manage moderation
+- Can manage billing-related operational controls
+- Can manage system configuration
+- Can control maintenance mode
+- Can rotate emergency access credentials
+- Can take over other departments' responsibilities when necessary
+
+ADMIN:
+- Broad operational control
+- Can manage users
+- Can manage support
+- Can manage verification
+- Can manage moderation
+- Can manage staff where permitted
+- Can view audit logs
+- Can revoke user sessions
+- Can manage most platform operations
+
+SYSTEM ENGINEER:
+- System health
+- API health
+- Database health
+- Error logs
+- Infrastructure diagnostics
+- Rate limiting
+- Maintenance mode
+- System operations
+
+CUSTOMER SERVICE / SUPPORT:
+- User lookup
+- Support tickets
+- Customer assistance
+- Account status
+- Relevant subscription information
+- Support activity
+
+VERIFICATION TEAM:
+- Review verification cases
+- Review evidence
+- Request more information
+- Approve verification
+- Reject verification
+- Add internal notes
+- View verification history
+
+MAINTENANCE STAFF:
+- Maintenance mode
+- System health
+- Diagnostics
+- Operational checks
+
+However, do not blindly implement this design.
+
+First compare it with what already exists.
+
+==================================================
+PART 6 — ADMIN CONTROL CENTER REQUIREMENTS
+==================================================
+
+Determine whether the existing application already has an admin/operations UI.
+
+If it does, audit it.
+
+If it does not, propose the smallest safe addition.
+
+The Admin Control Center should eventually be capable of showing:
+
+PEOPLE:
+- All users
+- All staff
+- Active users
+- Suspended users
+- Recently registered users
+- Recently active users
+- Staff currently active
+- Active sessions where available
+
+ACCESS CONTROL:
+- Staff members
+- Roles
+- Permissions
+- Role assignments
+- Access credentials
+- Emergency access
+- Session revocation
+- Disabled staff
+
+ACTIVITY:
+- All important staff actions
+- Actions by staff member
+- Actions by role
+- Actions by date
+- Actions by target user
+- Successful actions
+- Failed actions
+- Security events
+
+SUPPORT:
+- Tickets
+- Assignments
+- Escalations
+- Staff activity
+
+VERIFICATION:
+- Pending cases
+- Approved cases
+- Rejected cases
+- Information requests
+- Staff decision history
+
+SECURITY:
+- Failed login attempts
+- Suspicious access
+- Permission changes
+- Staff access changes
+- Emergency key usage
+- Credential rotation
+- Session revocation
+
+SYSTEM:
+- Backend health
+- Database health
+- API health
+- Payment health
+- Error monitoring
+- Maintenance mode
+
+Again, do not implement yet. First audit what already exists.
+
+==================================================
+PART 7 — SUPER ADMIN CONTROL
+==================================================
+
+Determine how to safely implement the highest-level control.
+
+The Super Admin should be able to perform almost all operational actions available in the application.
+
+However:
+
+IMPORTANT SECURITY REQUIREMENT:
+
+Even Super Admin actions must be audited.
+
+The system should never create an invisible "god mode" that leaves no record.
+
+Determine how the system should handle extremely dangerous actions such as:
+
+- Removing an admin
+- Changing a role
+- Changing permissions
+- Rotating emergency credentials
+- Deleting or disabling a user
+- Enabling maintenance mode
+- Changing system settings
+- Revoking all staff sessions
+
+For dangerous actions, propose whether the system should require:
+
+- Confirmation
+- Re-authentication
+- Two-step confirmation
+- Another Super Admin approval
+- Emergency override
+
+Do not implement this yet.
+
+==================================================
+PART 8 — SESSION REVOCATION AUDIT
+==================================================
+
+Determine whether the current system can instantly terminate access.
+
+The desired future behavior is:
+
+ADMIN ACTION:
+"Terminate this user's sessions."
+
+OR:
+
+"Log this staff member out everywhere."
+
+OR:
+
+"Disable this staff member immediately."
+
+The system should ideally:
+
+1. Disable the staff account or role
+2. Revoke active sessions
+3. Invalidate relevant credentials
+4. Prevent future authenticated requests
+5. Record who performed the action
+6. Record when it happened
+7. Preserve the staff member's historical audit records
+
+Audit whether the current Clerk/backend architecture supports this directly.
+
+If not, explain the minimum additional system needed.
+
+==================================================
+PART 9 — SUBSCRIPTION AND MESSAGING VERIFICATION
+==================================================
+
+This is extremely important.
+
+The current business rule is:
+
+ONLY USERS WITH AN ACTIVE SUBSCRIPTION SHOULD BE ABLE TO SEND MESSAGES.
+
+Verify this against the CURRENT codebase.
+
+Trace the complete flow:
+
+1. User subscribes
+2. Paystack checkout
+3. Payment success
+4. Paystack webhook
+5. Subscription record update
+6. Entitlement calculation
+7. Frontend subscription state
+8. User opens messaging
+9. User starts a conversation
+10. User sends a message
+
+Verify the exact backend enforcement points.
+
+The backend must be authoritative.
+
+Confirm:
+
+- Is creating a conversation blocked without an active subscription?
+- Is sending a message blocked without an active subscription?
+- Is receiving messages still allowed?
+- Is the subscription status actually checked server-side?
+- Is the frontend merely displaying the result, or is it incorrectly trusted?
+- Does the system check subscription expiration?
+- Does it check currentPeriodEnd?
+- What happens when a subscription expires?
+- What happens when a payment fails?
+- What happens when a subscription is cancelled?
+- What happens after renewal?
+- What happens after Paystack redirects the user back to the app?
+- Is stale frontend cache possible after payment?
+
+Perform an actual end-to-end code audit of this flow.
+
+Do not assume that passing tests proves the production payment flow is correct.
+
+If safe and possible, verify the behavior without making real payments.
+
+==================================================
+PART 10 — PRODUCTION READINESS CHECK
+==================================================
+
+Based on the CURRENT codebase, provide a realistic production-readiness report.
+
+Do not reuse old scores automatically.
+
+Separate findings into:
+
+CRITICAL:
+Could cause security problems, data loss, unauthorized access, broken payments, or severe production failure.
+
+HIGH:
+Should be fixed before serious growth.
+
+MEDIUM:
+Important but not immediately blocking.
+
+LOW:
+Future improvements.
+
+For every issue provide:
+
+- Exact issue
+- Exact file(s)
+- Exact route(s)
+- Exact database table(s)
+- Why it matters
+- Current risk
+- Recommended fix
+- Whether it is safe to fix without affecting existing functionality
+
+==================================================
+PART 11 — STRICT SAFETY RULES
+==================================================
+
+During this audit:
+
+- DO NOT modify code
+- DO NOT modify database schema
+- DO NOT modify migrations
+- DO NOT modify environment variables
+- DO NOT modify secrets
+- DO NOT modify Clerk configuration
+- DO NOT modify Paystack configuration
+- DO NOT change production data
+- DO NOT create access keys
+- DO NOT change existing permissions
+- DO NOT change existing roles
+- DO NOT change existing working business logic
+
+This is an investigation only.
+
+If you find something that should be changed, document it.
+
+Do not implement it yet.
+
+==================================================
+FINAL REPORT FORMAT
+==================================================
+
+At the end, produce a detailed report with these sections:
+
+1. EXECUTIVE SUMMARY
+
+2. CURRENT ARCHITECTURE
+
+3. CURRENT AUTHENTICATION SYSTEM
+
+4. CURRENT ROLES AND PERMISSIONS
+
+5. CURRENT ADMIN/OPERATIONS SYSTEM
+
+6. CURRENT AUDIT LOGGING SYSTEM
+
+7. CURRENT STAFF ACCESS AND CREDENTIAL SYSTEM
+
+8. CURRENT SESSION REVOCATION CAPABILITY
+
+9. CURRENT SUBSCRIPTION → MESSAGING FLOW
+
+10. VERIFIED WORKING FEATURES
+
+11. CONFIRMED BROKEN FEATURES
+
+12. CRITICAL RISKS
+
+13. HIGH-PRIORITY RISKS
+
+14. MEDIUM-PRIORITY RISKS
+
+15. LOW-PRIORITY IMPROVEMENTS
+
+16. WHAT MUST BE BUILT FOR THE SPECIAL STAFF SYSTEM
+
+17. RECOMMENDED ROLE/PERMISSION MODEL
+
+18. RECOMMENDED AUDIT LOG MODEL
+
+19. RECOMMENDED REVOCABLE ACCESS MODEL
+
+20. RECOMMENDED ADMIN CONTROL CENTER
+
+21. RECOMMENDED SESSION REVOCATION MODEL
+
+22. SUBSCRIPTION/MESSAGING VERIFICATION RESULT
+
+23. EXACT FILES THAT WOULD NEED TO CHANGE
+
+24. EXACT DATABASE TABLES THAT WOULD NEED TO CHANGE
+
+25. SAFE IMPLEMENTATION PLAN
+
+26. RISKS OF IMPLEMENTING THE PLAN
+
+27. WHAT SHOULD NOT BE TOUCHED
+
+28. FINAL RECOMMENDATION
+
+The most important requirement is this:
+
+AUDIT FIRST.
+DO NOT MODIFY CODE.
+
+I want a precise report based on the CURRENT PMP codebase, not assumptions from old reports.
+
+Only after I review the audit and approve the implementation plan should any code changes be made.
