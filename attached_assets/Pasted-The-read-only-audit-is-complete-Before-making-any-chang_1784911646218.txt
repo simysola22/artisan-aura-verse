@@ -1,0 +1,414 @@
+The read-only audit is complete.
+
+Before making any changes, use the audit findings you just produced as the source of truth.
+
+Now begin PHASE 1 of the staff-control system implementation.
+
+IMPORTANT:
+This is a controlled implementation. Do not redesign the existing application. Do not replace existing authentication, RBAC, Clerk integration, subscription logic, messaging, payment logic, or deployment architecture unless the audit specifically proves that a change is required.
+
+The objective is to build the secure foundation for future operational staff control while preserving all existing functionality.
+
+==================================================
+PHASE 1 — STAFF-CONTROL SECURITY FOUNDATION
+==================================================
+
+Implement only the foundation required for secure individual staff access.
+
+DO NOT attempt to build the entire admin dashboard yet.
+
+DO NOT create permanent shared access keys.
+
+DO NOT create hardcoded credentials.
+
+DO NOT create hidden authentication bypasses.
+
+DO NOT create a master key that gives unlimited access.
+
+DO NOT bypass Clerk.
+
+DO NOT bypass existing backend authentication.
+
+DO NOT weaken existing authorization.
+
+==================================================
+1. USE INDIVIDUAL STAFF IDENTITIES
+==================================================
+
+The system must use individual authenticated staff identities.
+
+Each staff member must be independently identifiable.
+
+The system must be able to answer:
+
+- Which staff member performed an action?
+- What role did they have at the time?
+- What permissions did they have?
+- When did they perform the action?
+- What object or account did they affect?
+- Was the action successful or rejected?
+
+Do not use one permanent shared password or one permanent department key.
+
+Reuse the existing Clerk authentication and PMP identity architecture wherever possible.
+
+==================================================
+2. STAFF ROLES
+==================================================
+
+Based on the existing RBAC architecture identified in the audit, introduce only the roles that are actually required for the current staff-control design.
+
+The intended staff categories are:
+
+- ADMIN
+- SUPER_ADMIN
+- CUSTOMER_SUPPORT
+- VERIFICATION_TEAM
+- SYSTEM_ENGINEER
+- MAINTENANCE
+
+Before creating them, inspect the existing role and permission implementation.
+
+If equivalent roles already exist, reuse them instead of duplicating them.
+
+If role naming conventions already exist, follow those conventions.
+
+Do not create duplicate role systems.
+
+==================================================
+3. PERMISSIONS
+==================================================
+
+Do not give every staff member unlimited access.
+
+Create granular permissions based on actual operational responsibilities.
+
+Potential permission categories include:
+
+USER MANAGEMENT:
+- users.view
+- users.search
+- users.suspend
+- users.reactivate
+- users.logout
+
+VERIFICATION:
+- verification.view
+- verification.review
+- verification.approve
+- verification.reject
+- verification.request_information
+
+CUSTOMER SUPPORT:
+- support.view
+- support.respond
+- support.manage
+
+SYSTEM:
+- system.health.view
+- system.logs.view
+- system.maintenance.manage
+
+PLATFORM:
+- platform.settings.view
+- platform.settings.update
+
+BILLING:
+- billing.view
+- billing.subscription.view
+- billing.payment.view
+
+STAFF:
+- staff.view
+- staff.create
+- staff.update
+- staff.suspend
+- staff.revoke_access
+- staff.assign_roles
+
+AUDIT:
+- audit.view
+
+Do not automatically implement every possible permission above.
+
+First compare them against the existing application and audit report.
+
+Only create permissions that have a real purpose in the current system.
+
+==================================================
+4. ADMIN PRIVILEGES
+==================================================
+
+The ADMIN role should eventually have broad operational control.
+
+However, do not implement unrestricted raw database control.
+
+The Admin should operate through protected application capabilities.
+
+The Admin should eventually be able to manage:
+
+- users
+- artisans/providers
+- employers
+- verification
+- customer support operations
+- subscriptions and billing visibility
+- platform reference data
+- maintenance mode
+- staff access
+- audit logs
+- system health
+
+The Admin should be able to perform the operational work of other staff roles when necessary.
+
+This must be implemented through explicit permissions.
+
+Do not simply add a dangerous universal bypass such as:
+
+if (user.role === "admin") allow everything
+
+unless the existing authorization architecture specifically supports this safely.
+
+Prefer a clear permission hierarchy.
+
+==================================================
+5. SUPER ADMIN
+==================================================
+
+Treat SUPER_ADMIN as a highly protected role.
+
+Do not create a default Super Admin account.
+
+Do not create a hardcoded Super Admin password.
+
+Do not create a secret backdoor.
+
+Do not create a permanent Super Admin key.
+
+The audit should determine the safest way for the actual system owner to provision a Super Admin account.
+
+If implementation requires a manual provisioning step, clearly explain that step instead of inventing credentials.
+
+Super Admin capabilities may eventually include:
+
+- managing Admin access
+- emergency access revocation
+- managing high-risk permissions
+- recovering administrative access
+- managing platform-wide security controls
+
+Do not implement destructive Super Admin powers without explicit authorization checks and audit logging.
+
+==================================================
+6. STAFF ACCESS REVOCATION
+==================================================
+
+The system must be designed so staff access can be revoked.
+
+A staff member leaving the organization must not retain access simply because they once received a credential.
+
+The system should support, where compatible with the existing architecture:
+
+- disabling a staff account
+- removing staff roles
+- removing permissions
+- revoking sessions
+- emergency access removal
+
+Determine whether Clerk session revocation is already available.
+
+If it is available, integrate with the existing architecture safely.
+
+If it is not yet implemented, document the exact missing capability instead of creating a fake solution.
+
+==================================================
+7. ACCESS EXPIRATION
+==================================================
+
+Evaluate whether temporary staff access should support:
+
+- access start time
+- access expiration time
+- automatic expiration
+- manual revocation
+
+Do not implement temporary access unless the existing schema and architecture can support it safely.
+
+If database changes are required, design them carefully and explain the migration before running it.
+
+==================================================
+8. AUDIT LOGGING FOUNDATION
+==================================================
+
+Every sensitive staff action must eventually be auditable.
+
+Before implementing logging, inspect the existing audit logging system.
+
+Reuse it if possible.
+
+If it does not exist or is insufficient, design a proper audit event structure.
+
+A sensitive action should be able to record:
+
+- actor user ID
+- actor staff role
+- action name
+- target type
+- target ID
+- timestamp
+- success/failure
+- request ID if available
+- relevant metadata
+- reason where appropriate
+
+Avoid logging:
+
+- passwords
+- Clerk secret keys
+- API keys
+- payment secrets
+- authentication tokens
+- unnecessary personal data
+
+Do not log sensitive values unnecessarily.
+
+==================================================
+9. ADMIN ACTION VISIBILITY
+==================================================
+
+The future Admin interface must eventually be able to see what operational staff members did.
+
+For example:
+
+"Customer Support staff member X viewed user Y."
+
+"Verification staff member X approved provider Y."
+
+"Maintenance staff member X enabled maintenance mode."
+
+"System Engineer X changed a system setting."
+
+"Staff member X attempted an unauthorized action."
+
+The audit trail must be tamper-resistant from ordinary staff users.
+
+Do not allow normal staff members to delete their own audit history.
+
+==================================================
+10. SECURITY REQUIREMENTS
+==================================================
+
+All sensitive staff routes must enforce authorization on the backend.
+
+Never rely only on frontend route hiding.
+
+Every sensitive endpoint must verify:
+
+1. Authentication.
+2. Active identity.
+3. Staff role or permission.
+4. Account status.
+5. Resource ownership or scope where applicable.
+
+Do not trust:
+
+- frontend role values
+- localStorage role values
+- URL parameters
+- client-provided permission values
+- client-provided account types
+
+==================================================
+11. PRESERVE EXISTING FUNCTIONALITY
+==================================================
+
+Before changing any file:
+
+- inspect its current implementation
+- understand its existing callers
+- preserve existing API contracts unless a change is required
+- preserve existing frontend behavior
+- preserve existing authentication
+- preserve existing subscription logic
+- preserve existing messaging logic
+- preserve existing provider verification
+- preserve existing employer functionality
+
+Do not make unrelated refactors.
+
+Do not modify unrelated files.
+
+==================================================
+12. TESTING REQUIREMENTS
+==================================================
+
+After implementation, test:
+
+AUTHENTICATION:
+- normal user cannot access staff routes
+- unauthenticated user cannot access staff routes
+
+AUTHORIZATION:
+- each staff role can access only permitted operations
+- unauthorized staff actions return 403
+- Admin permissions work correctly
+- Super Admin permissions are protected
+
+REVOCATION:
+- revoked staff access cannot access protected routes
+- removed permissions are enforced
+
+AUDIT:
+- successful sensitive actions are logged
+- failed authorization attempts are logged where appropriate
+- audit records identify the actor correctly
+
+REGRESSION:
+- existing user authentication still works
+- employer functionality still works
+- artisan/provider functionality still works
+- verification still works
+- subscriptions still work
+- subscription-gated messaging still works
+- existing API tests still pass
+
+Run:
+
+- backend typecheck
+- frontend typecheck
+- backend tests
+- frontend production build
+- relevant integration tests
+
+Do not claim production functionality is verified unless it was actually tested in production.
+
+==================================================
+13. CHANGE REPORT
+==================================================
+
+At the end, report:
+
+1. Exact files changed.
+2. Exact database changes.
+3. Exact migrations created.
+4. Exact API endpoints added or modified.
+5. Exact permissions added.
+6. Exact roles added.
+7. Exact audit events added.
+8. Exact authentication changes.
+9. Exact authorization changes.
+10. Exact tests added.
+11. Existing functionality verified.
+12. Existing functionality not verified.
+13. Security risks remaining.
+14. What should be implemented next.
+
+If a requested capability could not safely be implemented, say so clearly.
+
+Do not hide limitations.
+
+The implementation must be minimal, auditable, reversible, and compatible with the existing PMP architecture.
+
+Begin by reviewing the audit findings and identifying the exact files and existing systems that will be reused.
+
+Then implement only the secure staff-control foundation described above.

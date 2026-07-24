@@ -33,6 +33,8 @@ import type { AccountType } from "../db/schema/users.js";
  */
 export interface AuthContext {
   clerkUserId: string;
+  /** Clerk session ID from the verified `sid` claim, when available. */
+  sessionId?: string;
   pmpUserId: string;
   accountType: AccountType;
   roleNames: string[];
@@ -82,6 +84,7 @@ export function requireClerkAuth(
     try {
       const result = await adapter.verifyToken(token);
       clerkUserId = result.clerkUserId;
+      const sessionId = result.sessionId;
     } catch {
       throw new UnauthorizedError("Invalid or expired authentication token");
     }
@@ -97,6 +100,7 @@ export function requireClerkAuth(
     // Step 3: attach context
     c.set("auth", {
       clerkUserId,
+        ...(sessionId !== undefined ? { sessionId } : {}),
       pmpUserId: identity.user.id,
       accountType: identity.user.accountType,
       roleNames: identity.roleNames,
@@ -150,11 +154,13 @@ export function optionalClerkAuth(
     }
     const token = header.slice(7);
     try {
-      const { clerkUserId } = await adapter.verifyToken(token);
+      const result = await adapter.verifyToken(token);
+      const { clerkUserId } = result;
       const identity = await resolveUser(clerkUserId);
       if (identity && identity.user.status === "active") {
         c.set("auth", {
           clerkUserId,
+          ...(result.sessionId !== undefined ? { sessionId: result.sessionId } : {}),
           pmpUserId: identity.user.id,
           accountType: identity.user.accountType,
           roleNames: identity.roleNames,

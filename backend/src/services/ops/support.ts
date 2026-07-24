@@ -27,7 +27,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../errors/index.js";
-import { appendOpsAudit } from "./audit.js";
+import { appendOpsAudit, type AuditContext } from "./audit.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -50,7 +50,12 @@ export interface CreateTicketParams {
   priority?: SupportTicketPriority;
 }
 
-export async function createTicket(db: Db, submittedBy: string, params: CreateTicketParams) {
+export async function createTicket(
+  db: Db,
+  submittedBy: string,
+  params: CreateTicketParams,
+  auditContext?: AuditContext,
+) {
   const id = crypto.randomUUID();
 
   const [ticket] = await db
@@ -73,6 +78,7 @@ export async function createTicket(db: Db, submittedBy: string, params: CreateTi
     entityType: "support_ticket",
     entityId: id,
     metadata: { category: params.category, priority: params.priority ?? "medium" },
+    ...auditContext,
   });
 
   return ticket;
@@ -207,7 +213,13 @@ export async function addMessage(
 
 // ─── Assign ───────────────────────────────────────────────────────────────────
 
-export async function assignTicket(db: Db, ticketId: string, assigneeId: string, actorId: string) {
+export async function assignTicket(
+  db: Db,
+  ticketId: string,
+  assigneeId: string,
+  actorId: string,
+  auditContext?: AuditContext,
+) {
   const ticket = await loadTicket(db, ticketId);
 
   if (ticket.status === "closed") {
@@ -236,6 +248,7 @@ export async function assignTicket(db: Db, ticketId: string, assigneeId: string,
     entityType: "support_ticket",
     entityId: ticketId,
     metadata: { assigneeId },
+    ...auditContext,
   });
 
   return updated;
@@ -248,6 +261,7 @@ export async function closeTicket(
   ticketId: string,
   actorId: string,
   resolution: "resolved" | "closed" = "resolved",
+  auditContext?: AuditContext,
 ) {
   const ticket = await loadTicket(db, ticketId);
 
@@ -273,6 +287,7 @@ export async function closeTicket(
     entityType: "support_ticket",
     entityId: ticketId,
     metadata: { resolution },
+    ...auditContext,
   });
 
   return updated;

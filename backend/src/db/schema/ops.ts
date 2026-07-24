@@ -80,6 +80,7 @@ export const opsAuditActionEnum = pgEnum("ops_audit_action", [
   "support_ticket_assigned",
   "support_ticket_closed",
   "moderation_report_submitted",
+  "moderation_report_reviewing",
   "moderation_action_taken",
   "moderation_report_dismissed",
 ]);
@@ -273,6 +274,17 @@ export const opsAuditLog = pgTable(
     /** JSON string holding action-specific metadata. Stored as text for portability. */
     metadata: text("metadata"),
 
+    /** Verified Clerk identity and authorization context when available. */
+    actorClerkUserId: text("actor_clerk_user_id"),
+    actorRoles: text("actor_roles"),
+    requiredPermission: text("required_permission"),
+    clerkSessionId: text("clerk_session_id"),
+    requestId: text("request_id"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    success: boolean("success").notNull().default(true),
+    errorCode: text("error_code"),
+
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -280,6 +292,9 @@ export const opsAuditLog = pgTable(
     index("ops_audit_log_action_idx").on(t.action),
     index("ops_audit_log_target_user_idx").on(t.targetUserId),
     index("ops_audit_log_entity_idx").on(t.entityType, t.entityId),
+    index("ops_audit_log_clerk_session_idx").on(t.clerkSessionId),
+    index("ops_audit_log_request_idx").on(t.requestId),
+    index("ops_audit_log_success_idx").on(t.success),
   ],
 );
 

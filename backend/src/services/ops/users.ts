@@ -31,7 +31,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "../../errors/index.js";
-import { appendOpsAudit } from "./audit.js";
+import { appendOpsAudit, type AuditContext } from "./audit.js";
 
 // ─── Privilege hierarchy ──────────────────────────────────────────────────────
 
@@ -169,6 +169,7 @@ export async function suspendUser(
   actorId: string,
   actorAccountType: AccountType,
   reason?: string,
+  auditContext?: AuditContext,
 ): Promise<void> {
   if (actorId === targetUserId) {
     throw new BadRequestError("You cannot suspend your own account.");
@@ -196,6 +197,7 @@ export async function suspendUser(
     entityType: "user",
     entityId: targetUserId,
     ...(reason !== undefined ? { metadata: { reason } } : {}),
+    ...auditContext,
   });
 }
 
@@ -204,6 +206,7 @@ export async function reactivateUser(
   targetUserId: string,
   actorId: string,
   actorAccountType: AccountType,
+  auditContext?: AuditContext,
 ): Promise<void> {
   if (actorId === targetUserId) {
     throw new BadRequestError("You cannot reactivate your own account via this endpoint.");
@@ -230,6 +233,7 @@ export async function reactivateUser(
     targetUserId,
     entityType: "user",
     entityId: targetUserId,
+    ...auditContext,
   });
 }
 
@@ -238,6 +242,7 @@ export async function deleteUser(
   targetUserId: string,
   actorId: string,
   actorAccountType: AccountType,
+  auditContext?: AuditContext,
 ): Promise<void> {
   if (actorId === targetUserId) {
     throw new BadRequestError("You cannot delete your own account via this endpoint.");
@@ -261,6 +266,7 @@ export async function deleteUser(
     targetUserId,
     entityType: "user",
     entityId: targetUserId,
+    ...auditContext,
   });
 }
 
@@ -272,6 +278,7 @@ export async function assignRole(
   roleId: string,
   actorId: string,
   actorAccountType: AccountType,
+  auditContext?: AuditContext,
 ): Promise<void> {
   // Security: no self-assignment
   if (actorId === targetUserId) {
@@ -308,6 +315,7 @@ export async function assignRole(
     entityType: "role",
     entityId: roleId,
     metadata: { roleName: role.name },
+    ...auditContext,
   });
 }
 
@@ -317,6 +325,7 @@ export async function removeRole(
   roleId: string,
   actorId: string,
   actorAccountType: AccountType,
+  auditContext?: AuditContext,
 ): Promise<void> {
   if (actorId === targetUserId) {
     throw new ForbiddenError("You cannot remove roles from your own account.");
@@ -346,6 +355,7 @@ export async function removeRole(
     entityType: "role",
     entityId: roleId,
     metadata: { roleName: role.name },
+    ...auditContext,
   });
 }
 

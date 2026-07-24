@@ -21,7 +21,7 @@ import {
   type ContentReportStatus,
 } from "../../db/schema/index.js";
 import { BadRequestError, ConflictError, NotFoundError } from "../../errors/index.js";
-import { appendOpsAudit } from "./audit.js";
+import { appendOpsAudit, type AuditContext } from "./audit.js";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -44,7 +44,12 @@ export interface SubmitReportParams {
   description?: string;
 }
 
-export async function submitReport(db: Db, reporterId: string, params: SubmitReportParams) {
+export async function submitReport(
+  db: Db,
+  reporterId: string,
+  params: SubmitReportParams,
+  auditContext?: AuditContext,
+) {
   // Soft duplicate check — same reporter, same entity, still pending/reviewing
   const [duplicate] = await db
     .select({ id: contentReports.id })
@@ -88,6 +93,7 @@ export async function submitReport(db: Db, reporterId: string, params: SubmitRep
     entityType: params.entityType,
     entityId: params.entityId,
     metadata: { reportId: id, reason: params.reason },
+    ...auditContext,
   });
 
   return report;
@@ -151,6 +157,7 @@ export async function takeModerationAction(
   reportId: string,
   actorId: string,
   params: TakeModerationActionParams,
+  auditContext?: AuditContext,
 ) {
   const report = await loadReport(db, reportId);
 
@@ -201,6 +208,7 @@ export async function takeModerationAction(
       reportId,
       actionId,
       actionType: params.actionType,
+      ...auditContext,
     },
   });
 
@@ -209,7 +217,12 @@ export async function takeModerationAction(
 
 // ─── Mark as reviewing ────────────────────────────────────────────────────────
 
-export async function markReportReviewing(db: Db, reportId: string, actorId: string) {
+export async function markReportReviewing(
+  db: Db,
+  reportId: string,
+  actorId: string,
+  auditContext?: AuditContext,
+) {
   const report = await loadReport(db, reportId);
 
   if (report.status !== "pending") {
@@ -229,5 +242,13 @@ export async function markReportReviewing(db: Db, reportId: string, actorId: str
     .returning();
 
   if (!updated) throw new Error("Failed to update report status");
+  await appendOpsAudit(db, {
+    actorId,
+    action: "moderation_report_reviewing",
+    entityType: report.entityType,
+    entityId: report.entityId,
+    metadata: { reportId },
+    ...auditContext,
+  });
   return updated;
 }
