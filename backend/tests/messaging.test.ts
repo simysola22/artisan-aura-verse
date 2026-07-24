@@ -208,6 +208,7 @@ function makeApp(callerIdentity: ResolvedIdentity, ps?: PubSub) {
     resolve: async (clerkUserId) => identityMap.get(clerkUserId) ?? null,
     provision: vi.fn() as never,
     updateProfile: vi.fn() as never,
+    correctAccountType: vi.fn() as never,
   };
   return createApp({
     clerkAdapter: createMockClerkAdapter(clerkMap),

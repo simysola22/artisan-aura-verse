@@ -194,6 +194,45 @@ export async function provisionUser(
 }
 
 /**
+ * Correct the account type on an existing PMP user record.
+ *
+ * Used by POST /v1/auth/sync when a user's stored account type disagrees
+ * with what they selected during registration (e.g. old-bug accounts that
+ * were provisioned as "employer" when the user intended "provider").
+ *
+ * Security: only public account types (employer | provider) are accepted.
+ * The caller (sync route) already validates this via Zod.
+ *
+ * Side effects:
+ *   - Updates users.account_type
+ *   - Clears and re-assigns user_roles to match the new type
+ *   - Sets provider_kind to null when switching to employer
+ */
+export async function correctAccountType(
+  db: Db,
+  userId: string,
+  newAccountType: "employer" | "provider",
+): Promise<void> {
+  const newRoleId = ACCOUNT_TYPE_TO_ROLE_ID[newAccountType];
+
+  await db.transaction(async (tx) => {
+    // Update account_type (and clear provider_kind when switching to employer)
+    await tx
+      .update(users)
+      .set({
+        accountType: newAccountType,
+        providerKind: newAccountType === "employer" ? null : undefined,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    // Replace role assignment atomically
+    await tx.delete(userRoles).where(eq(userRoles.userId, userId));
+    await tx.insert(userRoles).values({ userId, roleId: newRoleId });
+  });
+}
+
+/**
  * Update cached Clerk profile fields on an existing user record.
  * Called from GET /v1/auth/me to keep display data fresh without a separate sync call.
  */

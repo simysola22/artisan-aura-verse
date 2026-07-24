@@ -28,7 +28,7 @@ import { logger } from "./lib/logger.js";
 import { type ClerkAuthAdapter, createClerkAdapter } from "./lib/clerk.js";
 import { type PaymentProvider, getPaystackProvider } from "./lib/payment/index.js";
 import { getDb } from "./db/client.js";
-import { resolveIdentity, provisionUser, updateCachedProfile } from "./services/identity.js";
+import { resolveIdentity, provisionUser, updateCachedProfile, correctAccountType } from "./services/identity.js";
 
 export interface AppOptions {
   corsOrigin?: string;
@@ -74,6 +74,8 @@ export function createApp(options: AppOptions = {}): Hono {
     resolve: (clerkUserId) => resolveIdentity(getDb(), clerkUserId),
     provision: (params) => provisionUser(getDb(), params),
     updateProfile: (userId, profile) => updateCachedProfile(getDb(), userId, profile),
+    correctAccountType: (userId, newAccountType) =>
+      correctAccountType(getDb(), userId, newAccountType),
   };
 
   // ── Global middleware (order matters) ─────────────────────────────────────

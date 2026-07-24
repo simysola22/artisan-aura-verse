@@ -132,6 +132,7 @@ function makeTestApp(
       throw new Error("Unexpected provision call");
     },
     updateProfile: () => Promise.resolve(),
+    correctAccountType: () => Promise.resolve(),
   };
 
   return createApp({

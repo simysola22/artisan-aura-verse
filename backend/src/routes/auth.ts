@@ -34,6 +34,12 @@ export interface AuthIdentityService {
     userId: string,
     profile: { displayName?: string; email?: string; avatarUrl?: string },
   ) => Promise<void>;
+  /**
+   * Correct the account type on an existing user when it disagrees with what
+   * the user selected during registration. Only public types are accepted;
+   * the Zod schema on the sync route enforces this before this is called.
+   */
+  correctAccountType: (userId: string, newAccountType: "employer" | "provider") => Promise<void>;
 }
 
 // ─── Request body schema ──────────────────────────────────────────────────────
@@ -136,9 +142,19 @@ export function createAuthRouter(adapter: ClerkAuthAdapter, service: AuthIdentit
     const { clerkUserId } = c.get("clerkAuth");
     const body = c.req.valid("json");
 
-    // Idempotent: return existing record if already provisioned
+    // Check for an existing PMP record.
     const existing = await service.resolve(clerkUserId);
     if (existing) {
+      // If the stored account type differs from what the user selected,
+      // correct it now. This handles accounts that were provisioned with the
+      // wrong type (e.g. old-bug accounts created as "employer" when the user
+      // intended "provider" because localStorage was cleared by Clerk's
+      // email-verification redirect before the unsafeMetadata fix).
+      if (existing.user.accountType !== body.accountType) {
+        await service.correctAccountType(existing.user.id, body.accountType);
+        const corrected = await service.resolve(clerkUserId);
+        return c.json(serializeIdentity(corrected!), 200);
+      }
       return c.json(serializeIdentity(existing), 200);
     }
 

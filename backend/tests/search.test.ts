@@ -196,6 +196,7 @@ function makeApp() {
       throw new Error("unexpected");
     },
     updateProfile: async () => {},
+    correctAccountType: async () => {},
   };
   return createApp({
     clerkAdapter: createMockClerkAdapter(new Map()),

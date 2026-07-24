@@ -291,6 +291,56 @@ function ClerkBackedAuthProvider({ children }: { children: ReactNode }) {
         console.info("[PMP] Fetching identity via GET /v1/auth/me");
         const identity = await authApi.me();
         console.info("[PMP] Identity loaded:", identity.user.id, identity.user.accountType);
+
+        // ── Step 1b: check for account-type mismatch ──────────────────────
+        // Clerk unsafeMetadata (set by <SignUp unsafeMetadata={{ accountType }}>)
+        // and localStorage (set by storePendingRegistration before Clerk flow)
+        // are the user's declared intent at signup time.  If the DB record has
+        // a different account type — e.g. old-bug accounts created as "employer"
+        // because localStorage was wiped by Clerk's email-verification redirect —
+        // call sync to correct it.  The backend sync endpoint now updates the
+        // existing record when it detects a mismatch, instead of returning it
+        // unchanged.
+        const metaAccountType = clerkUser?.unsafeMetadata?.accountType as
+          | "employer"
+          | "provider"
+          | undefined;
+        const localAccountType = localStorage.getItem(PENDING_ACCOUNT_TYPE_KEY) as
+          | "employer"
+          | "provider"
+          | null;
+        const intendedAccountType = metaAccountType ?? localAccountType ?? null;
+
+        if (
+          intendedAccountType &&
+          intendedAccountType !== identity.user.accountType
+        ) {
+          console.info(
+            "[PMP] Account type mismatch — DB has",
+            identity.user.accountType,
+            "but intended",
+            intendedAccountType,
+            "— correcting via POST /v1/auth/sync",
+          );
+          try {
+            const corrected = await authApi.sync({ accountType: intendedAccountType });
+            // Clean up pending keys now that the correction succeeded.
+            localStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
+            localStorage.removeItem(PENDING_DISPLAY_NAME_KEY);
+            localStorage.removeItem(PENDING_PROVIDER_KIND_KEY);
+            console.info("[PMP] Account type corrected to:", corrected.user.accountType);
+            setPmpIdentity(corrected);
+            setUser(toFrontendUser(corrected));
+            setSyncError(null);
+            setStatus("authed");
+            return;
+          } catch (correctionErr) {
+            // Correction is best-effort. If it fails, fall through and use
+            // the identity as returned by /me — do not block the user.
+            console.warn("[PMP] Account type correction failed (non-fatal):", correctionErr);
+          }
+        }
+
         setPmpIdentity(identity);
         setUser(toFrontendUser(identity));
         setSyncError(null);

@@ -1,0 +1,74 @@
+The account-type bug is still happening in production.
+
+I signed up/logged in as an Artisan/Provider, but after authentication the production dashboard profile menu shows:
+
+Employer
+
+This proves the previous fix was insufficient.
+
+Do a focused end-to-end investigation of the actual account type value.
+
+Trace this exact flow:
+
+1. The role/account type selected on the signup picker:
+   - provider/artisan
+   - employer
+
+2. The Clerk SignUp component:
+   - What exact value is passed to unsafeMetadata?
+   - Is it "provider", "artisan", or something else?
+   - Is unsafeMetadata actually persisted on the Clerk user?
+
+3. After signup/sign-in, inspect the actual Clerk user metadata:
+   - unsafeMetadata.accountType
+   - publicMetadata.accountType
+   - any other metadata used by the app
+
+4. Trace auth-context.tsx:
+   - What exact value is read?
+   - What normalization/mapping occurs?
+   - Is "provider" correctly mapped to the provider role?
+   - Is the value accidentally being interpreted as employer?
+
+5. Trace POST /v1/auth/sync:
+   - What exact payload is sent?
+   - What role/accountType does the backend receive?
+   - Does the backend ignore the frontend-selected account type and default to employer?
+
+6. Trace the backend identity creation/update logic:
+   - How is the PMP identity role chosen?
+   - Does an existing employer identity get reused?
+   - Could an existing account's role be permanently set to employer from the first login?
+
+7. Trace the dashboard profile menu:
+   - Where does the displayed "Employer" label come from?
+   - Is it reading the actual PMP identity role or merely assuming employer based on a missing provider profile?
+
+8. Check the database record for this authenticated user:
+   - identity account type
+   - roles
+   - provider profile existence
+   - employer profile existence
+
+IMPORTANT:
+Do not just assume unsafeMetadata is working because the prop exists in the source code.
+Verify the actual runtime value after signup/sign-in.
+
+Also investigate existing accounts:
+If an account was originally created as Employer due to the old bug, determine whether the current code intentionally preserves that old role. If so, explain whether testing requires a brand-new account or whether there is a safe account-role correction flow.
+
+Do not change:
+- DATABASE_URL
+- Clerk keys
+- Render configuration
+- Railway configuration
+- unrelated features
+
+After investigation, report:
+1. The exact value selected at signup
+2. The exact Clerk metadata value after authentication
+3. The exact accountType/role sent to /v1/auth/sync
+4. The exact role stored in the PMP database
+5. The exact value used to render "Employer" in the UI
+6. The exact root cause
+7. The smallest targeted fix

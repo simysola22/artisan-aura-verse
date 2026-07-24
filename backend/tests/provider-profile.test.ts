@@ -128,6 +128,7 @@ function makeApp(tokens: Map<string, string>, identities: Map<string, ResolvedId
       throw new Error("unexpected");
     },
     updateProfile: async () => {},
+    correctAccountType: async () => {},
   };
 
   // Pass a stub DB — service functions are mocked so the DB is never called

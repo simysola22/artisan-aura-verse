@@ -257,6 +257,7 @@ function makeApp(tokens: Map<string, string>, identities: Map<string, ResolvedId
       throw new Error("unexpected");
     },
     updateProfile: async () => {},
+    correctAccountType: async () => {},
   };
   return createApp({
     clerkAdapter: createMockClerkAdapter(clerkMap),

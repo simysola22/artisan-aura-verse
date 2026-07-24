@@ -163,6 +163,7 @@ function makeApp(mockProvider?: MockPaymentProvider) {
     resolve: (clerkUserId) => Promise.resolve(identityMap.get(clerkUserId) ?? null),
     provision: () => Promise.reject(new Error("not used in billing tests")),
     updateProfile: () => Promise.resolve(),
+    correctAccountType: () => Promise.resolve(),
   };
 
   return createApp({

@@ -176,6 +176,7 @@ function makeApp(identity: ResolvedIdentity | null = makeIdentity()) {
       throw new Error("unexpected");
     },
     updateProfile: async () => {},
+    correctAccountType: async () => {},
   };
   return createApp({
     clerkAdapter,

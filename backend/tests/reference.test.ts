@@ -136,6 +136,7 @@ function makeApp(db: Db = makeMockDb()) {
       throw new Error("unexpected");
     },
     updateProfile: async () => {},
+    correctAccountType: async () => {},
   };
 
   return createApp({
