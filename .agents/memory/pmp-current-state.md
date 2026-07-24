@@ -1,49 +1,67 @@
 ---
 name: PMP current state
-description: Current implementation state of the PMP project after Phase 1 + audit-context completeness work
+description: Current implementation state of the PMP project after Phase 1 permission corrections
 ---
 
-## Status after support-message audit fix
+## Status after Phase 1 permission corrections
 
 - Backend typecheck: ✅ clean
 - Frontend typecheck: ✅ clean
-- Backend tests: ✅ 514/514 passing
+- Backend tests: ✅ 516/516 passing
 - Production frontend build: ✅ succeeds
+- Migration journal: ✅ entries 0000–0011 synchronized
 
-## Phase 1 changes (previous session)
+## Phase 1 changes (this session)
 
-**Root cause fixed:** `sessionId` was declared with `const` inside a `try {}` block in `auth.ts` — caused ReferenceError on every authenticated route. Fixed by declaring `let sessionId: string | undefined` before the try block.
+### Routes fixed (backend/src/routes/ops.ts)
+- `GET /v1/ops/audit` now requires `audit.read` (was: `system.manage`)
+  — system_engineers now have correct access; no functional change for owner/system_admin
+- `GET /v1/ops/roles` now requires `staff.read` (was: `system.manage`)
+  — same rationale
 
-**RBAC extended:** `ASSIGNABLE_ROLES_BY_ACTOR` in `services/ops/users.ts` includes `role_system_engineer` and `role_maintenance` as owner-assignable roles.
+### Service layer (backend/src/services/ops/users.ts)
+- Added `ROLE_PRIVILEGE` map: `{ role_system_engineer: 60, role_maintenance: 55 }`
+- Added `effectivePrivilege(accountType, roleIds)` helper — returns max of PRIVILEGE[accountType] and any ROLE_PRIVILEGE
+- `assertActorOutranksTarget` now accepts optional `targetRoleIds` and uses `effectivePrivilege`
+- `assignRole` loads target's current roles and passes them to privilege check
+- `removeRole` loads target's current roles, passes them to privilege check, AND guards against last-owner removal (throws ForbiddenError if roleId === 'role_owner' and ownerCount <= 1)
+- Added `count` to drizzle-orm imports
 
-**Migration journal fixed:** `0008_job_marketplace` was missing from the journal; fixed to idx 8, `0009_staff_control_foundation` moved to idx 9.
+### Migration added (0011_permission_corrections.sql)
+- New permissions: `audit.export` (perm_audit_export), `sessions.view` (perm_sessions_view), `sessions.revoke` (perm_sessions_revoke)
+- `audit.export` → owner, system_admin
+- `sessions.view` → owner, system_admin
+- `sessions.revoke` → owner only (destructive)
 
-## Audit-context completeness pass
+### Tests updated (backend/tests/ops.test.ts)
+- Default identity now includes: staff.read, staff.roles.manage, audit.read (in addition to existing permissions)
+- Test descriptions updated for roles (system.manage → staff.read) and audit (system.manage → audit.read)
+- New test: system_engineer identity with audit.read but not system.manage can access GET /v1/ops/audit
+- New test: last-owner removal returns 403
 
-### Fully fixed (routes now pass buildAuditContext):
-- `POST /v1/ops/support/tickets` → `createTicket` (no required permission)
-- `POST /v1/ops/support/tickets/:id/assign` → `assignTicket` (support.manage)
-- `POST /v1/ops/support/tickets/:id/close` → `closeTicket` (support.respond)
-- `POST /v1/ops/moderation/reports` → `submitReport` (no required permission)
-- `POST /v1/ops/moderation/reports/:id/review` → `markReportReviewing` (moderation.review)
-- `POST /v1/ops/moderation/reports/:id/action` → `takeModerationAction` (moderation.action)
-
-### Critical bug fixed:
-`takeModerationAction` in `services/ops/moderation.ts` was spreading `auditContext` inside the `metadata: {}` object literal instead of at the top level of `appendOpsAudit` params. All seven attribution columns were being silently buried in the JSON blob. Fixed to spread at top level.
-
-### buildAuditContext updated:
-`requiredPermission` made optional — routes with no permission gate (any-auth-user routes) now omit it cleanly.
-
-## Support-message audit fix
-
-`addMessage` (`POST /v1/ops/support/tickets/:id/messages`) now writes
-`support_ticket_message_added` with the existing audit context. The additive
-`0010_support_ticket_message_audit` migration adds the enum value.
-
-## Fully audited actions
+## Fully audited actions (unchanged)
 suspendUser, reactivateUser, deleteUser, assignRole, removeRole, createTicket, addMessage, assignTicket, closeTicket, submitReport, markReportReviewing, takeModerationAction
 
+## Privilege hierarchy (after Phase 1)
+- owner (account_type): 100
+- system_admin (account_type): 80
+- role_system_engineer (role only, not account_type): 60
+- role_maintenance (role only, not account_type): 55
+- verification/support/moderation_team (account_type): 40
+- employer/provider (account_type): 10
+
 ## What NOT yet implemented (by design)
-- Admin/Super Admin dashboard or UI
-- Credentials, keys, or provisioned staff accounts
+- Clerk server-side session revocation routes (sessions.revoke permission exists, route TBD)
+- Verification management ops routes (/v1/ops/verification/*)
+- Staff listing route (/v1/ops/staff)
+- Maintenance mode controls
+- Admin Control Center frontend UI (ops pages are mock-backed)
 - Staff onboarding procedure
+
+## Environment secrets status (Replit)
+- SESSION_SECRET: ✅ present
+- CLERK_SECRET_KEY: ❌ missing (needed for backend to run)
+- CLERK_PUBLISHABLE_KEY: ❌ missing (needed for frontend Clerk auth)
+- DATABASE_URL: ⚠️ runtime-managed by Replit (may conflict with Railway DB — user must check)
+- CORS_ORIGIN: ❌ missing (defaults to http://localhost:5000 in dev)
+- PAYSTACK_SECRET_KEY: ❌ missing (optional — only needed for payment operations)

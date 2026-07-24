@@ -28,7 +28,7 @@
  *   POST   /v1/ops/moderation/reports/:id/action    Take action (moderation.action)
  *
  * Audit log:
- *   GET    /v1/ops/audit                            List audit entries (system.manage)
+ *   GET    /v1/ops/audit                            List audit entries (audit.read)
  *
  * Overview dashboard:
  *   GET    /v1/ops/overview                         Aggregated stats (any ops permission)
@@ -243,9 +243,9 @@ export function createOpsRouter(
 
   /**
    * GET /v1/ops/roles
-   * Auth: system.manage
+   * Auth: staff.read — system_admin and owner see all roles; system_engineer also has this permission.
    */
-  router.get("/v1/ops/roles", auth, requirePermission("system.manage"), async (c) => {
+  router.get("/v1/ops/roles", auth, requirePermission("staff.read"), async (c) => {
     const result = await listRoles(db);
     return c.json({ roles: result });
   });
@@ -552,12 +552,12 @@ export function createOpsRouter(
 
   /**
    * GET /v1/ops/audit
-   * Auth: system.manage
+   * Auth: audit.read — dedicated audit permission held by owner, system_admin, and system_engineer.
    */
   router.get(
     "/v1/ops/audit",
     auth,
-    requirePermission("system.manage"),
+    requirePermission("audit.read"),
     zValidator("query", listAuditSchema),
     async (c) => {
       const query = c.req.valid("query");

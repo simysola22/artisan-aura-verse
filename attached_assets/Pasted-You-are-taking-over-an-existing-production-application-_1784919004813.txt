@@ -1,0 +1,472 @@
+You are taking over an existing production application called PRECIOUS MARKET PLACE (PMP).
+
+IMPORTANT: THIS IS NOT A NEW PROJECT. DO NOT REBUILD THE APPLICATION FROM SCRATCH.
+
+The repository already contains an existing production-oriented PMP system with working authentication, database-backed identity, RBAC, operations routes, support, moderation, verification, billing/subscriptions, messaging, audit logging, and frontend operations pages.
+
+I have also uploaded the latest PMP audit/handoff document. READ THE UPLOADED HANDOFF FILE COMPLETELY BEFORE MAKING ANY CODE CHANGES. Treat it as the authoritative project context for this task.
+
+==================================================
+IMPORTANT ENVIRONMENT AND SECRETS INFORMATION
+==================================================
+
+I already possess the required Clerk keys and other production credentials needed for the application.
+
+This includes, where applicable:
+
+- Clerk Publishable Key
+- Clerk Secret Key
+- Database URL
+- CORS configuration
+- Paystack secret key
+- Paystack webhook secret
+- Any other required production environment variables already defined by the existing project architecture
+
+DO NOT ask me to paste secret values into the chat.
+
+DO NOT hardcode secrets into source code.
+
+DO NOT commit secrets to Git.
+
+DO NOT create fake placeholder credentials and pretend they are production credentials.
+
+Instead:
+
+1. Inspect the existing environment-variable schema and configuration files.
+2. Identify exactly which variables are required.
+3. Check which variables are already available in this Replit environment.
+4. If a required secret is missing, clearly tell me the exact variable name that is missing.
+5. Use Replit Secrets / Environment Variables for secret configuration.
+6. Never print secret values in logs, reports, screenshots, or source files.
+7. Never expose secret values in API responses.
+8. Never commit .env files containing real secrets.
+
+If the environment has the correct secrets available, use them safely through process.env or the existing configuration abstraction.
+
+==================================================
+PROJECT SAFETY RULE
+==================================================
+
+PMP is an existing application.
+
+Your primary objective is:
+
+PRESERVE EXISTING FUNCTIONALITY.
+
+Before changing anything:
+
+- Inspect the repository structure.
+- Read the uploaded handoff/audit document.
+- Inspect package manifests.
+- Inspect the database schema.
+- Inspect migration metadata.
+- Inspect authentication.
+- Inspect identity resolution.
+- Inspect roles and permissions.
+- Inspect the operations routes.
+- Inspect the audit system.
+- Inspect billing/subscription enforcement.
+- Inspect messaging enforcement.
+- Inspect the frontend operations architecture.
+- Inspect existing tests.
+
+Do not assume that a feature is missing simply because you do not immediately see it.
+
+Trace the existing implementation first.
+
+Do not replace working architecture with a new architecture unless absolutely necessary.
+
+Do not perform a broad rewrite.
+
+Do not rename existing database tables, routes, roles, permissions, services, or public API responses without a specific compatibility reason.
+
+Do not break existing frontend routes.
+
+Do not alter the existing subscription-to-messaging business rule.
+
+==================================================
+CURRENT BUSINESS RULE THAT MUST REMAIN
+==================================================
+
+Messaging is subscription-gated.
+
+The existing backend must remain the source of truth.
+
+A user must:
+
+1. Have a valid Clerk identity.
+2. Resolve to a valid PMP identity.
+3. Have the required messaging permission.
+4. Have an active qualifying subscription according to the existing entitlement system.
+
+Only then should they be able to create conversations or send messages.
+
+The existing subscription enforcement must remain intact.
+
+Do not weaken it.
+
+Do not move the enforcement only to the frontend.
+
+Do not bypass it for staff unless the existing business rules explicitly require that.
+
+Do not change billing behavior while implementing the staff-control system.
+
+After any relevant changes, verify that:
+
+- An unsubscribed user cannot create a conversation.
+- An unsubscribed user cannot send a message.
+- An active subscribed user can create a conversation.
+- An active subscribed user can send a message.
+- Existing recipient and participant rules still work.
+- Existing block rules still work.
+- Existing Clerk authentication still works.
+- Existing permission checks still work.
+
+==================================================
+PHASE 0 — READ-ONLY AUDIT FIRST
+==================================================
+
+Before implementing anything, perform a complete read-only audit.
+
+Do not modify:
+
+- Source code
+- Database schema
+- Migrations
+- Database records
+- Secrets
+- Authentication configuration
+- Billing configuration
+- Deployment configuration
+- Workflows
+
+during the audit phase.
+
+The audit must inspect:
+
+1. Clerk authentication flow.
+2. PMP identity resolution.
+3. Existing user types.
+4. Existing roles.
+5. Existing permissions.
+6. Role-permission assignments.
+7. Privilege hierarchy.
+8. Existing /v1/ops routes.
+9. Audit logging architecture.
+10. Session and token handling.
+11. Database migrations and migration journal.
+12. Frontend operations architecture.
+13. Subscription and messaging enforcement.
+14. Error handling.
+15. Test coverage.
+16. Deployment/runtime configuration.
+17. Environment variable requirements.
+18. Which required secrets are present or missing, without exposing their values.
+
+For every finding, use one of:
+
+✅ Confirmed working
+⚠️ Partially implemented
+❌ Missing
+🔴 Critical risk
+🔍 Not verified
+
+Every finding should include, where applicable:
+
+- Exact file path.
+- Function/class name.
+- Route.
+- Database table.
+- API endpoint.
+- Relevant migration.
+
+Clearly distinguish:
+
+- Code exists.
+- Code is tested.
+- Code works locally.
+- Production operation is verified.
+- Security is verified.
+- Scalability is verified.
+- Something is merely inferred from code inspection.
+
+Do not claim production verification unless you actually performed it.
+
+==================================================
+PHASE 1 — SAFE FOUNDATION CORRECTIONS
+==================================================
+
+After completing the audit and reporting the findings, implement only safe, additive corrections that are confirmed necessary.
+
+Before making each change:
+
+- Explain the exact existing behavior.
+- Explain the problem.
+- Explain the smallest compatible fix.
+- Explain which existing behavior will remain unchanged.
+
+The known approved foundation corrections include:
+
+1. Correct operations audit route permission if the existing audit route is incorrectly gated by system.manage instead of audit.read.
+
+2. Correct roles route permission if the existing route is incorrectly gated by system.manage instead of the appropriate staff.read permission.
+
+3. Add system_engineer and maintenance to the privilege hierarchy if they are missing.
+
+4. Protect against removing the last Super Admin/owner role if the existing architecture requires that protection.
+
+5. Add only genuinely required permissions such as:
+   - audit.export
+   - sessions.view
+   - sessions.revoke
+
+Only add permissions after confirming they do not already exist.
+
+Do not duplicate permissions.
+
+Do not create duplicate roles.
+
+Do not create duplicate users.
+
+Do not automatically create Super Admin accounts.
+
+Do not create permanent shared access keys.
+
+==================================================
+STAFF-CONTROL SYSTEM REQUIREMENTS
+==================================================
+
+The future staff-control system must use the existing Clerk authentication and PMP identity/RBAC architecture.
+
+Do not create a hidden authentication system.
+
+Do not create backdoor keys.
+
+Do not create universal permanent passwords.
+
+Do not create a secret URL that bypasses authentication.
+
+Staff access must be individually attributable to a real authenticated identity.
+
+The system should eventually support distinct roles such as:
+
+- Super Admin / Owner
+- Admin / System Admin
+- System Engineer
+- Maintenance
+- Verification Team
+- Customer Support
+- Moderation Team
+
+Use existing role names where they already exist.
+
+Do not create duplicate equivalent roles.
+
+The Super Admin must have the highest privilege.
+
+The Admin should have extensive operational control, but should not automatically be able to perform actions explicitly reserved for the Super Admin unless the existing approved privilege model allows it.
+
+The system must protect against privilege escalation.
+
+A lower-privileged staff member must not be able to grant themselves a higher privilege.
+
+A staff member must not be able to grant another person a privilege higher than their own authority.
+
+The last Super Admin/owner must not accidentally be removable.
+
+==================================================
+STAFF ACTIVITY AUDITING
+==================================================
+
+For staff and operational users, the system should provide a reliable activity trail.
+
+The Admin/Super Admin should be able to determine:
+
+- Who performed an action.
+- Which PMP identity performed it.
+- Which Clerk identity performed it.
+- Their roles at the time of the action where available.
+- The permission involved.
+- The request ID.
+- The Clerk session ID where available.
+- IP address where available.
+- User agent where available.
+- The action performed.
+- The target entity.
+- The result.
+- Relevant metadata.
+
+Do not silently replace the existing audit system.
+
+Extend the existing audit system compatibly.
+
+Every sensitive operational mutation should be audited.
+
+Audit failures should be handled according to the existing architecture and should not accidentally break unrelated business operations unless the existing security design explicitly requires transactional audit enforcement.
+
+==================================================
+ADMIN CONTROL CENTER
+==================================================
+
+The eventual Admin Control Center should be able to provide in-app operational control over the system.
+
+Potential capabilities include:
+
+- View staff members.
+- View users.
+- View user status.
+- Suspend users.
+- Reactivate users.
+- Soft-delete users where existing rules allow it.
+- Assign roles according to privilege rules.
+- Remove roles according to privilege rules.
+- View audit logs.
+- Filter audit logs.
+- View individual user activity.
+- Review verification cases.
+- Manage support operations.
+- Manage moderation operations.
+- View system health.
+- View relevant system logs where safely exposed.
+- Control maintenance mode.
+- View active sessions if supported.
+- Revoke sessions if supported by the Clerk integration.
+- Force immediate PMP-level access revocation through suspension.
+- Export audit information only if an appropriately permissioned and secure export feature is implemented.
+
+The Admin should have a powerful operational interface, but all actions must still be enforced by the backend.
+
+Frontend visibility is NOT authorization.
+
+Never trust frontend role checks.
+
+Every sensitive operation must be protected server-side.
+
+==================================================
+SESSION AND ACCESS REVOCATION
+==================================================
+
+Investigate the existing Clerk integration before implementing session controls.
+
+Determine whether the current Clerk backend SDK and configuration support server-side session revocation.
+
+If supported:
+
+- Implement it through authenticated, permission-protected operations routes.
+- Audit every revocation.
+- Do not expose arbitrary session control to ordinary users.
+- Ensure a staff member cannot revoke a higher-privileged administrator's access unless explicitly authorized.
+
+If Clerk session revocation is not currently supported or cannot be safely verified:
+
+- Do not invent an unsafe implementation.
+- Clearly report the limitation.
+- Preserve the existing PMP suspension mechanism, which already blocks suspended identities on subsequent requests.
+
+==================================================
+MAINTENANCE MODE
+==================================================
+
+If maintenance mode is implemented:
+
+- It must be persisted safely.
+- It must not rely only on in-memory state.
+- It must have an audit trail.
+- It must be permission-protected.
+- It must have clear behavior for:
+  - Public users.
+  - Authenticated users.
+  - Staff.
+  - Admins.
+  - Super Admins.
+  - Health checks.
+  - Required operational endpoints.
+
+Do not accidentally lock the Super Admin out of the system.
+
+Do not create an emergency bypass key.
+
+==================================================
+IMPLEMENTATION SAFETY
+==================================================
+
+For every code change:
+
+1. Read the existing implementation.
+2. Identify the smallest change.
+3. Preserve existing API response shapes where possible.
+4. Preserve existing database conventions.
+5. Use additive migrations when schema changes are required.
+6. Never manually alter production data unless explicitly authorized.
+7. Never run destructive migrations.
+8. Never drop existing tables.
+9. Never delete existing roles or permissions without explicit authorization.
+10. Never overwrite existing secrets.
+11. Never change payment logic unless explicitly instructed.
+12. Never change messaging subscription enforcement unless explicitly instructed.
+13. Never remove existing tests.
+14. Add focused regression tests for each change.
+
+==================================================
+VALIDATION REQUIREMENTS
+==================================================
+
+After implementation, run the available checks:
+
+- Backend tests.
+- Backend typecheck.
+- Frontend typecheck.
+- Frontend production build.
+- Migration validation.
+- Relevant route tests.
+- Relevant authorization tests.
+- Subscription-to-messaging regression tests.
+
+If a check cannot run:
+
+- Do not pretend it passed.
+- State exactly why it could not run.
+- State what was actually verified instead.
+
+Before reporting completion, inspect:
+
+- Git diff.
+- Changed files.
+- Migration journal.
+- Environment configuration changes.
+- Workflow logs.
+- Runtime errors.
+- Browser console errors where applicable.
+
+Confirm that no unintended files changed.
+
+==================================================
+FINAL REPORT FORMAT
+==================================================
+
+At the end of the audit or implementation phase, provide a detailed report with:
+
+1. What was inspected.
+2. What was changed.
+3. What was deliberately not changed.
+4. Exact files changed.
+5. Exact database migrations added.
+6. Exact routes changed or added.
+7. Exact permissions changed or added.
+8. Exact roles changed or added.
+9. Security impact.
+10. Subscription-to-messaging verification.
+11. Test results.
+12. Typecheck results.
+13. Build results.
+14. Migration results.
+15. Runtime/workflow status.
+16. Remaining risks and limitations.
+
+Do not say something is production-ready merely because the code compiles.
+
+Do not say something is production-verified unless it was actually verified against the production environment.
+
+Start now with PHASE 0: READ THE UPLOADED HANDOFF FILE AND PERFORM THE READ-ONLY AUDIT.
+
+Do not modify the application until the audit phase is complete.

@@ -153,6 +153,9 @@ function makeIdentity(
         "users.read",
         "users.manage",
         "system.manage",
+        "staff.read",
+        "staff.roles.manage",
+        "audit.read",
         "support.read",
         "support.respond",
         "support.manage",
@@ -456,6 +459,22 @@ describe("DELETE /v1/ops/users/:id/roles/:roleId — remove role", () => {
     });
     expect(res.status).toBe(403);
   });
+
+  it("returns 403 when last owner removal is blocked", async () => {
+    vi.mocked(removeRole).mockRejectedValueOnce(
+      new ForbiddenError(
+        "Cannot remove the last owner role assignment. Assign another owner first.",
+      ),
+    );
+    const app = makeApp();
+    const res = await app.request("/v1/ops/users/user_target/roles/role_owner", {
+      method: "DELETE",
+      headers: authHeader(),
+    });
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { message: string };
+    expect(body.message).toMatch(/last owner/i);
+  });
 });
 
 describe("GET /v1/ops/roles", () => {
@@ -473,7 +492,7 @@ describe("GET /v1/ops/roles", () => {
     expect(body.roles.length).toBeGreaterThan(0);
   });
 
-  it("returns 403 without system.manage", async () => {
+  it("returns 403 without staff.read", async () => {
     const app = makeApp(makeIdentity({ permissions: ["users.read"] }));
     const res = await app.request("/v1/ops/roles", { headers: authHeader() });
     expect(res.status).toBe(403);
@@ -1071,7 +1090,7 @@ describe("GET /v1/ops/audit", () => {
     vi.mocked(listOpsAudit).mockResolvedValue([]);
   });
 
-  it("returns 200 with entries for system.manage", async () => {
+  it("returns 200 with entries for audit.read", async () => {
     const app = makeApp();
     const res = await app.request("/v1/ops/audit", { headers: authHeader() });
     expect(res.status).toBe(200);
@@ -1079,7 +1098,15 @@ describe("GET /v1/ops/audit", () => {
     expect(Array.isArray(body.entries)).toBe(true);
   });
 
-  it("returns 403 without system.manage", async () => {
+  it("returns 200 for system_engineer identity with audit.read but not system.manage", async () => {
+    const app = makeApp(
+      makeIdentity({ permissions: ["audit.read", "system.health.read", "system.logs.read"] }),
+    );
+    const res = await app.request("/v1/ops/audit", { headers: authHeader() });
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 403 without audit.read", async () => {
     const app = makeApp(makeIdentity({ permissions: ["users.read"] }));
     const res = await app.request("/v1/ops/audit", { headers: authHeader() });
     expect(res.status).toBe(403);

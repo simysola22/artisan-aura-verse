@@ -14,7 +14,7 @@
  *   6. Every role change and every status change is recorded in ops_audit_log.
  */
 
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, count } from "drizzle-orm";
 import type { Db } from "../../db/client.js";
 import {
   users,
@@ -50,6 +50,30 @@ const PRIVILEGE: Record<AccountType, number> = {
 };
 
 /**
+ * Privilege levels for roles that are not primary account types.
+ * These roles are layered on top of a base account_type via the user_roles table.
+ * A user's effective privilege is max(PRIVILEGE[accountType], max(ROLE_PRIVILEGE[roleId])).
+ *
+ * Placed between system_admin (80) and the team roles (40) to reflect their
+ * narrower operational scope vs a full admin but higher trust than team roles.
+ */
+const ROLE_PRIVILEGE: Record<string, number> = {
+  role_system_engineer: 60,
+  role_maintenance: 55,
+};
+
+/**
+ * Compute the effective privilege of a user from their account type and all
+ * assigned role IDs. Returns the maximum of the account-type privilege and any
+ * role-specific privilege entries.
+ */
+function effectivePrivilege(accountType: AccountType, roleIds: string[] = []): number {
+  const base = PRIVILEGE[accountType] ?? 0;
+  const roleBased = roleIds.reduce((max, r) => Math.max(max, ROLE_PRIVILEGE[r] ?? 0), 0);
+  return Math.max(base, roleBased);
+}
+
+/**
  * Internal roles assignable via the ops API, keyed by minimum actor account type.
  * Public roles (employer, provider) are assigned at registration and excluded here.
  */
@@ -79,8 +103,9 @@ function assertActorCanAssignRole(actorAccountType: AccountType, roleId: string)
 function assertActorOutranksTarget(
   actorAccountType: AccountType,
   targetAccountType: AccountType,
+  targetRoleIds: string[] = [],
 ): void {
-  if (PRIVILEGE[actorAccountType] <= PRIVILEGE[targetAccountType]) {
+  if (effectivePrivilege(actorAccountType) <= effectivePrivilege(targetAccountType, targetRoleIds)) {
     throw new ForbiddenError(
       "Cannot manage a user account with equal or higher privilege than your own.",
     );
@@ -294,9 +319,13 @@ export async function assignRole(
   const [role] = await db.select().from(roles).where(eq(roles.id, roleId)).limit(1);
   if (!role) throw new NotFoundError("Role");
 
-  // Verify target user exists
+  // Verify target user exists and load their current roles for privilege check
   const target = await loadUser(db, targetUserId);
-  assertActorOutranksTarget(actorAccountType, target.accountType);
+  const targetCurrentRoles = await db
+    .select({ roleId: userRoles.roleId })
+    .from(userRoles)
+    .where(eq(userRoles.userId, targetUserId));
+  assertActorOutranksTarget(actorAccountType, target.accountType, targetCurrentRoles.map((r) => r.roleId));
 
   // Check not already assigned
   const [existing] = await db
@@ -338,8 +367,28 @@ export async function removeRole(
   const [role] = await db.select().from(roles).where(eq(roles.id, roleId)).limit(1);
   if (!role) throw new NotFoundError("Role");
 
+  // Verify target user exists and load their current roles for role-aware privilege check
   const target = await loadUser(db, targetUserId);
-  assertActorOutranksTarget(actorAccountType, target.accountType);
+  const targetCurrentRoles = await db
+    .select({ roleId: userRoles.roleId })
+    .from(userRoles)
+    .where(eq(userRoles.userId, targetUserId));
+  assertActorOutranksTarget(actorAccountType, target.accountType, targetCurrentRoles.map((r) => r.roleId));
+
+  // Guard: the system must always retain at least one owner.
+  // Removing the last role_owner assignment would lock everyone out of owner-level operations.
+  if (roleId === "role_owner") {
+    const ownerRows = await db
+      .select({ ownerCount: count() })
+      .from(userRoles)
+      .where(eq(userRoles.roleId, "role_owner"));
+    const ownerCount = ownerRows[0]?.ownerCount ?? 0;
+    if (ownerCount <= 1) {
+      throw new ForbiddenError(
+        "Cannot remove the last owner role assignment. Assign another owner first.",
+      );
+    }
+  }
 
   const deleted = await db
     .delete(userRoles)
