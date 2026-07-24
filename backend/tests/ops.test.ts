@@ -629,6 +629,7 @@ describe("GET /v1/ops/support/tickets/:id", () => {
 
 describe("POST /v1/ops/support/tickets/:id/messages", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     vi.mocked(addMessage).mockResolvedValue({
       id: "msg_1",
       ticketId: "ticket_1",
@@ -643,25 +644,108 @@ describe("POST /v1/ops/support/tickets/:id/messages", () => {
     const app = makeApp();
     const res = await app.request("/v1/ops/support/tickets/ticket_1/messages", {
       method: "POST",
-      ...json({ content: "Hello", isInternal: false }),
+      ...json({ content: "Hello" }),
     });
     expect(res.status).toBe(201);
   });
 
-  it("passes isStaff=true when caller has support.respond", async () => {
+  it("passes the full user audit context for a normal reply", async () => {
+    const app = makeApp(makeIdentity({ permissions: ["profile.read"] }));
+    await app.request("/v1/ops/support/tickets/ticket_1/messages", {
+      method: "POST",
+      headers: {
+        ...json({ content: "Hello" }).headers,
+        "x-request-id": "request-user-reply",
+        "x-forwarded-for": "203.0.113.10",
+        "user-agent": "ops-test-user",
+      },
+      body: JSON.stringify({ content: "Hello" }),
+    });
+    expect(vi.mocked(addMessage)).toHaveBeenCalledWith(
+      expect.anything(),
+      "ticket_1",
+      "user_ops_actor",
+      "Hello",
+      false,
+      false,
+      expect.objectContaining({
+        actorClerkUserId: "clerk_ops_actor",
+        actorRoles: ["system_admin"],
+        requestId: "request-user-reply",
+        ipAddress: "203.0.113.10",
+        userAgent: "ops-test-user",
+      }),
+    );
+    expect(vi.mocked(addMessage).mock.calls.at(-1)?.[6]).not.toHaveProperty(
+      "requiredPermission",
+    );
+  });
+
+  it("passes support.respond and staff context for an authorized staff reply", async () => {
     const app = makeApp();
     await app.request("/v1/ops/support/tickets/ticket_1/messages", {
       method: "POST",
-      ...json({ content: "Staff reply", isInternal: true }),
+      headers: {
+        ...json({ content: "Staff reply" }).headers,
+        "x-request-id": "request-staff-reply",
+      },
+      body: JSON.stringify({ content: "Staff reply" }),
     });
     expect(vi.mocked(addMessage)).toHaveBeenCalledWith(
       expect.anything(),
       "ticket_1",
       "user_ops_actor",
       "Staff reply",
-      true, // isInternal
-      true, // isStaff
+      false,
+      true,
+      expect.objectContaining({
+        actorClerkUserId: "clerk_ops_actor",
+        actorRoles: ["system_admin"],
+        requiredPermission: "support.respond",
+        requestId: "request-staff-reply",
+      }),
     );
+  });
+
+  it("preserves internal staff notes and records the internal metadata inputs", async () => {
+    const app = makeApp();
+    await app.request("/v1/ops/support/tickets/ticket_1/messages", {
+      method: "POST",
+      ...json({ content: "Internal note", isInternal: true }),
+    });
+    expect(vi.mocked(addMessage)).toHaveBeenCalledWith(
+      expect.anything(),
+      "ticket_1",
+      "user_ops_actor",
+      "Internal note",
+      true,
+      true,
+      expect.objectContaining({
+        requiredPermission: "support.respond",
+      }),
+    );
+  });
+
+  it("returns 403 when a non-staff user tries to add an internal note", async () => {
+    vi.mocked(addMessage).mockRejectedValue(
+      new ForbiddenError("Internal messages can only be posted by support staff."),
+    );
+    const app = makeApp(makeIdentity({ permissions: ["profile.read"] }));
+    const res = await app.request("/v1/ops/support/tickets/ticket_1/messages", {
+      method: "POST",
+      ...json({ content: "Internal note", isInternal: true }),
+    });
+    expect(res.status).toBe(403);
+  });
+
+  it("does not weaken authentication for message creation", async () => {
+    const app = makeApp();
+    const res = await app.request("/v1/ops/support/tickets/ticket_1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: "Hello" }),
+    });
+    expect(res.status).toBe(401);
   });
 });
 

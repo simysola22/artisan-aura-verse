@@ -170,6 +170,7 @@ export async function addMessage(
   content: string,
   isInternal: boolean,
   isStaff: boolean,
+  auditContext?: AuditContext,
 ) {
   const ticket = await loadTicket(db, ticketId);
 
@@ -207,6 +208,15 @@ export async function addMessage(
       .set({ status: "open", updatedAt: new Date() })
       .where(eq(supportTickets.id, ticketId));
   }
+
+  await appendOpsAudit(db, {
+    actorId: authorId,
+    action: "support_ticket_message_added",
+    entityType: "support_ticket",
+    entityId: ticketId,
+    metadata: { ticketId, isInternal, isStaff },
+    ...auditContext,
+  });
 
   return message;
 }

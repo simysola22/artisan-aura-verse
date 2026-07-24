@@ -77,6 +77,7 @@ export const opsAuditActionEnum = pgEnum("ops_audit_action", [
   "user_reactivated",
   "user_deleted",
   "support_ticket_created",
+  "support_ticket_message_added",
   "support_ticket_assigned",
   "support_ticket_closed",
   "moderation_report_submitted",

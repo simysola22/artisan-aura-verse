@@ -405,12 +405,26 @@ export function createOpsRouter(
     auth,
     zValidator("json", addMessageSchema),
     async (c) => {
-      const { pmpUserId, permissions } = c.get("auth");
+      const { pmpUserId, clerkUserId, sessionId, roleNames, permissions } = c.get("auth");
       const ticketId = c.req.param("id");
       const body = c.req.valid("json");
       const isStaff = permissions.has("support.respond");
       const isInternal = body.isInternal === true;
-      const message = await addMessage(db, ticketId, pmpUserId, body.content, isInternal, isStaff);
+      const message = await addMessage(
+        db,
+        ticketId,
+        pmpUserId,
+        body.content,
+        isInternal,
+        isStaff,
+        buildAuditContext(
+          c,
+          clerkUserId,
+          sessionId,
+          roleNames,
+          isStaff ? "support.respond" : undefined,
+        ),
+      );
       return c.json({ message }, 201);
     },
   );

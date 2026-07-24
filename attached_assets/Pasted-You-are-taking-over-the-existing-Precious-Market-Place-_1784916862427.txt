@@ -1,0 +1,269 @@
+You are taking over the existing Precious Market Place (PMP) production application.
+
+IMPORTANT: This is an existing production application. Do not redesign, rewrite, replace, or break existing functionality. Preserve the current architecture, conventions, API contracts, database behavior, authentication, authorization, subscription system, messaging system, and frontend behavior unless a change is explicitly required below.
+
+CURRENT PROJECT ARCHITECTURE:
+- Frontend: React + TanStack Start
+- Backend: Bun + Hono
+- ORM: Drizzle
+- Database: PostgreSQL
+- Authentication: Clerk
+- Backend routes are mounted from backend/src/app.ts
+- Operations routes are under /v1/ops/*
+- Messaging routes are under /v1/messaging/*
+- Existing operations audit system:
+  - backend/src/services/ops/audit.ts
+  - appendOpsAudit(...)
+  - AuditContext
+  - ops_audit_log table
+- Existing request context includes, where available:
+  - actor Clerk user ID
+  - actor PMP roles
+  - Clerk session ID
+  - request ID
+  - IP address
+  - user agent
+  - required permission
+- Existing subscription-to-messaging enforcement MUST NOT be changed.
+
+==================================================
+CURRENT AUDIT FINDING
+==================================================
+
+A read-only audit of the existing operations system found that 11 of 12 reviewed operational mutation categories already correctly write to ops_audit_log with the available audit context.
+
+The only confirmed gap is:
+
+POST /v1/ops/support/tickets/:id/messages
+
+Function:
+backend/src/services/ops/support.ts
+addMessage(...)
+
+Current behavior:
+- Authentication exists.
+- Ticket ownership and staff authorization exist.
+- User replies work.
+- Staff replies work.
+- Internal staff notes work.
+- Database mutation works.
+- However, no ops_audit_log event is created.
+- AuditContext is not passed into addMessage.
+
+This creates an operational attribution gap, especially for privileged internal staff notes.
+
+==================================================
+AUTHORIZED TASK
+==================================================
+
+Implement ONLY the minimal compatible fix for the missing support-ticket-message audit trail.
+
+Do NOT begin implementing the Admin dashboard, special staff access keys, maintenance controls, staff-control UI, emergency access system, or any new credential system yet.
+
+Those are future phases and must not be implemented in this task.
+
+==================================================
+REQUIRED IMPLEMENTATION
+==================================================
+
+1. Add a new stable audit action to the existing operations audit action enum.
+
+Recommended action name:
+
+support_ticket_message_added
+
+Use the existing enum/schema conventions.
+
+2. Add the required additive PostgreSQL migration for the new enum value.
+
+Follow the existing migration numbering and conventions exactly.
+
+Do not modify or reorder existing migrations.
+
+Do not reset the database.
+
+Do not delete or rewrite existing schema.
+
+3. Update:
+
+backend/src/routes/ops.ts
+
+For:
+
+POST /v1/ops/support/tickets/:id/messages
+
+Build and pass the existing audit context using the existing buildAuditContext(...) helper.
+
+Do not create a new audit-context system.
+
+Do not duplicate authentication logic.
+
+Do not change the existing authorization behavior.
+
+Do not change the response shape.
+
+Do not change the existing request validation.
+
+4. Update:
+
+backend/src/services/ops/support.ts
+
+Function:
+
+addMessage(...)
+
+Extend it in the smallest backward-compatible way necessary to accept the existing AuditContext.
+
+After the support message mutation succeeds, append an operations audit event using the existing appendOpsAudit(...) function.
+
+The audit event must preserve the existing business behavior.
+
+The audit metadata should include enough information to distinguish the operation, including at minimum:
+
+- ticket ID
+- whether the message is internal
+- whether the message was created by staff or a normal ticket owner
+
+Use the existing metadata conventions.
+
+The audit event must include the available context:
+
+- actor Clerk user ID
+- actor roles
+- required permission, when applicable
+- Clerk session ID
+- request ID
+- IP address
+- user agent
+
+Do not invent context that is unavailable.
+
+5. Preserve all current behavior:
+
+- Ticket owner can reply to their own ticket according to existing rules.
+- Authorized support staff can respond.
+- Internal notes remain internal.
+- Existing support.respond permission behavior remains unchanged.
+- Existing support.manage behavior remains unchanged.
+- Ticket reopening behavior remains unchanged.
+- Existing error handling remains unchanged.
+- Existing API response shape remains unchanged.
+- Existing database mutations remain unchanged except for the additional audit record.
+- Audit failures must follow the existing appendOpsAudit behavior and must not break the primary support-message operation.
+
+==================================================
+TESTS REQUIRED
+==================================================
+
+Add or update focused tests for:
+
+1. Normal user reply:
+   - message is created
+   - existing behavior remains unchanged
+   - audit event is written
+   - actor attribution is present
+
+2. Authorized staff reply:
+   - message is created
+   - audit event is written
+   - staff role context is present
+   - support.respond is recorded when applicable
+
+3. Internal staff note:
+   - message is created
+   - internal flag remains correct
+   - audit event is written
+   - metadata records that the message is internal
+
+4. Context propagation:
+   Verify that available values are correctly passed into the audit event:
+   - actor Clerk user ID
+   - actor roles
+   - required permission
+   - Clerk session ID
+   - request ID
+   - IP address
+   - user agent
+
+5. Authorization regression:
+   Confirm that unauthorized users still cannot add messages.
+
+Do not weaken existing authorization tests.
+
+==================================================
+VALIDATION REQUIRED
+==================================================
+
+Before declaring completion, run the available checks:
+
+- Backend tests
+- Backend typecheck
+- Frontend typecheck
+- Frontend production build
+
+If dependencies are missing, do not silently claim success.
+
+Clearly report:
+
+- which commands were run
+- which passed
+- which failed
+- which could not run
+- why they could not run
+
+==================================================
+IMPORTANT SAFETY RULES
+==================================================
+
+Do not modify:
+
+- Clerk authentication behavior
+- Clerk token verification
+- public signup flows
+- employer/provider account types
+- subscription logic
+- billing logic
+- messaging subscription enforcement
+- messaging permissions
+- public provider/employer functionality
+- database tables unrelated to this audit fix
+- existing operations roles
+- existing staff access behavior
+- deployment configuration
+- secrets
+- environment variables
+
+Do not create:
+
+- permanent shared access keys
+- hidden authentication bypasses
+- hardcoded admin credentials
+- emergency backdoors
+- automatic privileged accounts
+- undocumented super-admin access
+- credentials stored in source code
+
+Do not change unrelated files.
+
+==================================================
+FINAL REPORT FORMAT
+==================================================
+
+After implementation, provide a concise but detailed report containing:
+
+1. Exact files changed
+2. Exact migration created
+3. Exact audit action added
+4. Exact route changed
+5. Exact service changed
+6. Exact tests added or modified
+7. Confirmation that existing authorization behavior was preserved
+8. Confirmation that subscription-to-messaging behavior was not changed
+9. Test results
+10. Typecheck results
+11. Production build result
+12. Any remaining risks or limitations
+
+Before making changes, inspect the existing code and confirm the exact current implementation. Then make the smallest safe additive change possible.
+
+Do not implement anything beyond this approved audit-context fix.
