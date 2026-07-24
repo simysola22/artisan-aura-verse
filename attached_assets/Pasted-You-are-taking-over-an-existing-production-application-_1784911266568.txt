@@ -1,0 +1,567 @@
+You are taking over an existing production application called PRECIOUS MARKET PLACE (PMP).
+
+This is an existing full-stack application. Your first task is NOT to modify the application.
+
+You must perform a complete read-only audit of the existing codebase and report your findings before making any code, database, configuration, authentication, infrastructure, or deployment changes.
+
+==================================================
+PROJECT CONTEXT
+==================================================
+
+Current architecture:
+
+Frontend:
+- React
+- TanStack Start
+- Vite
+- Clerk authentication
+- Hosted on Vercel
+
+Backend:
+- Bun
+- Hono
+- Drizzle ORM
+- PostgreSQL
+- Hosted on Render
+
+Database:
+- Railway PostgreSQL
+
+Authentication:
+- Clerk
+
+Payments:
+- Paystack integration exists
+- Messaging is intended to require an active subscription before a user can create conversations or send messages
+
+The application already contains existing:
+- User authentication
+- Clerk identity synchronization
+- Employer accounts
+- Artisan/provider accounts
+- Provider profiles
+- Employer profiles
+- Messaging
+- Conversations
+- Search/discovery
+- Verification workflows
+- Billing/subscription logic
+- Permissions/RBAC
+- Backend API routes
+- Admin/operations-related foundations
+- Audit/logging-related foundations
+
+The existing application is already deployed and has working production features.
+
+==================================================
+ABSOLUTE RULE: AUDIT FIRST
+==================================================
+
+DO NOT modify any source file.
+
+DO NOT:
+- edit frontend code
+- edit backend code
+- edit database schemas
+- create migrations
+- run migrations
+- alter database records
+- change Clerk configuration
+- change Paystack configuration
+- change environment variables
+- change secrets
+- change deployment configuration
+- change Vercel configuration
+- change Render configuration
+- change Railway configuration
+- install unnecessary packages
+- create new authentication bypasses
+- create permanent shared passwords
+- create hidden backdoors
+- create temporary production admin accounts
+- alter existing permissions
+- change subscription logic
+- change messaging logic
+
+You may only:
+- read files
+- inspect the repository
+- inspect existing database schema definitions
+- inspect existing migrations without executing them
+- inspect routes
+- inspect services
+- inspect authentication logic
+- inspect authorization/RBAC logic
+- inspect audit logging
+- inspect configuration
+- inspect tests
+- inspect production-safe health/status information if available without modifying anything
+- run read-only checks, typechecks, tests, or builds only if they do not modify application source code, database state, secrets, or deployment configuration
+
+If a command could modify data or configuration, do not run it.
+
+==================================================
+MAIN AUDIT OBJECTIVE
+==================================================
+
+Determine exactly how functional and production-ready the current PMP application is before designing the staff-control/admin system.
+
+The future goal is to introduce a secure internal staff-control system with roles such as:
+
+1. SUPER ADMIN
+2. ADMIN
+3. SYSTEM ENGINEER
+4. VERIFICATION TEAM
+5. CUSTOMER SERVICE SUPPORT
+6. MAINTENANCE/OPERATIONS STAFF
+
+However, do not implement this system yet.
+
+First determine what already exists and what can safely be extended.
+
+The future system must be built on top of the existing architecture instead of replacing it.
+
+==================================================
+IMPORTANT FUTURE REQUIREMENTS TO AUDIT FOR
+==================================================
+
+The future internal staff system is expected to support:
+
+A. Staff authentication
+
+Staff must not rely on one permanent shared password.
+
+Staff access must be individually revocable.
+
+The system should eventually support secure staff identities, preferably integrated with the existing authentication architecture where appropriate.
+
+The system should support:
+- disabling staff access
+- removing staff access
+- rotating/revoking credentials
+- ending active sessions
+- forcing logout
+- detecting suspicious access
+- emergency access revocation
+
+B. Staff roles
+
+The future system should support role-specific access for:
+
+- SUPER ADMIN
+- ADMIN
+- SYSTEM ENGINEER
+- VERIFICATION TEAM
+- CUSTOMER SERVICE SUPPORT
+- MAINTENANCE/OPERATIONS
+
+The audit must determine whether the current RBAC system can support this safely.
+
+C. SUPER ADMIN
+
+The super admin should have the highest level of control.
+
+The audit must determine how this can be implemented safely without creating a hidden backdoor.
+
+The super admin should eventually be capable of:
+- managing admins
+- managing staff
+- managing permissions
+- revoking staff access
+- rotating/revoking staff credentials
+- ending sessions
+- viewing system-wide audit logs
+- managing emergency controls
+- recovering access during operational incidents
+
+Do not assume this requires a permanent hardcoded key.
+
+Instead, audit how privileged access should be represented securely.
+
+D. ADMIN
+
+The admin should have broad operational control over the platform.
+
+The future admin system should eventually allow the admin to perform many actions that currently require direct code/database intervention, subject to explicit authorization and audit logging.
+
+The admin should potentially be able to:
+- view users
+- search users
+- inspect accounts
+- view provider profiles
+- view employer profiles
+- inspect verification status
+- manage verification workflows
+- support customers
+- suspend or restrict accounts where authorized
+- manage staff
+- revoke staff access where authorized
+- force logout users where authorized
+- inspect active sessions where possible
+- view system activity
+- view audit logs
+- manage operational settings where authorized
+- perform approved administrative actions
+
+The audit must determine which of these are already supported and which would require new backend capabilities.
+
+E. STAFF ACTIVITY AUDITING
+
+A major requirement is that every staff member's activity should be visible to authorized administrators.
+
+Except for the highest-level emergency/super-admin access, every internal staff action should eventually be auditable.
+
+The audit must investigate whether the current system can record:
+
+- who performed an action
+- their staff identity
+- their role at the time
+- the action performed
+- the target user/resource
+- timestamp
+- IP address where appropriate
+- user-agent/device metadata where appropriate
+- success or failure
+- relevant request/context metadata
+- reason or justification where appropriate
+
+Examples:
+
+- staff member viewed a user account
+- staff member changed verification status
+- staff member suspended an account
+- staff member changed permissions
+- staff member logged another user out
+- staff member changed operational settings
+- staff member accessed customer support data
+- staff member performed a maintenance action
+
+The audit must determine whether existing audit logs already support this.
+
+If audit logging exists, inspect:
+- schema
+- storage
+- event format
+- actor identification
+- target identification
+- retention
+- queryability
+- tamper resistance
+- whether logs can be deleted or modified
+- whether administrators can see them
+
+F. ADMIN CONTROL OVER STAFF
+
+The future system should allow authorized admins to:
+
+- create staff accounts
+- assign staff roles
+- revoke staff access
+- disable staff accounts
+- reset or rotate access credentials
+- force logout staff
+- change staff permissions
+- review staff activity
+- investigate suspicious activity
+
+The audit must determine what already exists.
+
+G. SESSION CONTROL
+
+The future system should support the ability for authorized administrators to:
+
+- see active sessions where technically possible
+- revoke sessions
+- force logout users
+- force logout staff
+- invalidate access after credential rotation
+- respond to suspected compromise
+
+Audit the current Clerk session architecture and backend identity architecture to determine what is possible.
+
+H. BREAK-GLASS / EMERGENCY ACCESS
+
+The system must not rely on an insecure hidden backdoor.
+
+If emergency access is necessary, audit safe designs such as:
+
+- separately controlled super-admin identities
+- credential rotation
+- emergency access workflows
+- strict audit logging
+- multi-step confirmation
+- session invalidation
+- limited emergency permissions
+
+Do not implement any emergency mechanism yet.
+
+I. ADMIN MUST NOT AUTOMATICALLY BYPASS ALL SECURITY
+
+The future admin system must still respect:
+- authorization
+- audit logging
+- destructive-action confirmation
+- role boundaries
+- least privilege where appropriate
+
+The admin may have broad authority, but actions must remain traceable.
+
+==================================================
+CRITICAL PRODUCTION BUSINESS RULE TO VERIFY
+==================================================
+
+Verify the complete subscription-to-messaging flow.
+
+The intended business rule is:
+
+A user must have an active subscription before they can initiate or send messages.
+
+Recipients should still be able to receive messages without personally being required to subscribe, depending on the current business logic.
+
+You must verify the actual implementation rather than assuming it.
+
+Trace the complete flow:
+
+1. User signs up.
+2. User logs in.
+3. User selects a subscription plan.
+4. Payment is initiated.
+5. Paystack processes the payment.
+6. Payment verification occurs.
+7. Subscription status is written to the database.
+8. Entitlements are calculated.
+9. User attempts to create a conversation.
+10. User attempts to send a message.
+11. Backend checks subscription entitlement.
+12. Message is accepted or rejected.
+
+Confirm exactly:
+
+- What database table stores subscriptions?
+- What statuses are considered active?
+- What statuses are considered inactive?
+- Does a successful Paystack payment reliably create/update the subscription?
+- Is payment verification server-side?
+- Is the frontend allowed to influence subscription status?
+- Is the backend the final authority?
+- Does POST /v1/messaging/conversations require an active subscription?
+- Does POST /v1/messaging/conversations/:id/messages require an active subscription?
+- Can an unsubscribed user bypass the restriction by calling the API directly?
+- What exact HTTP status and error code are returned?
+- Does the frontend show an understandable error?
+- Does the user retain their typed message if sending fails?
+- Can a subscribed user successfully message another user?
+- Can the recipient receive the message without a subscription?
+- Are there any frontend/backend response-shape mismatches?
+- Are there any Clerk authentication timing issues?
+- Are there any SSR requests occurring before authentication is ready?
+
+Do not modify anything while verifying this.
+
+==================================================
+FULL AUDIT AREAS
+==================================================
+
+Audit the following in detail:
+
+1. Repository structure
+
+2. Frontend architecture
+
+3. Backend architecture
+
+4. Database schema
+
+5. Existing migrations
+
+6. Authentication flow
+
+7. Clerk integration
+
+8. Identity synchronization
+
+9. User roles
+
+10. Permissions
+
+11. RBAC implementation
+
+12. Admin/operations routes
+
+13. Existing audit logging
+
+14. Staff-related functionality
+
+15. Session management
+
+16. User account management
+
+17. Provider verification
+
+18. Customer support capabilities
+
+19. Maintenance capabilities
+
+20. System engineering capabilities
+
+21. Billing and subscriptions
+
+22. Paystack integration
+
+23. Messaging permissions
+
+24. Messaging subscription enforcement
+
+25. Rate limiting
+
+26. Caching
+
+27. Redis readiness
+
+28. PubSub/SSE
+
+29. Logging
+
+30. Error tracking
+
+31. Security configuration
+
+32. CORS
+
+33. CSRF considerations
+
+34. Input validation
+
+35. Authorization enforcement
+
+36. Sensitive data exposure
+
+37. Secrets handling
+
+38. Production deployment architecture
+
+39. Database connectivity
+
+40. Test coverage
+
+41. Typecheck status
+
+42. Production build status
+
+43. Known technical debt
+
+44. Single points of failure
+
+45. Scaling limitations
+
+46. Disaster recovery concerns
+
+==================================================
+REQUIRED AUDIT OUTPUT
+==================================================
+
+Do not provide a vague summary.
+
+Produce a detailed report with exactly these sections:
+
+1. EXECUTIVE SUMMARY
+
+2. CURRENT PRODUCTION ARCHITECTURE
+
+3. CURRENT USER TYPES AND ROLES
+
+4. CURRENT AUTHENTICATION FLOW
+
+5. CURRENT AUTHORIZATION/RBAC SYSTEM
+
+6. CURRENT AUDIT LOGGING CAPABILITIES
+
+7. CURRENT ADMIN/OPERATIONS CAPABILITIES
+
+8. CURRENT SESSION AND ACCESS REVOCATION CAPABILITIES
+
+9. SUBSCRIPTION AND PAYMENT FLOW
+
+10. COMPLETE SUBSCRIPTION-TO-MESSAGING VERIFICATION
+
+11. STAFF-CONTROL SYSTEM READINESS
+
+12. SECURITY RISKS AND GAPS
+
+13. PROPOSED STAFF-CONTROL ARCHITECTURE
+
+14. IMPLEMENTATION PLAN
+
+For every finding, clearly label it as one of:
+
+✅ CONFIRMED WORKING
+⚠️ PARTIALLY IMPLEMENTED
+❌ MISSING
+🔴 CRITICAL RISK
+🔍 NOT VERIFIED
+
+For every claim, provide:
+
+- exact file path
+- relevant function/class/route
+- database table if applicable
+- exact API endpoint if applicable
+- explanation of what the code actually does
+
+Do not make claims based only on filenames.
+
+==================================================
+IMPORTANT REPORTING RULES
+==================================================
+
+If something cannot be verified, say:
+
+"NOT VERIFIED — additional evidence required."
+
+Do not pretend something works just because the code appears to support it.
+
+Distinguish clearly between:
+
+- code exists
+- code is tested
+- code works locally
+- code works in production
+- code is secure
+- code is scalable
+
+These are not the same thing.
+
+==================================================
+FINAL SECTION: SAFE NEXT STEPS
+==================================================
+
+After the audit, provide:
+
+1. What is already safe to extend.
+2. What must be fixed before building the staff-control system.
+3. What should not be changed.
+4. What database changes would eventually be required.
+5. What authentication changes would eventually be required.
+6. What RBAC changes would eventually be required.
+7. What audit logging changes would eventually be required.
+8. What session-control capabilities would eventually be required.
+9. What emergency-access controls would eventually be required.
+10. A phased implementation plan that minimizes risk to existing production functionality.
+
+Do not implement any of those changes yet.
+
+The only task at this stage is to perform the audit and produce the detailed report.
+
+Protect all existing working functionality.
+
+Do not make random architectural changes.
+
+Do not replace the existing architecture.
+
+Do not create hidden authentication bypasses.
+
+Do not create permanent shared admin passwords.
+
+Do not modify production data.
+
+Audit first. Report second. Implement only after the audit has been reviewed and approved.
