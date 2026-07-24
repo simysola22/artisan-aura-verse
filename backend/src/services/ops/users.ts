@@ -57,6 +57,8 @@ const ASSIGNABLE_ROLES_BY_ACTOR: Record<string, string[]> = {
   owner: [
     "role_owner",
     "role_system_admin",
+    "role_system_engineer",
+    "role_maintenance",
     "role_verification_team",
     "role_support_team",
     "role_moderation_team",

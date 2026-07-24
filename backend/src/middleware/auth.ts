@@ -81,10 +81,11 @@ export function requireClerkAuth(
 
     // Step 1: verify with Clerk
     let clerkUserId: string;
+    let sessionId: string | undefined;
     try {
       const result = await adapter.verifyToken(token);
       clerkUserId = result.clerkUserId;
-      const sessionId = result.sessionId;
+      sessionId = result.sessionId;
     } catch {
       throw new UnauthorizedError("Invalid or expired authentication token");
     }

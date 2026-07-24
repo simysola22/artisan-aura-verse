@@ -77,7 +77,7 @@ import {
   markReportReviewing,
   takeModerationAction,
 } from "../services/ops/moderation.js";
-import { listOpsAudit } from "../services/ops/audit.js";
+import { listOpsAudit, type AuditContext } from "../services/ops/audit.js";
 
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
@@ -191,6 +191,28 @@ function compact<T extends object>(obj: T): WithoutUndefined<T> {
   ) as WithoutUndefined<T>;
 }
 
+/**
+ * Build a fully-attributed AuditContext from the current Hono request context.
+ * Only includes fields that are actually present — undefined values are omitted
+ * so the object is compatible with `exactOptionalPropertyTypes`.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildAuditContext(c: any, clerkUserId: string, sessionId: string | undefined, roleNames: string[], requiredPermission: string): AuditContext {
+  const ctx: AuditContext = {
+    actorClerkUserId: clerkUserId,
+    actorRoles: roleNames,
+    requiredPermission,
+  };
+  if (sessionId !== undefined) ctx.clerkSessionId = sessionId;
+  const requestId = c.get("requestId") as string | undefined;
+  if (requestId !== undefined) ctx.requestId = requestId;
+  const ip = (c.req.header("x-forwarded-for") ?? c.req.header("cf-connecting-ip")) as string | undefined;
+  if (ip !== undefined) ctx.ipAddress = ip;
+  const ua = c.req.header("user-agent") as string | undefined;
+  if (ua !== undefined) ctx.userAgent = ua;
+  return ctx;
+}
+
 // ─── Router factory ───────────────────────────────────────────────────────────
 
 export function createOpsRouter(
@@ -248,10 +270,10 @@ export function createOpsRouter(
     requirePermission("users.manage"),
     zValidator("json", suspendSchema),
     async (c) => {
-      const { pmpUserId, accountType } = c.get("auth");
+      const { pmpUserId, accountType, clerkUserId, sessionId, roleNames } = c.get("auth");
       const targetId = c.req.param("id");
       const body = c.req.valid("json");
-      await suspendUser(db, targetId, pmpUserId, accountType, body.reason);
+      await suspendUser(db, targetId, pmpUserId, accountType, body.reason, buildAuditContext(c, clerkUserId, sessionId, roleNames, "users.manage"));
       return c.json({ ok: true });
     },
   );
@@ -265,9 +287,9 @@ export function createOpsRouter(
     auth,
     requirePermission("users.manage"),
     async (c) => {
-      const { pmpUserId, accountType } = c.get("auth");
+      const { pmpUserId, accountType, clerkUserId, sessionId, roleNames } = c.get("auth");
       const targetId = c.req.param("id");
-      await reactivateUser(db, targetId, pmpUserId, accountType);
+      await reactivateUser(db, targetId, pmpUserId, accountType, buildAuditContext(c, clerkUserId, sessionId, roleNames, "users.manage"));
       return c.json({ ok: true });
     },
   );
@@ -277,9 +299,9 @@ export function createOpsRouter(
    * Auth: users.manage
    */
   router.delete("/v1/ops/users/:id", auth, requirePermission("users.manage"), async (c) => {
-    const { pmpUserId, accountType } = c.get("auth");
+    const { pmpUserId, accountType, clerkUserId, sessionId, roleNames } = c.get("auth");
     const targetId = c.req.param("id");
-    await deleteUser(db, targetId, pmpUserId, accountType);
+    await deleteUser(db, targetId, pmpUserId, accountType, buildAuditContext(c, clerkUserId, sessionId, roleNames, "users.manage"));
     return c.body(null, 204);
   });
 
@@ -293,10 +315,10 @@ export function createOpsRouter(
     requirePermission("system.manage"),
     zValidator("json", assignRoleSchema),
     async (c) => {
-      const { pmpUserId, accountType } = c.get("auth");
+      const { pmpUserId, accountType, clerkUserId, sessionId, roleNames } = c.get("auth");
       const targetId = c.req.param("id");
       const { roleId } = c.req.valid("json");
-      await assignRole(db, targetId, roleId, pmpUserId, accountType);
+      await assignRole(db, targetId, roleId, pmpUserId, accountType, buildAuditContext(c, clerkUserId, sessionId, roleNames, "system.manage"));
       return c.json({ ok: true }, 201);
     },
   );
@@ -310,10 +332,10 @@ export function createOpsRouter(
     auth,
     requirePermission("system.manage"),
     async (c) => {
-      const { pmpUserId, accountType } = c.get("auth");
+      const { pmpUserId, accountType, clerkUserId, sessionId, roleNames } = c.get("auth");
       const targetId = c.req.param("id");
       const roleId = c.req.param("roleId");
-      await removeRole(db, targetId, roleId, pmpUserId, accountType);
+      await removeRole(db, targetId, roleId, pmpUserId, accountType, buildAuditContext(c, clerkUserId, sessionId, roleNames, "system.manage"));
       return c.body(null, 204);
     },
   );

@@ -1,36 +1,34 @@
 ---
 name: PMP current state
-description: What is implemented and what remains in the PMP marketplace project.
+description: Current implementation state of the PMP project after Phase 1 staff-control foundation completion
 ---
 
-## Done
-- Full jobs marketplace: schema, backend routes, frontend routes (jobs, jobs/$jobId, jobs/create, jobs/$jobId/apply, jobs/$jobId/edit, jobs/applications)
-- SSE realtime messaging: subscribe() wired into ConversationView via useEffect
-- Message button on provider profile: navigates to /messages/$conversationId (not generic /messages)
-- Profile editing: account.tsx has full provider editor (headline, about, skills, experience, certs, portfolio) and employer editor (name, org, industry, location, website)
-- Dashboard uses real API data (no DEMO_JOBS or hardcoded numbers). "Active jobs" stat uses real jobsApi.listJobs count.
-- Verification system (multi-step wizard + ops queue). providerKind no longer hardcoded to "artisan" — uses user's actual kind.
-- 505 backend tests pass — run with `bunx vitest run` (not `bun test`)
-- Frontend TypeScript clean, production build passes
-- Onboarding route (/onboarding): new users without profiles are redirected here from dashboard
-- Billing page (/billing): lists plans from backend, handles Paystack checkout redirect, shows payment history
-- Ops Overview (/ops): uses real opsApi.getOverview() — no more hardcoded stats
-- Ops Users (/ops/users): uses real /v1/ops/users API with filters, suspend/reactivate actions
-- Search: real location filter (text input, not hardcoded "London"), pagination added
-- Nav: Billing & Plans link in both desktop AccountMenu and mobile dropdown
+## Status after Phase 1 staff-control foundation
 
-## Remaining / Not yet done
-- Onboarding flow: new users land in dashboard with no profile — no guided onboarding
-  → FIXED: /onboarding route created, dashboard detects missing profile and redirects
-- Ops support tickets and moderation reports: backend exists, frontend is empty shells
-  → FIXED: both pages fully wired to real API
-- Billing UI: Paystack integration exists in backend but no frontend pricing/subscription page
-  → FIXED: /billing route created
-- File uploads for verification evidence: URL-based evidence supported; binary upload requires S3 setup
+- Backend typecheck: ✅ clean
+- Frontend typecheck: ✅ clean
+- Backend tests: ✅ 507/507 passing
+- Production frontend build: ✅ succeeds
 
-## Key facts
-- Backend tests must use `bunx vitest run` not `bun test` (bun uses its own test runner lacking vi.mocked)
-- Both workflows running: frontend on port 5000, backend on port 3000
-- DATABASE_URL and Clerk secrets needed for real auth/data flows
-- Vite dev proxy handles /v1/* → localhost:3000; no VITE_API_BASE_URL needed locally
-- In mock mode (no VITE_API_BASE_URL), onboarding profile check resolves to null (mock employer profile returns non-null), so onboarding skips correctly
+## Phase 1 changes (this session)
+
+**Root cause fixed:** `sessionId` was declared with `const` inside a `try {}` block in `auth.ts` but referenced outside it — caused ReferenceError on every authenticated route (212 test failures). Fixed by declaring `let sessionId: string | undefined` before the try block.
+
+**Audit context wired:** `backend/src/routes/ops.ts` now passes full `AuditContext` (clerkUserId, sessionId, requestId, roleNames, requiredPermission, ip, userAgent) to all mutating user-management service calls (suspend, reactivate, delete, assignRole, removeRole).
+
+**RBAC extended:** `ASSIGNABLE_ROLES_BY_ACTOR` in `services/ops/users.ts` now includes `role_system_engineer` and `role_maintenance` as owner-assignable roles.
+
+**Migration journal fixed:** `backend/migrations/meta/_journal.json` — `0008_job_marketplace` was missing from the journal (0009 was registered as idx 8). Fixed to: idx 8 = `0008_job_marketplace`, idx 9 = `0009_staff_control_foundation`.
+
+## Migration state
+- Migration 0009 (`0009_staff_control_foundation.sql`) was already written by previous environment
+- DB schema already had all audit context columns (actor_clerk_user_id, actor_roles, required_permission, clerk_session_id, request_id, ip_address, user_agent, success, error_code)
+- Audit service (audit.ts) already had AuditContext interface and AppendAuditParams
+- Request-ID middleware already existed
+- Clerk adapter already extracted sessionId from `sid` claim
+
+## What NOT yet implemented (by design)
+- Admin/Super Admin dashboard
+- Credentials, keys, or provisioned staff accounts
+- `system_engineer` / `maintenance` account_type enum values (these are roles only, not account types)
+- Audit wiring for support/moderation routes (service layer accepts auditContext but routes don't pass it yet — Phase 2 scope)

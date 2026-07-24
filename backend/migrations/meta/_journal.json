@@ -62,6 +62,13 @@
       "idx": 8,
       "version": "7",
       "when": 1700000008000,
+      "tag": "0008_job_marketplace",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1700000009000,
       "tag": "0009_staff_control_foundation",
       "breakpoints": true
     }
