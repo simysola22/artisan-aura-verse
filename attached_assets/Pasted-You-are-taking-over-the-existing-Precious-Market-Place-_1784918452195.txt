@@ -1,0 +1,515 @@
+You are taking over the existing Precious Market Place (PMP) production application.
+
+IMPORTANT: This is an existing production application. Do not rewrite, replace, or redesign existing systems unnecessarily. Preserve all currently working functionality.
+
+The previous approved audit and the minimal support-ticket audit fix have already been completed successfully.
+
+CURRENT VERIFIED STATE:
+- Backend: Bun + Hono + Drizzle ORM
+- Database: PostgreSQL
+- Authentication: Clerk
+- Frontend: React + TanStack Start
+- Existing database-backed PMP identity system
+- Existing RBAC system with database-backed roles and permissions
+- Existing /v1/ops/* operational routes
+- Existing ops_audit_log audit system
+- Existing request/session/IP/user-agent audit context
+- Existing user suspension/reactivation/deletion controls
+- Existing role assignment/removal controls
+- Existing support and moderation operations
+- Existing subscription enforcement for messaging
+- Existing Clerk authentication
+- Existing staff/operations foundation
+- Existing support-ticket message audit event: support_ticket_message_added
+- Existing migrations through 0010
+- Previous validation: 514/514 backend tests passed, backend typecheck passed, frontend typecheck passed, production build passed, and migrations completed successfully.
+
+DO NOT CHANGE:
+- Clerk authentication architecture
+- Existing public user signup/login flow
+- Existing artisan/provider and employer account types
+- Existing subscription and billing rules
+- Existing subscription-to-messaging enforcement
+- Existing messaging behavior
+- Existing support ownership rules
+- Existing moderation behavior
+- Existing API response contracts unless absolutely necessary
+- Existing working roles and permissions
+- Existing audit architecture
+- Existing database tables unrelated to this feature
+- Existing deployment configuration unless required by an approved implementation
+- Existing secrets or environment variables
+- Do not create hidden authentication bypasses.
+- Do not create permanent shared passwords or permanent universal access keys.
+- Do not create a secret backdoor.
+- Do not silently provision privileged accounts.
+- Do not expose secrets in frontend code, logs, database records, or API responses.
+
+OBJECTIVE:
+Now build the secure foundation for the PMP internal staff-control system.
+
+The goal is to create a secure, auditable, revocable staff-control system that uses the existing Clerk authentication, PMP identity, RBAC, permissions, and audit architecture.
+
+The system must allow authorized internal staff to perform their assigned operational duties while allowing the Admin/Super Admin layer to manage and control the system through the application itself.
+
+This must be designed as an additive extension of the existing architecture.
+
+==================================================
+PHASE 0 — READ-ONLY AUDIT BEFORE IMPLEMENTATION
+==================================================
+
+Before changing any code, perform a complete read-only audit of the current repository.
+
+Do not modify files during this audit.
+
+Inspect:
+
+1. Existing Clerk authentication flow
+2. PMP identity resolution
+3. Existing roles
+4. Existing permissions
+5. Existing role hierarchy and privilege checks
+6. Existing /v1/ops routes
+7. Existing admin/operations services
+8. Existing ops_audit_log architecture
+9. Existing request/session/IP/user-agent audit context
+10. Existing user suspension/reactivation/deletion logic
+11. Existing role assignment/removal logic
+12. Existing session/token handling
+13. Existing database migration conventions
+14. Existing frontend routing and dashboard architecture
+15. Existing subscription and messaging enforcement
+16. Existing error-handling conventions
+17. Existing tests and test fixtures
+18. Existing deployment/runtime configuration
+
+Produce an audit report before implementing anything.
+
+Every finding must include:
+- Status:
+  ✅ Confirmed working
+  ⚠️ Partially implemented
+  ❌ Missing
+  🔴 Critical risk
+  🔍 Not verified
+- Exact file path
+- Function/class/route where relevant
+- Database table where relevant
+- API endpoint where relevant
+- Security impact where relevant
+
+The audit must clearly distinguish:
+- Code exists
+- Code is tested
+- Code works locally
+- Code works in production
+- Code is secure
+- Code is scalable
+
+Do not assume something works merely because the code exists.
+
+==================================================
+PHASE 1 — STAFF ROLE AND PERMISSION MODEL
+==================================================
+
+After the audit, design the staff role model using the existing RBAC architecture.
+
+Do not replace the current RBAC system.
+
+The system should support clearly separated staff responsibilities, including where compatible with existing roles:
+
+- Super Admin
+- Admin
+- System Engineer
+- Maintenance
+- Customer Support
+- Verification Team
+- Moderation/Trust & Safety where applicable
+
+Use the existing database-backed role and permission architecture.
+
+Do not use frontend-only role checks.
+
+Every sensitive action must be authorized server-side.
+
+Create a clear permission matrix.
+
+Example categories may include:
+
+SYSTEM:
+- system.view
+- system.manage
+- system.settings.manage
+- system.maintenance.manage
+
+USERS:
+- users.view
+- users.manage
+- users.suspend
+- users.reactivate
+- users.delete
+
+ROLES:
+- roles.view
+- roles.manage
+
+SUPPORT:
+- support.view
+- support.respond
+- support.manage
+
+VERIFICATION:
+- verification.view
+- verification.review
+- verification.approve
+- verification.reject
+
+MODERATION:
+- moderation.view
+- moderation.review
+- moderation.action
+
+AUDIT:
+- audit.view
+- audit.export
+
+SESSIONS:
+- sessions.view
+- sessions.revoke
+
+Do not blindly create every permission above if equivalent permissions already exist.
+
+First reuse existing permissions where possible.
+
+Prevent privilege escalation:
+- A staff member must not assign a role equal to or higher than their own authority unless explicitly authorized.
+- Admins must not be able to create or promote Super Admins unless the existing security model explicitly allows it.
+- Super Admin protection must be deliberate and explicit.
+- Users must not be able to modify their own privilege level.
+- Staff must not be able to remove or weaken their own security controls through normal operations.
+
+==================================================
+PHASE 2 — NO PERMANENT SHARED ACCESS KEYS
+==================================================
+
+Do not create one permanent shared “Admin Key.”
+
+The system must use individually attributable authenticated identities.
+
+If emergency or elevated access codes are eventually needed, they must be:
+
+- Individually issued
+- Short-lived or rotatable
+- Revocable
+- Hashed at rest where appropriate
+- Never displayed again after creation
+- Never stored in plaintext
+- Never exposed to the frontend unnecessarily
+- Fully audited
+- Associated with a specific staff member
+- Subject to expiry and revocation
+- Protected against brute force
+- Protected against replay where applicable
+
+However, do not implement an emergency credential system unless the audit proves that it is necessary.
+
+Prefer Clerk identities + PMP roles + permissions as the primary access model.
+
+==================================================
+PHASE 3 — STAFF ACTIVITY AUDIT TRAIL
+==================================================
+
+Every operational action performed by staff must be attributable.
+
+Use the existing ops_audit_log architecture.
+
+The system should record, where available:
+
+- Actor PMP user
+- Clerk user ID
+- Actor roles
+- Required permission
+- Clerk session ID
+- Request ID
+- IP address
+- User agent
+- Action
+- Target entity
+- Target entity ID
+- Success/failure
+- Timestamp
+- Relevant metadata
+
+Audit events should cover actions such as:
+
+- User suspension
+- User reactivation
+- User deletion
+- Role assignment
+- Role removal
+- Support ticket creation
+- Support replies
+- Internal support notes
+- Ticket assignment
+- Ticket closure
+- Verification decisions
+- Moderation decisions
+- Session revocation
+- Maintenance mode changes
+- System setting changes
+- Staff permission changes
+- Staff access changes
+
+Do not create a second unrelated audit system.
+
+Extend the existing audit architecture where necessary.
+
+Audit logging must not expose secrets.
+
+Audit logging failures must not silently create a security bypass.
+
+==================================================
+PHASE 4 — ADMIN CONTROL CENTER FOUNDATION
+==================================================
+
+Build the backend foundation for an Admin Control Center using existing architecture.
+
+The Admin should eventually be able to manage operational areas such as:
+
+1. User management
+   - Search users
+   - View users
+   - View account status
+   - Suspend users
+   - Reactivate users
+   - Soft-delete users where permitted
+
+2. Staff management
+   - View staff
+   - View assigned roles
+   - Assign permitted roles
+   - Remove permitted roles
+   - View staff activity
+
+3. Support
+   - View support tickets
+   - Assign tickets
+   - Respond
+   - Add internal notes
+   - Close tickets
+
+4. Verification
+   - View verification cases
+   - Review cases
+   - Approve/reject according to permission
+
+5. Moderation
+   - View reports
+   - Review reports
+   - Take permitted actions
+
+6. Audit
+   - Search audit logs
+   - Filter by actor
+   - Filter by role
+   - Filter by action
+   - Filter by entity
+   - Filter by session
+   - Filter by request ID
+   - Filter by date range
+   - Filter by success/failure
+
+7. Session and access control
+   - View active sessions where technically supported
+   - Revoke sessions or access where supported by the existing authentication architecture
+   - Suspend PMP identities immediately
+   - Ensure suspended users cannot continue using protected PMP operations
+
+8. Maintenance controls
+   - Only authorized staff may control maintenance mode
+   - Maintenance changes must be audited
+   - Maintenance mode must not become an authentication bypass
+   - Emergency access must remain secure
+
+The Admin should have broad operational control, but the system must still enforce an explicit hierarchy.
+
+Do not simply give every staff member every permission.
+
+==================================================
+PHASE 5 — SESSION REVOCATION AND ACCESS CONTROL
+==================================================
+
+Investigate what can be safely revoked using the existing Clerk architecture.
+
+Do not invent unsupported Clerk APIs.
+
+Determine whether the system can:
+
+- Revoke a PMP user's access immediately through suspension
+- Revoke Clerk sessions using the supported Clerk server-side mechanism
+- Invalidate application sessions
+- Force reauthentication
+- Track active sessions/devices
+
+Implement only what is confirmed compatible with the existing Clerk integration.
+
+If a capability cannot be verified, report it clearly instead of pretending it exists.
+
+Every revocation action must be audited.
+
+==================================================
+PHASE 6 — ADMIN AND SUPER ADMIN PROTECTION
+==================================================
+
+Design the privilege hierarchy carefully.
+
+The system must prevent:
+
+- Admin self-escalation
+- Staff promoting themselves
+- Lower-level staff assigning higher-level roles
+- Unauthorized removal of higher-level administrators
+- Accidental deletion of the last protected administrative account
+- Privilege escalation through direct API requests
+
+The Super Admin role must not be casually exposed.
+
+Do not automatically create a Super Admin account.
+
+Do not create a universal secret key.
+
+If a bootstrap process is required, design it securely and document exactly how it works before implementing it.
+
+==================================================
+PHASE 7 — FRONTEND IMPLEMENTATION
+==================================================
+
+Only after the backend security foundation is complete and tested, implement the Admin Control Center UI.
+
+The frontend must:
+
+- Use the existing authentication system
+- Use server-returned permissions
+- Hide unauthorized controls for usability
+- Never rely on hidden UI controls as the actual security mechanism
+- Handle 401, 403, and expired-session states correctly
+- Clearly distinguish destructive actions
+- Require confirmation for dangerous actions
+- Show audit-relevant success/failure states
+
+The UI must not expose:
+- Secrets
+- Access tokens
+- Private keys
+- Passwords
+- Emergency credentials
+
+==================================================
+PHASE 8 — TESTING REQUIREMENTS
+==================================================
+
+Add focused tests for:
+
+Authentication:
+- Unauthenticated access rejected
+- Invalid Clerk identity rejected
+- Suspended PMP user rejected
+
+Authorization:
+- Correct staff role allowed
+- Wrong role rejected
+- Missing permission rejected
+- Privilege escalation rejected
+- Self-escalation rejected
+
+Audit:
+- Every sensitive staff action creates an audit record
+- Actor is correctly attributed
+- Role is recorded
+- Permission is recorded when applicable
+- Session ID is recorded when available
+- Request ID is recorded
+- IP and user agent are recorded where available
+- Failed sensitive actions are handled correctly
+
+Session control:
+- Revocation behavior is tested if implemented
+- Suspension immediately blocks protected operations
+
+Admin hierarchy:
+- Lower privilege cannot modify higher privilege
+- Admin cannot perform forbidden Super Admin actions
+- No accidental last-admin lockout
+
+Regression:
+- Existing 514+ backend tests continue to pass
+- Existing messaging tests continue to pass
+- Subscription-required messaging behavior remains unchanged
+- Existing support behavior remains unchanged
+- Existing moderation behavior remains unchanged
+- Existing user/role management behavior remains unchanged
+
+==================================================
+PHASE 9 — VALIDATION
+==================================================
+
+Before declaring completion, run:
+
+- Full backend test suite
+- Backend typecheck
+- Frontend typecheck
+- Production build
+- Migration validation
+- Existing workflow/runtime validation where available
+
+Do not claim production verification if only local verification was performed.
+
+Clearly report:
+
+- What was changed
+- What was not changed
+- What was tested
+- What passed
+- What could not be verified
+- Any migration added
+- Any environment variable required
+- Any deployment action required
+- Any security limitation remaining
+
+==================================================
+CRITICAL SAFETY RULE
+==================================================
+
+This is an existing production application.
+
+Make the smallest compatible changes necessary.
+
+Do not rewrite the application.
+
+Do not change unrelated business logic.
+
+Do not alter the subscription-to-messaging rule.
+
+Do not break existing authentication.
+
+Do not create hidden backdoors.
+
+Do not create permanent shared credentials.
+
+Do not silently create privileged accounts.
+
+Do not make destructive database changes.
+
+Do not run migrations without clearly identifying them.
+
+Do not claim a feature works in production unless it was actually verified in production.
+
+Work in phases.
+
+First perform the audit.
+
+Then provide the findings.
+
+Then implement only the approved, compatible staff-control foundation.
+
+After implementation, run the full validation matrix and provide a complete change report.
